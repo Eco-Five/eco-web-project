@@ -1,37 +1,4 @@
-<!---------------------------- 네비게이션 ---------------------------------->
-<!-- https://www.w3schools.com/bootstrap5/bootstrap_navbar.php -->
-<nav class="navbar navbar-expand-sm" style="background-color: white;">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">
-            <img src="/images/anyone/eco-logo.png" alt="Logo" style="width:30px;" class="rounded-pill">
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mynavbar">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="#">홈</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">추천제품</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">커뮤니티</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">고객문의</a>
-                </li>
-            </ul>
-            <form class="d-flex">
-                <button class="btn btn-dark" type="button">로그인</button>
-            </form>
-        </div>
-    </div>
-</nav>
-<!---------------------------- 네비게이션 ---------------------------------->
-
-
+<%-include('mainData.ejs') %>
 
 <!------------------------- 이미지 슬라이드 -------------------------------->
 <!-- https://www.w3schools.com/bootstrap5/bootstrap_carousel.php -->
@@ -92,24 +59,136 @@
 
 
 <!-------------------------- 카테고리 -------------------------------->
-<div id="card-container" class="d-flex justify-content-between" style="width: 100vw; background-color: aquamarine;"></div>
+<div id="card-container" class="d-flex justify-content-between mt-3 mb-3"
+    style="width: 100vw; font-size: clamp(0.6rem, 2.0vw, 1.0rem);"></div>
 
 <script type="module">
     const cardContainer = document.getElementById("card-container");
 
     for (let i = 0; i < 4; i++) {
         const cardHtml = `
-            <div class="container mt-3 d-flex justify-content-center">
-                <div class="card" style="max-width: 450px; text-align: center">
-                    <img class="card-img-top img-fluid" src="images/main/zerowaste.png" alt="Card image">
-                    <div class="card-img-overlay">
-                        <h4 class="card-title">제로웨이스트</h4>
-                    </div>
+        <div class="container d-flex justify-content-center">
+            <div class="card" style="max-width: 450px; text-align: center">
+                <img class="card-img-top img-fluid" src="images/main/zerowaste.png" alt="Card image">
+                <div class="card-img-overlay">
+                    <p class="card-title">제로웨이스트</p>
                 </div>
             </div>
-        `
+        </div>
+    `
         cardContainer.innerHTML += cardHtml;
     }
 
 </script>
 <!-------------------------- 카테고리 이동 -------------------------------->
+
+
+<style>
+    .impact-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .story-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+    }
+</style>
+
+
+
+
+<!-------------------------- 추천 제품 -------------------------------->
+<div class="container">
+    <div class="container mt-2 mb-2 row" style="background-color: aqua;">
+        <h2 class="text mb-4 fw-bold">추천 제품</h2>
+        <div id="products" class="row g-4 justify-content-between">
+            <!-- Handlebars 템플릿이 여기에 렌더링됩니다. -->
+        </div>
+    </div>
+</div>
+
+<script id="product-card" type="text/x-handlebars-template">
+    {{#each products}}
+    <div class="col-md-3 category-cart" style="border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px; text-align: center;">
+        <img class="img-fluid" src="{{image}}" alt="{{alt}}">
+        <div class="p-3">
+            <span>{{mark}}</span>
+            <h4 class="card-title">{{alt}}</h4>
+            <p class="card-text">{{description}}</p>
+            <div class="d-flex justify-content-between align-items-center p-2">
+                <p class="mb-0 fs-6 fw-bold">{{price}}</p> <!-- 텍스트 크기 키움 -->
+                <button index="{{@index}}" class="btn btn-dark btn-sm px-3 py-1">장바구니</button> <!-- 버튼 크기 조정 -->
+            </div>
+        </div>
+    </div> 
+    {{/each}}
+</script>
+
+<script>
+    const productCard = document.getElementById("product-card").innerHTML;
+    const productCardTemp = Handlebars.compile(productCard);
+    const products = document.getElementById("products");
+    products.innerHTML = productCardTemp(mainData);
+</script>
+<!-------------------------- 추천 제품 -------------------------------->
+
+
+
+<!-------------------------- 환경데이터 API -------------------------------->
+<h2 class="mt-5">환경 임팩트</h2>
+<div class="row">
+    <div class="col-md-4">
+        <div class="impact-card">
+            <h5>플라스틱 폐기량</h5>
+            <p>15,000kg</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="impact-card">
+            <h5>탄소 배출 감소량</h5>
+            <p>25,000kg</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="impact-card">
+            <h5>나무 심기</h5>
+            <p>5,000그루</p>
+        </div>
+    </div>
+</div>
+<!-------------------------- 환경데이터 API -------------------------------->
+
+
+<!-------------------------- 스토리 -------------------------------->
+<h2 class="mt-5">브랜드 스토리</h2>
+<div class="row">
+    <div class="col-md-3">
+        <div class="story-card">
+            <h5>에코그린</h5>
+            <p>지역과 함께 성장하는 친환경 라이프스타일 브랜드</p>
+            <button class="btn btn-link">더 알아보기</button>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="story-card">
+            <h5>네이처케어</h5>
+            <p>자연의 원료로 만든 건강한 스킨케어</p>
+            <button class="btn btn-link">더 알아보기</button>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="story-card">
+            <h5>리사이클러</h5>
+            <p>재활용 소재로 만드는 지속 가능한 패션</p>
+            <button class="btn btn-link">더 알아보기</button>
+        </div>
+    </div>
+</div>
+
+<!-------------------------- 스토리 -------------------------------->
