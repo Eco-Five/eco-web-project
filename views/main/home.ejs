@@ -21,7 +21,7 @@
             <p id="bannerText" class="mb-8" style="font-size: clamp(0.6rem, 2.0vw, 1.4rem);">
                 지속 가능한 소비로 더 나은 미래를 만들어갑니다
             </p>
-            <form class="d-flex">
+            <form class="d-flex" onsubmit="event.preventDefault(); window.location.href='/about';">
                 <button id="bannerButton" class="btn btn-dark">시작하기</button>
             </form>
         </div>
@@ -60,7 +60,7 @@
 
 <!-------------------------- 카테고리 -------------------------------->
 <div id="card-container" class="d-flex justify-content-between mt-3 mb-3"
-    style="width: 100vw; font-size: clamp(0.6rem, 2.0vw, 1.0rem);"></div>
+    style="width: 100%; font-size: clamp(0.6rem, 2.0vw, 1.0rem);"></div>
 
 <script type="module">
     const cardContainer = document.getElementById("card-container");
@@ -71,7 +71,8 @@
             <div class="card" style="max-width: 450px; text-align: center">
                 <img class="card-img-top img-fluid" src="images/main/zerowaste.png" alt="Card image">
                 <div class="card-img-overlay">
-                    <p class="card-title">제로웨이스트</p>
+                    <p class="card-title d-flex align-items-center justify-content-center fw-bold" 
+                        style="height: 100%; font-size: clamp(1.2rem, 2vw, 3rem); color: green;">제로웨이스트</p>
                 </div>
             </div>
         </div>
@@ -83,50 +84,29 @@
 <!-------------------------- 카테고리 이동 -------------------------------->
 
 
-<style>
-    .impact-card {
-        border: 1px solid #e0e0e0;
-        border-radius: 10px;
-        padding: 15px;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-
-    .story-card {
-        border: 1px solid #e0e0e0;
-        border-radius: 10px;
-        padding: 15px;
-        text-align: center;
-    }
-</style>
-
-
-
 
 <!-------------------------- 추천 제품 -------------------------------->
-<div class="container">
-    <div class="container mt-2 mb-2 row" style="background-color: aqua;">
-        <h2 class="text mb-4 fw-bold">추천 제품</h2>
-        <div id="products" class="row g-4 justify-content-between">
-            <!-- Handlebars 템플릿이 여기에 렌더링됩니다. -->
-        </div>
+<div style="width: 100%;">
+    <h2 class="text mt-5 ms-2 mb-3 fw-bold" style="font-size: clamp(1.2rem, 2vw, 3rem);">추천 제품</h2>
+    <div id="products" class="d-flex justify-content-between">
+        <!-- Handlebars 템플릿이 여기에 렌더링됩니다. -->
     </div>
 </div>
 
 <script id="product-card" type="text/x-handlebars-template">
     {{#each products}}
-    <div class="col-md-3 category-cart" style="border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px; text-align: center;">
-        <img class="img-fluid" src="{{image}}" alt="{{alt}}">
+    <div class="category-cart me-2 ms-2" style="border: 1px solid #e0e0e0; border-radius: 10px; flex: 1;">
+        <img class="img-fluid" src="{{image}}" alt="{{alt}}" style="width: 100%; object-fit: cover;">
         <div class="p-3">
-            <span>{{mark}}</span>
-            <h4 class="card-title">{{alt}}</h4>
-            <p class="card-text">{{description}}</p>
-            <div class="d-flex justify-content-between align-items-center p-2">
-                <p class="mb-0 fs-6 fw-bold">{{price}}</p> <!-- 텍스트 크기 키움 -->
-                <button index="{{@index}}" class="btn btn-dark btn-sm px-3 py-1">장바구니</button> <!-- 버튼 크기 조정 -->
+            <span style="font-size: clamp(0.4rem, 2vw, 0.8rem);">{{mark}}</span>
+            <h4 class="card-title fw-bold" style="font-size: clamp(0.6rem, 2vw, 1.5rem);">{{alt}}</h4>
+            <p class="card-text" style="font-size: clamp(0.4rem, 1.5vw, 1rem);">{{description}}</p>
+            <div class="d-flex justify-content-between align-items-center p-2" >
+                <p class="mb-0 fw-bold" style="font-size: clamp(0.6rem, 2vw, 1.2rem);">{{price}}</p> <!-- 텍스트 크기 키움 -->
+                <button index="{{@index}}" class="btn btn-dark btn-sm" style="min-width: 10px; font-size: 1vw">에코백담기</button> <!-- 버튼 크기 조정 -->
             </div>
         </div>
-    </div> 
+    </div>
     {{/each}}
 </script>
 
@@ -141,23 +121,26 @@
 
 
 <!-------------------------- 환경데이터 API -------------------------------->
-<h2 class="mt-5">환경 임팩트</h2>
-<div class="row">
+<h2 class="text mt-5 ms-2 mb-3 fw-bold" style="font-size: clamp(1.2rem, 2vw, 3rem);">환경 데이터</h2>
+<div class="row ms-1 me-1">
     <div class="col-md-4">
-        <div class="impact-card">
-            <h5>플라스틱 폐기량</h5>
+        <div class="impact-card" style="border: 1px solid #e0e0e0; border-radius: 10px; text-align: center;">
+            <i class="m-4 fa-solid fa-recycle" style="font-size: 2rem;"></i>
+            <h5 class="fw-bold">플라스틱 폐기량</h5>
             <p>15,000kg</p>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="impact-card">
-            <h5>탄소 배출 감소량</h5>
+        <div class="impact-card" style="border: 1px solid #e0e0e0; border-radius: 10px; text-align: center;">
+            <i class="m-4 fa-solid fa-earth-americas" style="font-size: 2rem;"></i>
+            <h5 class="fw-bold">탄소 배출 감소량</h5>
             <p>25,000kg</p>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="impact-card">
-            <h5>나무 심기</h5>
+        <div class="impact-card" style="border: 1px solid #e0e0e0; border-radius: 10px; text-align: center;">
+            <i class="m-4 fa-brands fa-envira" style="font-size: 2rem;"></i>
+            <h5 class="fw-bold">나무 심기</h5>
             <p>5,000그루</p>
         </div>
     </div>
@@ -166,29 +149,37 @@
 
 
 <!-------------------------- 스토리 -------------------------------->
-<h2 class="mt-5">브랜드 스토리</h2>
-<div class="row">
-    <div class="col-md-3">
-        <div class="story-card">
-            <h5>에코그린</h5>
-            <p>지역과 함께 성장하는 친환경 라이프스타일 브랜드</p>
-            <button class="btn btn-link">더 알아보기</button>
+<h2 class="text mt-5 ms-2 mb-3 fw-bold" style="font-size: clamp(1.2rem, 2vw, 3rem);">브랜드 스토리</h2>
+<div class="row me-1 ms-1" style="height: 100%;">
+    <div class="col-md-4 mb-4"> <!-- mb-4 추가하여 카드 간격 조정 -->
+        <div class="story-card border rounded text-center"> <!-- border와 rounded 클래스를 사용 -->
+            <img src="images/main/ecopassion.jpg" alt="에코페션" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;"> <!-- 고정 높이 및 object-fit 사용 -->
+            <div class="p-3"> <!-- 패딩 추가 -->
+                <h5>에코그린</h5>
+                <p>지역과 함께 성장하는 친환경 라이프스타일 브랜드</p>
+                <button class="btn btn-primary">더 알아보기</button> <!-- btn-primary 클래스를 사용 -->
+            </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="story-card">
-            <h5>네이처케어</h5>
-            <p>자연의 원료로 만든 건강한 스킨케어</p>
-            <button class="btn btn-link">더 알아보기</button>
+    <div class="col-md-4 mb-4"> <!-- mb-4 추가하여 카드 간격 조정 -->
+        <div class="story-card border rounded text-center"> <!-- border와 rounded 클래스를 사용 -->
+            <img src="images/main/organic.jpg" alt="오가닉" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;"> <!-- 고정 높이 및 object-fit 사용 -->
+            <div class="p-3"> <!-- 패딩 추가 -->
+                <h5>네이처케어</h5>
+                <p>자연의 원료로 만든 건강한 스킨케어</p>
+                <button class="btn btn-primary">더 알아보기</button> <!-- btn-primary 클래스를 사용 -->
+            </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="story-card">
-            <h5>리사이클러</h5>
-            <p>재활용 소재로 만드는 지속 가능한 패션</p>
-            <button class="btn btn-link">더 알아보기</button>
+    <div class="col-md-4 mb-4"> <!-- mb-4 추가하여 카드 간격 조정 -->
+        <div class="story-card border rounded text-center" style="height: 100%"> <!-- border와 rounded 클래스를 사용 -->
+            <img src="images/main/recycle.png" alt="리사이클" class="img-fluid" style="width: 100%; object-fit: cover;"> <!-- 고정 높이 및 object-fit 사용 -->
+            <div class="p-3"> <!-- 패딩 추가 -->
+                <h5>리사이클러</h5>
+                <p>재활용 소재로 만드는 지속 가능한 패션</p>
+                <button class="btn btn-primary">더 알아보기</button> <!-- btn-primary 클래스를 사용 -->
+            </div>
         </div>
     </div>
 </div>
-
 <!-------------------------- 스토리 -------------------------------->
