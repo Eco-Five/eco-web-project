@@ -14,4 +14,8 @@ router.get('/login/find', function(req, res, next) {
   res.render('index', { title: '회원 정보 찾기', pageName: 'login/find.ejs' });
 });
 
+router.get('/register', function(req, res, next) {
+  res.render('index', { title: '회원 가입', pageName: 'register/register.ejs' });
+});
+
 module.exports = router;
