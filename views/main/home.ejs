@@ -71,7 +71,7 @@
             <div class="card" style="max-width: 450px; text-align: center">
                 <img class="card-img-top img-fluid" src="images/main/zerowaste.png" alt="Card image">
                 <div class="card-img-overlay">
-                    <p class="card-title d-flex align-items-center justify-content-center fw-bold" 
+                    <p class="card-title d-flex align-items-center justify-content-center fw-bold"
                         style="height: 100%; font-size: clamp(1.2rem, 2vw, 3rem); color: green;">제로웨이스트</p>
                 </div>
             </div>
@@ -79,7 +79,6 @@
     `
         cardContainer.innerHTML += cardHtml;
     }
-
 </script>
 <!-------------------------- 카테고리 이동 -------------------------------->
 
@@ -148,38 +147,65 @@
 <!-------------------------- 환경데이터 API -------------------------------->
 
 
-<!-------------------------- 스토리 -------------------------------->
-<h2 class="text mt-5 ms-2 mb-3 fw-bold" style="font-size: clamp(1.2rem, 2vw, 3rem);">브랜드 스토리</h2>
-<div class="row me-1 ms-1" style="height: 100%;">
-    <div class="col-md-4 mb-4"> <!-- mb-4 추가하여 카드 간격 조정 -->
-        <div class="story-card border rounded text-center"> <!-- border와 rounded 클래스를 사용 -->
-            <img src="images/main/ecopassion.jpg" alt="에코페션" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;"> <!-- 고정 높이 및 object-fit 사용 -->
-            <div class="p-3"> <!-- 패딩 추가 -->
-                <h5>에코그린</h5>
-                <p>지역과 함께 성장하는 친환경 라이프스타일 브랜드</p>
-                <button class="btn btn-primary">더 알아보기</button> <!-- btn-primary 클래스를 사용 -->
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 mb-4"> <!-- mb-4 추가하여 카드 간격 조정 -->
-        <div class="story-card border rounded text-center"> <!-- border와 rounded 클래스를 사용 -->
-            <img src="images/main/organic.jpg" alt="오가닉" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;"> <!-- 고정 높이 및 object-fit 사용 -->
-            <div class="p-3"> <!-- 패딩 추가 -->
-                <h5>네이처케어</h5>
-                <p>자연의 원료로 만든 건강한 스킨케어</p>
-                <button class="btn btn-primary">더 알아보기</button> <!-- btn-primary 클래스를 사용 -->
-            </div>
-        </div>
-    </div>
+
+<!-------------------------- 유튜브 -------------------------------->
+<h2 class="text mt-5 ms-2 mb-3 fw-bold" style="font-size: clamp(1.2rem, 2vw, 3rem);">
+    <i class="fa-brands fa-youtube" style="color: red;"></i> 유튜브
+</h2>
+<div id="youtubes" class="row me-1 ms-1" style="height: 100%;"></div>
+<!-- handlebars -->
+<script id="youtube-card" type="text/x-handlebars-template">
+    {{#each items}}
     <div class="col-md-4 mb-4"> <!-- mb-4 추가하여 카드 간격 조정 -->
         <div class="story-card border rounded text-center" style="height: 100%"> <!-- border와 rounded 클래스를 사용 -->
-            <img src="images/main/recycle.png" alt="리사이클" class="img-fluid" style="width: 100%; object-fit: cover;"> <!-- 고정 높이 및 object-fit 사용 -->
+            <a href="https://www.youtube.com/watch?v={{id.videoId}}">
+                <img id="zoom-img" src="{{snippet.thumbnails.medium.url}}" alt="image" class="img-fluid" style="width: 100%; object-fit: cover;" />
+            </a>
             <div class="p-3"> <!-- 패딩 추가 -->
-                <h5>리사이클러</h5>
-                <p>재활용 소재로 만드는 지속 가능한 패션</p>
-                <button class="btn btn-primary">더 알아보기</button> <!-- btn-primary 클래스를 사용 -->
+                <p style="font-size: clamp(0.8rem, 1vw, 2rem);">{{snippet.title}}</p>
+                <p style="font-size: clamp(0.8rem, 1vw, 2rem);"">{{snippet.description}}</p>
+                <a href="https://www.youtube.com/channel/{{snippet.channelId}}">
+                    <button class="btn btn-success">유튜브채널Link</button> <!-- btn-primary 클래스를 사용 -->
+                </a>
             </div>
         </div>
     </div>
-</div>
-<!-------------------------- 스토리 -------------------------------->
+    {{/each}}
+</script>
+
+<!-- youtube api function -->
+<script>
+    // api key
+    const API_KEY = 'AIzaSyAZ7HoGxJxn9fTmgHLhhsJSy7srAxmTN6Y'
+
+    const getVideos = () => {
+        // api url 호출
+        $.ajax({
+            method: 'GET',
+            url: 'https://youtube.googleapis.com/youtube/v3/search',
+            data: {
+                key: API_KEY,       part: 'snippet',
+                maxResults: 3,      q: '제로웨이스트',
+                regionCode: 'kr',   order: 'viewCount',
+                type: 'video',      videoDuration: 'medium'
+            },
+            dataType: 'json',
+            success: (response) => {
+                const youtubeData = {items : response.items}
+                // youtubes handlebars 적용
+                let temp = Handlebars.compile($("#youtube-card").html())
+                $("#youtubes").html(temp(youtubeData))
+            },
+            error: (error) => {
+                console.log(error);
+            }
+        })
+    }
+    getVideos()
+</script>
+
+<style>
+    #zoom-img { transition: transform 0.5s ease; /* 부드러운 확대 효과 */ }
+    #zoom-img:hover { transform: scale(1.02); /* 커서 오버 시 10% 확대 */ }
+</style>
+<!-------------------------- 유튜브 -------------------------------->
