@@ -7,64 +7,66 @@
     </div>
   </div>
   <h1 class="h4 mb-4">계정 찾기</h1>
-<div class="custom-card text-center">
-  <ul class="nav nav-tabs justify-content-center mb-4" id="accountTab" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="find-id-tab" data-bs-toggle="tab" data-bs-target="#find-id" type="button"
-        role="tab" aria-controls="find-id" aria-selected="true">아이디 찾기</button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="find-password-tab" data-bs-toggle="tab" data-bs-target="#find-password" type="button"
-        role="tab" aria-controls="find-password" aria-selected="false">비밀번호 찾기</button>
-    </li>
-  </ul>
-  <div class="tab-content" id="accountTabContent">
-    <div class="tab-pane fade show active" id="find-id" role="tabpanel" aria-labelledby="find-id-tab">
-      <form id="findIdForm">
-        <div class="mb-3">
-          <label for="name" class="d-flex me-3 mb-2" >이름</label>
-          <input type="text" id="name" class="form-control flex-grow-1" placeholder="👤 이름을 입력하세요" required>
+  <div class="custom-card text-center">
+    <ul class="nav nav-tabs justify-content-center mb-4" id="accountTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="find-id-tab" data-bs-toggle="tab" data-bs-target="#find-id" type="button"
+          role="tab" aria-controls="find-id" aria-selected="true">아이디 찾기</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="find-password-tab" data-bs-toggle="tab" data-bs-target="#find-password"
+          type="button" role="tab" aria-controls="find-password" aria-selected="false">비밀번호 찾기</button>
+      </li>
+    </ul>
+    <div class="tab-content" id="accountTabContent">
+      <div class="tab-pane fade show active" id="find-id" role="tabpanel" aria-labelledby="find-id-tab">
+        <form id="findIdForm">
+          <div class="mb-3">
+            <label for="name" class="d-flex me-3 mb-2">이름</label>
+            <input type="text" id="name" class="form-control flex-grow-1" placeholder="👤 이름을 입력하세요" required>
+          </div>
+          <div class="mb-3">
+            <label for="phone" class="d-flex me-3 mb-2">전화번호</label>
+            <input type="text" id="phone" class="form-control flex-grow-1" placeholder="☎ 전화번호를 입력하세요" required>
+          </div>
+          <button type="ID" class="btn btn-dark w-100 mb-2">아이디 찾기</button>
+        </form>
+        <div id="idResult" class="mt-3 text-start d-none text-center">
+          <p class="result-box">찾은 아이디: <strong id="foundId">user123</strong></p>
         </div>
-        <div class="mb-3">
-          <label for="phone" class="d-flex me-3 mb-2">전화번호</label>
-          <input type="text" id="phone" class="form-control flex-grow-1" placeholder="☎ 전화번호를 입력하세요" required>
-        </div>
-        <button type="ID" class="btn btn-dark w-100 mb-2">아이디 찾기</button>
-      </form>
-      <div id="idResult" class="mt-3 text-start d-none text-center">
-        <p class="result-box">찾은 아이디: <strong id="foundId">user123</strong></p>
       </div>
-    </div>
-    <div class="tab-pane fade show " id="find-password" role="tabpanel" aria-labelledby="find-password-tab">
-      <form id="findPasswordForm">
-        <div class="mb-3">
-          <label for="ID" class="d-flex me-3 mb-2">이메일</label>
-          <input type="text" id="ID" class="form-control flex-grow-1" placeholder="✉ 이메일을 입력하세요" required>
+      <div class="tab-pane fade show " id="find-password" role="tabpanel" aria-labelledby="find-password-tab">
+        <form id="findPasswordForm">
+          <div class="mb-3">
+            <label for="ID" class="d-flex me-3 mb-2">이메일</label>
+            <input type="text" id="ID" class="form-control flex-grow-1" placeholder="✉ 이메일을 입력하세요" required>
+          </div>
+          <div class="mb-3">
+            <label for="namePw" class="d-flex me-3 mb-2">이름</label>
+            <input type="text" id="namePw" class="form-control flex-grow-1" placeholder="👤 이름을 입력하세요" required>
+          </div>
+          <div class="mb-3">
+            <label for="namePw" class="d-flex me-3 mb-2">전화번호</label>
+            <input type="text" id="phonePw" class="form-control flex-grow-1" placeholder="☎ 전화번호를 입력하세요" required>
+          </div>
+          <button type="submit" class="btn btn-dark w-100 mb-2">비밀번호 찾기</button>
+        </form>
+        <div id="passwordResult" class="mt-3 text-start d-none text-center">
+          <p class="result-box">찾은 비밀번호: <strong password="foundPassword">오인명</strong></p>
         </div>
-        <div class="mb-3">
-          <label for="namePw" class="d-flex me-3 mb-2">이름</label>
-          <input type="text" id="namePw" class="form-control flex-grow-1" placeholder="👤 이름을 입력하세요" required>
-        </div>
-        <div class="mb-3">
-          <label for="namePw" class="d-flex me-3 mb-2">전화번호</label>
-          <input type="text" id="phonePw" class="form-control flex-grow-1" placeholder="☎ 전화번호를 입력하세요" required>
-        </div>
-        <button type="submit" class="btn btn-dark w-100 mb-2">비밀번호 찾기</button>
-      </form>
-      <div id="passwordResult" class="mt-3 text-start d-none text-center">
-        <p class="result-box">찾은 비밀번호: <strong password="foundPassword">오인명</strong></p>
       </div>
     </div>
   </div>
+  <div class="mt-4 text-center">
+    <a href="/login" class="text-muted me-3">로그인</a>
+    <span style="color: rgb(187, 188, 189);">|</span>
+    <a href="/register" class="text-muted me-3 ms-3">회원가입</a>
+    <span style="color: rgb(187, 188, 189);">|</span>
+    <a href="#" class="text-muted ms-3">고객센터</a>
+  </div>
 </div>
-<div class="mt-4 text-center">
-  <a href="/login" class="text-muted me-3">로그인</a>
-  <span style="color: rgb(187, 188, 189);">|</span>
-  <a href="/register" class="text-muted me-3 ms-3">회원가입</a>
-  <span style="color: rgb(187, 188, 189);">|</span>
-  <a href="#" class="text-muted ms-3">고객센터</a>
-</div>
-</div>
+
+
 <!-- Bootstrap JS -->
 <script>
   document.getElementById('findIdForm').addEventListener('submit', function (event) {
@@ -78,13 +80,13 @@
   });
 
   document.getElementById('findPasswordForm').addEventListener('submit', function (event) {
-      event.preventDefault();
-      const ID = document.getElementById('ID').value;
-      const name = document.getElementById('namePw').value;
-      const phone = document.getElementById('phonePw').value;
-      
-      if (name && phone && ID) {
-        document.getElementById('passwordResult').classList.remove('d-none');
-      }
-    });
-  </script>
+    event.preventDefault();
+    const ID = document.getElementById('ID').value;
+    const name = document.getElementById('namePw').value;
+    const phone = document.getElementById('phonePw').value;
+
+    if (name && phone && ID) {
+      document.getElementById('passwordResult').classList.remove('d-none');
+    }
+  });
+</script>
