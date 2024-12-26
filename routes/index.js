@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'main', pageName: 'main/home.ejs' });
@@ -64,5 +65,21 @@ router.get('/question/read', function(req, res, next) {
 router.get('/question/update', function(req, res, next) {
   res.render('index', { title: '고객문의수정',pageName:'question/update.ejs'});
 });
+
+
+
+/************************** MySQL CRUD **************************/
+const pool = require('../dbConn.js')
+
+router.get('/selectMember', async (req, res) => {
+  try {
+    const [rows] = await pool.execute('select * from member')
+    res.json(rows)
+    
+  } catch(error) {
+    console.error("sql쿼리 오류");
+  }
+})
+/************************** MySQL CRUD **************************/
 
 module.exports = router;
