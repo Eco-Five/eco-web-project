@@ -1,0 +1,72 @@
+<link rel="stylesheet" href="/styles/board/board.css">
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header text-white bg-dark">
+                <div class="align-items-center">
+                    <h4 class="mb-0">커뮤니티</h4>
+                    <p class="mb-0">친환경적인 미래를 위해 의견을 공유해보세요</p>
+                </div>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">카테고리</label>
+                        <select id="category" class="form-select">
+                            <option selected>카테고리를 선택하세요</option>
+                            <option value="1">환경뉴스</option>
+                            <option value="2">친환경팁</option>
+                            <option value="3">자유게시판</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">제목</label>
+                        <input type="text" class="form-control" id="title" placeholder="제목을 입력하세요">
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">내용</label>
+                        <textarea class="form-control" id="content" rows="20" placeholder="내용을 입력하세요"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fileUpload" class="form-label">파일 첨부</label>
+                        <input class="form-control" type="file" id="fileUpload" accept=".png, .jpg, .gif">
+                        <small class="text-muted">PNG, JPG, GIF 최대 10MB</small>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" id="btn-list">취소</button>
+                        <button type="submit" class="btn btn-primary" id="btn-update">수정</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    $(document).ready(() => {
+        $("#btn-list").click(() => {
+            location.href = "/board"; 
+        })
+
+        $("#btn-update").click(() => {
+            alert("글 수정 성공"); 
+            event.preventDefault();  // 버튼 타입 submit -> 폼 제출을 방지
+            location.href = "/board";  
+        })
+    });
+
+        /* $(frm).on("submit", async (event) => {
+        event.preventDefault()//새로고침이 안일어남
+        let title = $(frm.title).val()
+        let body = $(frm.body).val()
+        //제목이나 내용을 입력 안했을 때 모달창에 메시지 출력하기
+        if(title == "" || body == ""){
+            $("#modal-alert .modal-body").html("제목 또는 내용을 입력하세요.")
+            $("#modal-alert").modal("show")
+        }else{
+            let date = moment(new Date()).format("YYYY-MM-DD HH:mm:ss")
+            await addDoc(collection(db, "posts"), {email: email, title:title, body:body, date: date})
+            //위에서 글쓰기가 성공되었다면 목록 페이지를 보여줘 -> routes -> index.js열어봐
+            location.href = "/posts" //(routes>index.js>pageName: posts/list.ejs)
+        }
+    }) */
+    
+    </script>

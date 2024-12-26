@@ -1,0 +1,16 @@
+.card-header {
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.card-header h4 {
+    margin-bottom: 10px; 
+}
+.card-header p {
+    margin-top: 15px; 
+}
+
