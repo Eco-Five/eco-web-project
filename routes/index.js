@@ -3,8 +3,25 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'main', pageName: 'home.ejs' });
+  res.render('index', { title: 'main', pageName: 'main/home.ejs' });
 });
+
+router.get('/login', function(req, res, next) {
+  res.render('index', { title: '로그인', pageName: 'login/login.ejs' });
+});
+
+router.get('/login/find', function(req, res, next) {
+  res.render('index', { title: '회원정보 찾기', pageName: 'login/find.ejs' });
+});
+
+router.get('/register', function(req, res, next) {
+  res.render('index', { title: '회원가입', pageName: 'register/register.ejs' });
+});
+
+router.get('/about', function(req, res, next) {
+  res.render('index', { title: 'about', pageName: 'main/about.ejs' });
+});
+
 
 /* 커뮤니티 목록 */
 router.get('/board', function(req, res, next) {
