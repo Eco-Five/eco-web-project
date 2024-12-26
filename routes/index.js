@@ -6,6 +6,18 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'main', pageName: 'main/home.ejs' });
 });
 
+router.get('/login', function(req, res, next) {
+  res.render('index', { title: '로그인', pageName: 'login/login.ejs' });
+});
+
+router.get('/login/find', function(req, res, next) {
+  res.render('index', { title: '회원정보 찾기', pageName: 'login/find.ejs' });
+});
+
+router.get('/register', function(req, res, next) {
+  res.render('index', { title: '회원가입', pageName: 'register/register.ejs' });
+});
+
 router.get('/about', function(req, res, next) {
   res.render('index', { title: 'about', pageName: 'main/about.ejs' });
 });
