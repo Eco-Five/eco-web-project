@@ -36,10 +36,12 @@
           </div>
           <div class="address-input-group">
             <label for="local" class="d-flex me-3 mb-2">주소</label>
-            <input class="form-control" style="width: 67%; display: inline;" placeholder="우편 번호" id="postcode"
-              type="text" readonly>
-            <button type="button" class=" btn  btn-dark w-30 btn-block me-3 mb-2" onclick="openPostcodePopup()"> <i
-                class="fa fa-search"></i> 우편번호 찾기</button>
+            <div class="d-flex justify-content-between">
+              <input class="form-control" style="max-width: 66%; max-height: 40px; display: inline;" placeholder="우편 번호" id="postcode"
+                type="text" readonly>
+              <button type="button" class=" btn  btn-dark w-30 btn-block mb-2" onclick="openPostcodePopup()"> <i
+                  class="fa fa-search"></i> 우편번호 찾기</button>
+            </div>
           </div>
           <input class="form-control mb-2" style="top:5px;" placeholder="도로명 주소" id="address" type="text" readonly>
           <input class="form-control mb-2" placeholder="참고항목" id="extra-address" type="text">
