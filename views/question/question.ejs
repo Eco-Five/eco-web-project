@@ -1,9 +1,4 @@
-<style>
-        .table-responsive {
-            overflow-x: auto;
-            text-align: center;
-        }
-</style>
+<link rel="stylesheet" href="/styles/question/question.css">
 
     <div class="container mt-5">
         <div class = "d-flex justify-content-start align-items-center mb-4">  
@@ -54,17 +49,15 @@
                 </tbody>
             </table>
         </div>
-        <nav>
+        <!-- 페이징 처리 -->
+        <nav class="mt-4">
             <ul class="pagination justify-content-center">
-                <li class="page-item disabled">
-                    <a class="page-link">이전</a>
-                </li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#"><</a></li>
+                <li class="page-item"><a class="page-link" href="#">1</a></li>
+                <li class="page-item active"><a class="page-link" href="#">2</a></li>
                 <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item">
-                    <a class="page-link" href="#">다음</a>
-                </li>
+                <li class="page-item"><a class="page-link" href="#">></a></li>
             </ul>
         </nav>
-        
+        <!-- 페이징 처리 -->
+    </div>
