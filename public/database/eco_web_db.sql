@@ -2,7 +2,7 @@ CREATE TABLE board (
     board_id             INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,  -- 기본 키로 설정
     title                VARCHAR(200) NULL,
     content              VARCHAR(400) NULL,
-    board_date                 DATETIME NULL,
+    board_date           DATETIME NULL,
     image_url            VARCHAR(200) NULL,
     member_id            INTEGER UNSIGNED NOT NULL,
     content_type_id      INTEGER UNSIGNED NOT NULL
@@ -54,7 +54,7 @@ CREATE TABLE inquiry (
     inquiry_id           INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,  -- 기본 키로 설정
     title                VARCHAR(200) NULL,
     content              VARCHAR(400) NULL,
-    inquiry_date                 DATETIME NULL,
+    inquiry_date         DATETIME NULL,
     member_id            INTEGER UNSIGNED NOT NULL,
     inquiry_status_id    INTEGER UNSIGNED NOT NULL,
     content_type_id      INTEGER UNSIGNED NOT NULL
@@ -68,7 +68,7 @@ CREATE INDEX inquiry_content_type_id_fk ON inquiry (content_type_id);
 CREATE TABLE inquiry_comment (
     inquiry_comment_id   INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,  -- 기본 키로 설정
     comment              VARCHAR(300) NULL,
-    comment_date                 DATETIME NULL,
+    comment_date         DATETIME NULL,
     inquiry_id           INTEGER UNSIGNED NOT NULL
 );
 
@@ -85,12 +85,13 @@ CREATE TABLE member (
     member_id            INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,  -- 기본 키로 설정
     name                 VARCHAR(100) NULL,
     email                VARCHAR(100) NULL,
-    pwd             VARCHAR(100) NULL,
+    pwd             	 VARCHAR(100) NULL,
     phone                VARCHAR(20) NULL,
-    eco_point                INTEGER UNSIGNED NULL,
+    address				 VARCHAR(200) NULL,
+    eco_point            INTEGER UNSIGNED NULL,
     image_url            VARCHAR(200) NULL,
     member_type_id       INTEGER UNSIGNED NOT NULL,
-    subs_id              INTEGER UNSIGNED NOT NULL
+    subs_id              INTEGER UNSIGNED NOT NULL,
 );
 
 CREATE INDEX member_type_id_fk ON member (member_type_id);
@@ -107,7 +108,7 @@ CREATE TABLE notice (
     notice_id            INTEGER UNSIGNED AUTO_INCREMENT PRIMARY KEY,  -- 기본 키로 설정
     title                VARCHAR(200) NULL,
     content              VARCHAR(400) NULL,
-    notice_date                 DATETIME NULL,
+    notice_date          DATETIME NULL,
     image_url            VARCHAR(200) NULL,
     member_id            INTEGER UNSIGNED NOT NULL,
     content_type_id      INTEGER UNSIGNED NOT NULL

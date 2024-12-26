@@ -9,10 +9,10 @@ INSERT INTO subs (name, price) VALUES
 ('구독 B', 10000);
 
 -- member 테이블에 데이터 삽입
-INSERT INTO member (name, email, pwd, phone, eco_point, image_url, member_type_id, subs_id) VALUES
-('홍길동', 'hong@example.com', 'password123', '010-1234-5678', 100, 'https://placehold.co/250x200', 1, 1),
-('김철수', 'kim@example.com', 'password456', '010-9876-5432', 150, 'https://placehold.co/250x200', 2, 1),
-('이영희', 'lee@example.com', 'password789', '010-5555-5555', 200, 'https://placehold.co/250x200', 1, 2);
+INSERT INTO member (name, email, pwd, phone, eco_point, image_url, member_type_id, subs_id, address) VALUES
+('홍길동', 'hong@example.com', 'password123', '010-1234-5678', 100, 'https://placehold.co/250x200', 1, 1, '서울시 동작구 상도동'),
+('김철수', 'kim@example.com', 'password456', '010-9876-5432', 150, 'https://placehold.co/250x200', 2, 1, '서울시 금천구 가산디지털단지'),
+('이영희', 'lee@example.com', 'password789', '010-5555-5555', 200, 'https://placehold.co/250x200', 1, 2, '경기도 시흥시 롯데아울렛');
 
 
 -- content_category 테이블에 데이터 삽입
