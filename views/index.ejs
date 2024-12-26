@@ -30,9 +30,17 @@
   
   </head>
   <body>
-    <%-include('main/header.ejs') %>
-    <%-include(pageName) %>
-    <%-include('main/footer.ejs') %>
+
+    <% if (pageName !== 'login/find.ejs' && pageName !== 'register/register.ejs') { %>
+      <%- include('main/header.ejs') %>
+    <% } %>
+    
+    <%- include(pageName) %>
+    
+    <% if (pageName !== 'login/find.ejs' && pageName !== 'register/register.ejs') { %>
+      <%- include('main/footer.ejs') %>
+    <% } %>
+
   </body>
 </html>
 
