@@ -67,19 +67,4 @@ router.get('/question/update', function(req, res, next) {
 });
 
 
-
-/************************** MySQL CRUD **************************/
-const pool = require('../dbConn.js')
-
-router.get('/selectMember', async (req, res) => {
-  try {
-    const [rows] = await pool.execute('select * from member')
-    res.json(rows)
-    
-  } catch(error) {
-    console.error("sql쿼리 오류");
-  }
-})
-/************************** MySQL CRUD **************************/
-
 module.exports = router;
