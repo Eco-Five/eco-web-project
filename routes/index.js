@@ -24,6 +24,7 @@ router.get('/about', function(req, res, next) {
 });
 
 
+
 /* 커뮤니티 목록 */
 router.get('/board', function(req, res, next) {
   res.render('index', { title: '커뮤니티목록',pageName:'board/board.ejs'});

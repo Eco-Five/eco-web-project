@@ -1,0 +1,65 @@
+<div class="mt-5" style="margin: auto; padding: 30px; max-width: 800px; border-radius: 10px; box-shadow: 0px 2px 3px rgb(173, 173, 173)">
+    <div class="d-flex">
+        <i class="fa-solid fa-check fa-2xl" style="margin: auto 30px; color: green;"></i>
+        <div>
+            <h2><%= resultCode %></h2>
+            <p class="text-muted">주문해 주셔서 감사합니다.</p>
+        </div>
+    </div>
+    
+    <div style="border-top: 1px solid #ddd; margin: 20px 0;"></div>
+
+
+    <h5 >주문 정보</h5>
+    <div class="container d-flex">
+        <div style="width: 50%;">
+            <p class="mb-0 mt-3">주문번호</p>
+            <strong>ECO<%= paymentId %></strong>
+            <p class="mb-0 mt-3">결제수단</p>
+            <strong>네이버페이</strong>
+        </div>
+        <div>
+            <p class="mb-0 mt-3">결제일시</p>
+            <strong><%= datetime %></strong>
+            <p class="mb-0 mt-3">결제금액</p>
+            <strong><%= subsPrice %>원 (1개월)</strong>
+        </div>
+    </div>
+
+
+    <div style="border-top: 1px solid #ddd; margin: 20px 0;"></div>
+
+    <h5>구독 상품</h5>
+    <div class="row align-items-center">
+        <div class="col-3">
+            <img src="https://via.placeholder.com/100" class="img-fluid rounded" alt="상품 이미지">
+        </div>
+        <div class="col-7">
+            <p><strong><%= subsPlan %> 구독</strong></p>
+            <p class="text-muted">구독 기간: 1개월<br>월 <%= subsPrice %>원</p>
+        </div>
+    </div>
+
+    <div style="border-top: 1px solid #ddd; margin: 20px 0;"></div>
+
+    <h5>환경 기여도</h5>
+    <div class="row text-center">
+        <div class="col-6">
+            <span>🌿</span>
+            <span>탄소 절감량</span>
+            <span>2.5kg</span>
+        </div>
+        <div class="col-6">
+            <span>🌲</span>
+            <span>나무 심기 효과</span>
+            <span>1그루</span>
+        </div>
+    </div>
+
+    <div style="border-top: 1px solid #ddd; margin: 20px 0;"></div>
+
+    <div class="d-flex justify-content-center gap-3">
+        <a href="/"><button class="btn btn-outline-secondary">홈으로</button></a>
+        <a href="#"><button class="btn btn-primary">결제취소</button></a>
+    </div>
+</div>

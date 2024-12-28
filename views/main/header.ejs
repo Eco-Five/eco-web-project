@@ -1,8 +1,8 @@
 <!---------------------------- 네비게이션 ---------------------------------->
 <!-- https://www.w3schools.com/bootstrap5/bootstrap_navbar.php -->
-<nav class="navbar navbar-expand-sm" style="background-color: white;">
+<nav class="navbar navbar-expand-sm" style="border-bottom: 1px solid #ddd">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">
+        <a id="ecologo" class="navbar-brand" href="#">
             <img src="/images/anyone/eco-logo.png" alt="Logo" style="width:30px;" class="rounded-pill">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse">
@@ -22,13 +22,30 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/question">고객문의</a>
                 </li>
+                <li id="subs" class="nav-item" style="display:none">
+                    <a class="nav-link" href="/users/payment">구독</a>
+                </li>
             </ul>
             <form class="d-flex">
-                <a href="/login">
+                <a id="mypage" class="nav-link m-2 me-3" href="#" style="display: none;">마이페이지</a>
+                <a id="logout" href="#" style="display: none;">
+                    <button class="btn btn-dark" type="button">로그아웃</button>
+                </a>
+                <a id="login" href="/login">
                     <button class="btn btn-dark" type="button">로그인</button>
                 </a>
             </form>
         </div>
     </div>
 </nav>
+
+
+<script>
+    $('#ecologo').on('click', () => {
+        $('#login').toggle();
+        $('#logout').toggle();
+        $('#mypage').toggle();
+        $('#subs').toggle();
+    })
+</script>
 <!---------------------------- 네비게이션 ---------------------------------->

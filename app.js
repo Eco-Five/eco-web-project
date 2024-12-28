@@ -8,13 +8,16 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var apiRouter = require('./routes/api');  // hogi 추가
 
+
 var app = express();
+
 
 // fs & cors 추가
 // npm install cors
 const fs = require('fs');       // hogi 추가
 const cors = require('cors');   // hogi 추가 (npm install cors)
 app.use(cors())                 // hogi 추가
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -30,10 +33,12 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api', apiRouter);     // hogi 추가
 
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
 });
+
 
 // error handler
 app.use(function(err, req, res, next) {
@@ -45,5 +50,6 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
 
 module.exports = app;
