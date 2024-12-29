@@ -96,35 +96,12 @@
               }).open();
             }
           </script>
-          <button type="ID" class="btn btn-dark w-100 mb-2">회원가입</button>
+          <button id="register" type="ID" class="btn btn-dark w-100 mb-2">회원가입</button>
         </form>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 비밀번호 재확인 기능 -->
-<script>
-  const form = document.getElementById('accountTabContent');
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirm-password').value;
-    
 
-    if (!email || !password || !confirmPassword) {
-      alert('모든 필드를 입력해주세요.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다. 다시 확인해주세요.');
-      return;
-    }
-
-    alert('회원가입이 완료되었습니다.');
-    window.location.href = '/login';
-
-  });
-</script>
+<%-include('./registerConnDB.ejs') %>

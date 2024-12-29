@@ -1,0 +1,60 @@
+<script>
+    // 회원가입 API POST 요청 함수
+    async function memberInsert(memberInfo) {
+        try {
+            const response = await fetch('/api/memberInsert', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(memberInfo),
+            });
+
+            const data = await response.json();
+            console.log(data);
+
+            alert('회원가입이 완료되었습니다.');
+            window.location.href = '/login';
+            
+        } catch (error) {
+            console.error('회원가입 요청 중 오류 발생:', error);
+            alert('회원가입 요청 중 오류가 발생했습니다. 다시 시도해주세요.');
+        }
+    }
+
+    // 회원가입 실행문
+    const form = document.getElementById('accountTabContent')
+    
+    form.addEventListener('submit', (event) => {
+        event.preventDefault()
+
+        let name = document.getElementById('name').value
+        let email = document.getElementById('email').value
+        let password = document.getElementById('password').value
+        let confirmPassword = document.getElementById('confirm-password').value
+        let phone = document.getElementById('phone').value
+        let address = document.getElementById('address').value
+        let detailAddr = document.getElementById('detail-address').value
+
+        if (!email || !password || !confirmPassword) {
+            alert('모든 필드를 입력해주세요.');
+            return;
+        }
+
+        // 비밀번호 재확인 기능
+        if (password !== confirmPassword) {
+            alert('비밀번호가 일치하지 않습니다. 다시 확인해주세요.');
+            return;
+        }
+
+        // 회원 입력 정보
+        const memberInfo = {
+            name: name,
+            email: email,
+            pwd: password,
+            phone: phone,
+            member_type_id: 1,
+            address: address + ' ' + detailAddr
+        };
+
+        memberInsert(memberInfo)
+    });
+</script>

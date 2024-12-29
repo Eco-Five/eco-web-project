@@ -41,11 +41,32 @@
 
 
 <script>
-    $('#ecologo').on('click', () => {
-        $('#login').toggle();
-        $('#logout').toggle();
-        $('#mypage').toggle();
-        $('#subs').toggle();
+    // 쿠키에서 uid 확인
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    // 쿠키 값을 변경하는 함수
+    function updateCookie(name, value) {
+        document.cookie = `${name}=${value}; path=/;`;
+    }
+
+    // 이 코드는 DOM(Document Object Model)이 완전히 로드된 후 실행
+    $(document).ready(() => {
+        const pwd = getCookie('pwd')
+        console.log(pwd);
+
+        if(pwd) {
+            $('#login, #logout, #mypage, #subs').toggle()
+        }
+    })
+
+    $('#logout').on('click', () => {
+        updateCookie('pwd', '') // uid 쿠키의 값을 변경
+        $('#login, #logout, #mypage, #subs').toggle()
+        window.location.href = '/'
     })
 </script>
 <!---------------------------- 네비게이션 ---------------------------------->

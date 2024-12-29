@@ -3,6 +3,7 @@ var router = express.Router();
 
 /***************************** MySQL CRUD *****************************/
 const pool = require('../connDB.js')
+const bcrypt = require('bcrypt')
 //  GET(조회), POST(입력), PUT(수정), DELETE(삭제)
 
 // sql쿼리 요청 방법은 2가지가 있습니다.
@@ -15,19 +16,31 @@ const pool = require('../connDB.js')
 // rows는 쿼리 실행결과로 반환된 데이터의 배열입니다.
 // fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
 
+// 비밀번호 해시화 함수
+async function hashPwd(password) {
+    const saltRounds = 10; // 해시 반복 횟수
+    const hashedPwd = await bcrypt.hash(password, saltRounds);
+    return hashedPwd;
+}
+// 비밀번호 비교 함수
+async function comparePwd(inputPwd, storedHashedPwd) {
+    const match = await bcrypt.compare(inputPwd, storedHashedPwd);
+    return match; // true 또는 false 반환
+}
+
 /******************************** GET *********************************/
+// 로그인 정보 확인 API + 비밀번호 해시 비교
 router.get('/member', async (req, res) => {
     // 쿼리 스트링을 통해 member_id 정보 가져오기
     const memId = req.query.memId
-
     try {
-        sql = 'select * from member where member_id = ?'
+        sql = 'select * from member where email = ?'
         const [rows] = await pool.execute(sql, [memId])
         res.json(rows) // 결과값을 JSON로 변환하여 전달
 
     } catch (error) {
-        console.error("커넥션 혹은 SQL쿼리 오류: ", error);
-        res.status(500).json({ message: "서버 오류" })
+        console.error("api/member 오류: ", error);
+        res.status(500).json({ message: "서버오류" })
     }
 })
 
@@ -42,19 +55,48 @@ getMember(1); // member_id가 1인 회원 조회
 */
 
 /******************************** POST ********************************/
-router.post('/insertMember', async (req, res) => {
+// 회원가입 데이터 DB에 추가하는 API + 비밀번호 해시
+router.post('/memberInsert', async (req, res) => {
     // 클라이언트로부터 받은 데이터
     const { name, email, pwd, phone, member_type_id, address } = req.body;
     try {
-        const sql = `insert into member (name, email, pwd, phone, eco_point, image_url, member_type_id, subs_id, address) 
-                        values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        // 비동기 처리된 함수 선언 시, await을 붙이는 이유는
+        // promise가 해결된 후의 값을 반환받기 위해서 입니다.
+        let pwdHash = await hashPwd(pwd)
+        const sql = `insert into member (name, email, pwd, phone, eco_point, image_url, member_type_id, subs_id, address)
+                    values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-        const values = [name, email, pwd, phone, 100, 'https://placehold.co/250x200', member_type_id, 1, address]
+        const values = [name, email, pwdHash, phone, 100, 'https://placehold.co/250x200', member_type_id, 1, address]
         const [result] = await pool.execute(sql, values);
         res.status(201).json({ message: '회원가입 성공', memId: result.insertId })
 
     } catch (error) {
-        console.error(object)
+        console.error("memberInsert 오류: ", error)
+        res.status(500).json({ message: "서버오류"})
+    }
+})
+
+
+// 로그인 정보 확인 API + 비밀번호 해시 비교
+router.post('/memberLogin', async (req, res) => {
+    // 쿼리 스트링을 통해 member_id 정보 가져오기
+    const { loginEmail, loginPwd } = req.body
+    try {
+        sql = 'select * from member where email = ?'
+        const [rows] = await pool.execute(sql, [loginEmail])
+        let match = await comparePwd(loginPwd, rows[0].pwd)
+
+        if (match) {
+            res.cookie('uid', rows[0].email, { httpOnly: true, path: '/' })
+            res.cookie('pwd', match)
+            res.status(201).json({ message: '로그인 성공', rows: match})
+        } else {
+            res.status(201).json({ message: '계정이 일치하지 않습니다.' })
+        }
+
+    } catch (error) {
+        console.error("memberLogin 오류: ", error);
+        res.status(500).json({ message: "서버오류" })
     }
 })
 
@@ -70,7 +112,7 @@ async function addMember() {
         address: document.getElementById('address').value,
     };
 
-    const response = await fetch('/addMember', {
+    const response = await fetch('api/memberInsert', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
