@@ -24,6 +24,16 @@
     margin: 0 5px;
 }
 
+a {
+    text-decoration: none;
+    color: inherit; 
+    }
+
+a:hover {
+    text-decoration: underline;
+    color: rgb(0, 49, 34);
+}
+
 /* write, update */
 .card-header {
     height: 150px;
