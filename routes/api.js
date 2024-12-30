@@ -94,6 +94,61 @@ async function addMember() {
 
 /****************************** DELETE ********************************/
 
+/************************* 커뮤니티글목록 ***************************/
 
+router.post('/insertMember', async (req, res) => {
+    // 클라이언트로부터 받은 데이터
+    const { name, email, pwd, phone, member_type_id, address } = req.body;
+    try {
+        const sql = `insert into member (name, email, pwd, phone, eco_point, image_url, member_type_id, subs_id, address) 
+                        values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+
+        const values = [name, email, pwd, phone, 100, 'https://placehold.co/250x200', member_type_id, 1, address]
+        const [result] = await pool.execute(sql, values);
+        res.status(201).json({ message: '회원가입 성공', memId: result.insertId })
+
+    } catch (error) {
+        console.error(object)
+    }
+})
+
+/************************* 커뮤니티글작성 ***************************/
+router.post('/board/write', async(req,res)=>{
+    //사용자가 화면에서 입력한 값 담기
+    const {content_type_id, title, content} = req.body
+    const sql = "insert into board(board_id, title, content, board_date, image_url, member_id, content_type_id)"
+    try{
+        //데이터베이스 쿼리 실행 하기
+        const values = [con]
+        const [result] = await pool.get().execute(sql,[content_type_id, title, content, image_url])
+        //조회 결과가 없는 경우 처리
+        console.log(result)//1이면 입력 성공. 0이면 입력 실패
+        //성공시 응답하기
+        res.json({success:true, result:result})
+    }catch(error){
+        console.error('Database error:', error)
+        return res.status(500).send({message:'글 쓰기 처리 중 오류가 발생했습니다.'})
+    }//end of try..catch
+    })//end of 글쓰기
+
+/************************* 커뮤니티글상세보기 ***************************/
+//http://localhost:5678/api/board/read?b_no=2
+router.get('/board/read', async (req, res) => {
+    // 쿼리 스트링을 통해 member_id 정보 가져오기
+    const b_no = req.query.b_no
+    let sql = 'select * from board where board_id = ?'
+    try {
+        const [rows] = await pool.execute(sql, [b_no])
+        //조회 결과가 없는 경우 처리
+        if(rows.length===0){
+            return res.status(404).send({message:'해당 글이 없습니다.'})
+        }
+        //성공시 응답
+        res.json(rows) // 결과값을 JSON로 변환하여 전달
+    } catch (error) {
+        console.error("커넥션 혹은 SQL쿼리 오류: ", error);
+        res.status(500).json({ message: "서버 오류" })
+    }
+})
 
 module.exports = router;

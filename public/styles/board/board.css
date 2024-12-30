@@ -16,11 +16,11 @@
 }
 
 .list-group-item h5 {
-    font-size: 1.25rem; /* 제목 글씨 크기 조정 */
+    font-size: 1.25rem; /* 제목 글씨 크기 */
 }
 
 .list-group-item p {
-    font-size: 1rem; /* 본문 글씨 크기 조정 */
+    font-size: 1rem; /* 본문 글씨 크기 */
 }
 
 .page-link {
