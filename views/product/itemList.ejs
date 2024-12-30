@@ -1,74 +1,18 @@
 <div class="row mt-5 justify-content-center">
     <div class="col-6 col-md-4">
-        <!-- <form name="frm"> -->
         <div class="input-group">
-            <input type="text" onkeypress="getKeyword(event)" name="query" id="query" class="form-control" placeholder="제품 검색" />
+            <input type="text" name="query" id="query" class="form-control" placeholder="제품 검색" />
             <!-- <input type="button" id="btnSearch" class="btn btn-dark" value="검색"/> -->
-            <button class="btn btn-dark" onclick="handleSubmit(event)">검색</button>
+            <button id="btnSearch" class="btn btn-dark">검색</button>
         </div>
-
-        <script type="text/javascript">
-            function getKeyword(event) {
-                if (event.keyCode == 13) {
-                    const query = document.querySelector("#query").value
-                    productList(query)
-                }
-            }
-            function handleSubmit() {
-                //event.preventDefault()
-                console.log("서브밋 호출")
-                const query = document.querySelector("#query").value
-                productList(query)
-            }
-            function productList(query) {
-                console.log('productList : ' + query);
-                //const query = $(frm.query).val()
-                const encodedQuery = encodeURIComponent(query);
-                $.ajax({
-                    method: "GET",
-                    url: `http://localhost:5678/api/naver/shop?query=${query}`,
-                    dataType: "json",
-                    success: function (data) {
-                        console.log(data)
-                        let temp = Handlebars.compile($("#card-template").html())
-                        $("#card-container").html(temp(data))
-                    },
-                    error: function (error) {
-                        console.log(error)
-                    }
-                });
-            }
-            //productList()  
-        </script>
-
-        <!-- </form> -->
     </div>
 </div>
+
 <hr />
 
 <div class="container my-4">
     <div class="row" id="card-container"></div>
 </div>
-<script id="card-template" type="text/x-handlebars-template">
-    <div class="container py-5">
-        <h5 class="text mb-4 fw-bold">친환경 제품</h5>
-            <div class="row g-4">
-            {{#each this}}
-            <div class="col-md-3" style="border: 1px solid #e0e0e0; border-radius: 10px;">
-                <div class="category-card">
-                    <img src="{{image}}" index="{{@index}}" class="img-fluid" style="cursor: pointer;width:40%">
-                    <div class="ellipsis mt-2">{{clean title}}</div>
-                    <b>
-                    {{format lprice}}
-                    <span class="cart ms-3" style="cursor: pointer;color:green">ecobag</span>
-                    </b>
-                </div>
-                <%-include("itemModal.ejs") %>
-            </div>
-        {{/each}}   
-        </div>
-    </div>
-</script>
 
 <div class="text-center mt-2">
     <button class="btn btn-dark btn-sm px-5" id="prev">이전</button>
@@ -76,23 +20,28 @@
     <button class="btn btn-dark btn-sm px-5" id="next">다음</button>
 </div>
 
-<script>
-    $("#card-container").on("click", ".category-card img", function () {
-        let index = $(this).attr("index")
-        console.log(index)
-        $(`#modal${index}`).modal("show")
-    })
-</script>
 
 <script>
-    //가격 포맷형식
-    Handlebars.registerHelper("format", function (price) {
-        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '원';
-    })
-    //HTML 태그제거
-    Handlebars.registerHelper("clean", function (title) {
-        const cleanedTitle = title.replace(/<[^>]+>/g, '');
-        return cleanedTitle;
+    document.getElementById('btnSearch').addEventListener('click', async () => {
+        const query = document.getElementById('query').value;
+        const response = await fetch(`/naver/shop?query=${encodeURIComponent(query)}`);
+        const data = await response.json();
 
+        const container = document.getElementById('card-container');
+        container.innerHTML = ''; // 기존 내용 초기화
+
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'col-12 col-md-4 mb-4';
+            card.innerHTML = `<div class="card">
+                                <img src="${item.image}" class="card-img-top" alt="${item.title}">
+                                <div class="card-body">
+                                    <h5 class="card-title">${item.title}</h5>
+                                    <p class="card-text">${item.lprice} 원</p>
+                                    <a href="${item.link}" class="btn btn-primary">자세히 보기</a>
+                                </div>
+                            </div>`;
+            container.appendChild(card);
+        });
     });
 </script>

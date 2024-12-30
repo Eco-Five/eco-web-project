@@ -84,6 +84,48 @@ async function addMember() {
 */
 
 
+// 네이버 API 서버 코드 통합
+router.post("/naver/shop", async (req, res) => {
+    console.log(`Request received: ${req.method} ${req.url}`);
+    const { query } = req.params.query
+    console.log(query);
+
+    //let query = "친환경";
+    let display = req.query.display || 20;
+    const url = `https://openapi.naver.com/v1/search/shop.json?query=${query}&display=${display}`;
+    const ClientID = process.env.NAVER_CLIENT_ID;
+    const ClientSecret = process.env.NAVER_CLIENT_SECRET;
+
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                "X-Naver-Client-Id": ClientID,
+                "X-Naver-Client-Secret": ClientSecret,
+            },
+        });
+
+        let data = response.data.items;
+        res.json(data);  //브라우저에 JSON 데이터 반환
+
+        // list.ejs로 데이터를 전달하여 렌더링 res.render("list", { products: data });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+
+
+    const response = await fetch('/addMember', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(memberInfo), // 객체를 JSON 문자열로 변환하여 전송
+    });
+
+    const data = await response.json();
+});
+
+
+
 /******************************** PUT *********************************/
 
 
@@ -93,7 +135,6 @@ async function addMember() {
 
 
 /****************************** DELETE ********************************/
-
 
 
 module.exports = router;

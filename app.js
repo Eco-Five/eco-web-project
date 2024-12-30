@@ -3,7 +3,6 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const axios = require("axios");
 const dotenv = require("dotenv");
 const cors = require("cors");
 
@@ -31,35 +30,6 @@ app.use(
     origin: "*",
   })
 );
-
-// 네이버 API 서버 코드 통합
-
-app.get("/api/naver/shop", async (req, res) => {
-  console.log(`Request received: ${req.method} ${req.url}`);
-  const { query } = req.params.query
-  console.log(query);
-  //let query = "친환경";
-  let display = req.query.display || 20;
-  const encodedQuery = encodeURIComponent(query);
-  const url = `https://openapi.naver.com/v1/search/shop.json?query=${encodedQuery}&display=${display}&timestamp=${Date.now()}`;
-  const ClientID = process.env.NAVER_CLIENT_ID;
-  const ClientSecret = process.env.NAVER_CLIENT_SECRET;
-
-  
-  try {
-    const response = await axios.get(url, {
-      headers: {
-        "X-Naver-Client-Id": ClientID,
-        "X-Naver-Client-Secret": ClientSecret,
-      },
-    });
-    let data = response.data.items;
-    res.json(data);  //브라우저에 JSON 데이터 반환
-    // list.ejs로 데이터를 전달하여 렌더링 res.render("list", { products: data });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
 // 기존 라우터 설정
 app.use('/', indexRouter);
