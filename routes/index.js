@@ -22,10 +22,12 @@ router.get('/about', function(req, res, next) {
   res.render('index', { title: 'about', pageName: 'main/about.ejs' });
 });
 
-
 /* 커뮤니티 목록 */
 router.get('/board', function(req, res, next) {
-  res.render('index', { title: '커뮤니티목록',pageName:'board/board.ejs'});
+  //res.render('index', { title: '커뮤니티목록',pageName:'board/board.ejs'});
+  //프론트엔드에서 커뮤니티 목록 페이지를 볼 때 /board URL로 요청이 전달되도록 수정
+  //API 호출 대신 api.js의 /board 라우트를 호출하도록 설정
+  res.redirect('/api/board');
 });
 /* 커뮤니티 작성 */
 router.get('/board/write', function(req, res, next) {
@@ -40,7 +42,8 @@ router.get('/board/write', function(req, res, next) {
 }); */
 /* 커뮤니티 글 상세보기 */
 router.get('/board/read', function(req, res, next) {
-  res.render('index', { title: '커뮤니티상세보기',pageName:'board/read.ejs'});
+  const b_no = req.query.b_no
+  res.redirect(`/api/board/read?b_no=${b_no}`);
 });
 /* 커뮤니티 수정 */
 router.get('/board/update', function(req, res, next) {
