@@ -1,53 +1,53 @@
 <div class="row mt-5 justify-content-center">
     <div class="col-6 col-md-4">
-<!--     <form name="frm"> -->
+        <!-- <form name="frm"> -->
         <div class="input-group">
-        <input type="text" onkeypress="getKeyword(event)" name="query" id="query" class="form-control" placeholder="제품 검색" />
-        <!-- <input type="button" id="btnSearch" class="btn btn-dark" value="검색"/> -->
-        <button class="btn btn-dark" onclick="handleSubmit(event)">검색</button>
+            <input type="text" onkeypress="getKeyword(event)" name="query" id="query" class="form-control" placeholder="제품 검색" />
+            <!-- <input type="button" id="btnSearch" class="btn btn-dark" value="검색"/> -->
+            <button class="btn btn-dark" onclick="handleSubmit(event)">검색</button>
         </div>
-<script type="text/javascript">
-    function getKeyword(event){
-        if(event.keyCode == 13){
-            const query = document.querySelector("#query").value
-            productList(query)
-        }
-    }
-    function handleSubmit(){
-        //event.preventDefault()
-        console.log("서브밋 호출")
-        const query = document.querySelector("#query").value
-        productList(query)
-    }    
-    function productList(query){
-        console.log('productList : '+query);
-    //const query = $(frm.query).val()
-    const encodedQuery = encodeURIComponent(query);
-    $.ajax({
-        method: "GET",
-        url: `http://localhost:5678/api/naver/shop?query=${query}`,
-        dataType: "json", 
-        success: function(data){
-                console.log(data)
-                let temp = Handlebars.compile($("#card-template").html())
-                $("#card-container").html(temp(data))
-            },
-            error:function(error){
-                console.log(error)
-            }
-        });
-    }
-    //productList()  
-</script>
 
-    <!-- </form> -->
+        <script type="text/javascript">
+            function getKeyword(event) {
+                if (event.keyCode == 13) {
+                    const query = document.querySelector("#query").value
+                    productList(query)
+                }
+            }
+            function handleSubmit() {
+                //event.preventDefault()
+                console.log("서브밋 호출")
+                const query = document.querySelector("#query").value
+                productList(query)
+            }
+            function productList(query) {
+                console.log('productList : ' + query);
+                //const query = $(frm.query).val()
+                const encodedQuery = encodeURIComponent(query);
+                $.ajax({
+                    method: "GET",
+                    url: `http://localhost:5678/api/naver/shop?query=${query}`,
+                    dataType: "json",
+                    success: function (data) {
+                        console.log(data)
+                        let temp = Handlebars.compile($("#card-template").html())
+                        $("#card-container").html(temp(data))
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                });
+            }
+            //productList()  
+        </script>
+
+        <!-- </form> -->
     </div>
 </div>
 <hr />
 
 <div class="container my-4">
-    <div class="row" id="card-container">
-    </div>
+    <div class="row" id="card-container"></div>
 </div>
 <script id="card-template" type="text/x-handlebars-template">
     <div class="container py-5">
@@ -77,22 +77,22 @@
 </div>
 
 <script>
-    $("#card-container").on("click", ".category-card img", function(){
-    let index = $(this).attr("index")
-    console.log(index)
-    $(`#modal${index}`).modal("show")
+    $("#card-container").on("click", ".category-card img", function () {
+        let index = $(this).attr("index")
+        console.log(index)
+        $(`#modal${index}`).modal("show")
     })
 </script>
 
 <script>
     //가격 포맷형식
-    Handlebars.registerHelper("format", function(price){
+    Handlebars.registerHelper("format", function (price) {
         return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '원';
     })
     //HTML 태그제거
-    Handlebars.registerHelper("clean", function(title) {
-    const cleanedTitle = title.replace(/<[^>]+>/g, '');
-    return cleanedTitle;
-    
-});
+    Handlebars.registerHelper("clean", function (title) {
+        const cleanedTitle = title.replace(/<[^>]+>/g, '');
+        return cleanedTitle;
+
+    });
 </script>
