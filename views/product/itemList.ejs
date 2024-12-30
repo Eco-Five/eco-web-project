@@ -14,6 +14,27 @@
     <div class="row" id="card-container"></div>
 </div>
 
+<script id="card-template" type="text/x-handlebars-template">
+    <div class="container py-5">
+        <h5 class="text mb-4 fw-bold">친환경 제품</h5>
+        <div class="row g-4">
+        {{#each list}}
+        <div class="col-md-3" style="border: 1px solid #e0e0e0; border-radius: 10px;">
+            <div class="category-card">
+                <img src="{{image}}" index="{{@index}}" class="img-fluid" style="cursor: pointer;width:40%">
+                <div class="ellipsis mt-2">{{clean title}}</div>
+                    <b>
+                        {{format lprice}}
+                        <span class="cart ms-3" style="cursor: pointer;color:green">ecobag</span>
+                    </b>
+                </div>
+                <%-include("itemModal.ejs") %>
+            </div>
+        {{/each}}
+        </div>
+    </div>
+</script>
+
 <div class="text-center mt-2">
     <button class="btn btn-dark btn-sm px-5" id="prev">이전</button>
     <span id="page" class="px-3">1/5</span>
@@ -22,26 +43,56 @@
 
 
 <script>
-    document.getElementById('btnSearch').addEventListener('click', async () => {
-        const query = document.getElementById('query').value;
-        const response = await fetch(`/naver/shop?query=${encodeURIComponent(query)}`);
-        const data = await response.json();
+    // 네이버 상품 API 호출 함수
+    async function productList() {
+        const query = document.getElementById('query').value
 
-        const container = document.getElementById('card-container');
-        container.innerHTML = ''; // 기존 내용 초기화
-
-        data.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'col-12 col-md-4 mb-4';
-            card.innerHTML = `<div class="card">
-                                <img src="${item.image}" class="card-img-top" alt="${item.title}">
-                                <div class="card-body">
-                                    <h5 class="card-title">${item.title}</h5>
-                                    <p class="card-text">${item.lprice} 원</p>
-                                    <a href="${item.link}" class="btn btn-primary">자세히 보기</a>
-                                </div>
-                            </div>`;
-            container.appendChild(card);
+        const response = await fetch(`/api/naverShop`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ values: query })
         });
-    });
+        const data = await response.json(); // response 받은 데이터
+        
+        // Handlebars에 객체 할당
+        let temp = Handlebars.compile($("#card-template").html())
+        $("#card-container").html(temp(data))
+        console.log(data);
+    }
+
+    // 버튼 클릭 시 동작
+    const btnSearch = document.getElementById('btnSearch')
+    btnSearch.addEventListener('click', async () => {
+        productList()
+    })
+
+    // 검색창 Enter 시 동작
+    const inputQuery = document.getElementById('query')
+    inputQuery.addEventListener('keydown', async () => {
+        if(event.keyCode === 13) { productList() }
+    })
+</script>
+
+
+
+<script>
+    // 모달 호출
+    $("#card-container").on("click", ".category-card img", function () {
+        let index = $(this).attr("index")
+        console.log(index)
+        $(`#modal${index}`).modal("show")
+    })
+</script>
+
+
+<script>
+    // Handlebars Hellper 가격 포맷형식
+    Handlebars.registerHelper("format", function (price) {
+        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '원';
+    })
+    // Handlebars Hellper HTML 태그제거
+    Handlebars.registerHelper("clean", function (title) {
+        const cleanedTitle = title.replace(/<[^>]+>/g, '');
+        return cleanedTitle;
+    })
 </script>

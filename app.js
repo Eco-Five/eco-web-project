@@ -10,6 +10,7 @@ dotenv.config(); // .env 파일을 로드합니다.
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var apiRouter = require('./routes/api')
 
 var app = express();
 
@@ -34,6 +35,7 @@ app.use(
 // 기존 라우터 설정
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/api', apiRouter);
 
 // 404 에러 처리
 app.use(function(req, res, next) {
