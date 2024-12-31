@@ -10,9 +10,16 @@ dotenv.config(); // .env 파일을 로드합니다.
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var apiRouter = require('./routes/api')
+var apiRouter = require('./routes/api');  // hogi 추가
+
 
 var app = express();
+
+
+// fs & cors 추가
+// npm install cors
+const fs = require('fs');       // hogi 추가
+app.use(cors())                 // hogi 추가
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -26,28 +33,31 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // CORS 설정
-app.use(
+/* app.use(
   cors({
     origin: "*",
   })
-);
+); */
 
 // 기존 라우터 설정
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/api', apiRouter);
+app.use('/api', apiRouter);     // hogi 추가
+
 
 // 404 에러 처리
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
-// 에러 처리
+
+// error handler
 app.use(function(err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
   res.status(err.status || 500);
   res.render('error');
 });
+
 
 module.exports = app;
