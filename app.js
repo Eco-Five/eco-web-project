@@ -8,9 +8,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var apiRouter = require('./routes/api');  // hogi 추가
 
-
 var app = express();
-
 
 // fs & cors 추가
 // npm install cors
@@ -32,6 +30,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api', apiRouter);     // hogi 추가
+
+
+// HTTP에서 HTTPS로 리디렉션 추가
+app.use((req, res, next) => {
+  if (req.secure) {
+    next(); // HTTPS인 경우 다음 미들웨어로 이동
+  } else {
+    res.redirect(`https://${req.headers.host}${req.url}`); // HTTPS로 리디렉션
+  }
+});
 
 
 // catch 404 and forward to error handler
