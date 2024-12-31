@@ -85,7 +85,6 @@ async function addMember() {
 
 
 // 네이버 API 서버 코드 통합
-// http://localhost:5678/api/naverShop?query=%EB%A6%AC%EC%95%A1%ED%8A%B8
 router.post("/naverShop", async (req, res) => {
     const query = req.body
     try {
