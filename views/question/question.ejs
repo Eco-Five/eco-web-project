@@ -7,9 +7,9 @@
         <div class="mb-3 d-flex justify-content-between">
             <select class="form-select w-auto">
                 <option selected>전체</option>
-                <option value="1">배송</option>
-                <option value="2">상품</option>
-                <option value="2">교환/반품</option>
+                <option value="4">배송</option>
+                <option value="5">상품</option>
+                <option value="6">교환/반품</option>
             </select>
             <a href="/question/write"><button class="btn btn-dark">문의하기</button></a>
         </div>
@@ -25,27 +25,16 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <% questions.forEach(question => { %>
                     <tr>
-                        <td>3</td>
-                        <td><a href="/question/read">문의3</a></td>
-                        <td>작성자3</td>
-                        <td>2024.02.13</td>
-                        <td><span class="badge bg-warning">답변대기</span></td>
+                        <td><%=question.inquiry_id%></td>
+                        <td><a href="/question/read?q_no=<%= question.inquiry_id %>"><%=question.title %></a></td>
+                        <td><%=question.name%></td>
+                        <td><%=formatDate(question.inquiry_date)%></td>
+                        <td><span class="badge bg-warning"><%=question.status%></span></td>
+                        <!-- <td><span class="badge bg-success"><%=question.status%></span></td> -->
                     </tr>
-                    <tr>
-                        <td>2</td>
-                        <td><a href="/question/read">문의2</a></td>
-                        <td>작성자2</td>
-                        <td>2024.02.12</td>
-                        <td><span class="badge bg-success">답변완료</span></td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td><a href="/question/read">문의1</a></td>
-                        <td>작성자1</td>
-                        <td>2024.02.11</td>
-                        <td><span class="badge bg-success">답변완료</span></td>
-                    </tr>
+                    <% }) %>
                 </tbody>
             </table>
         </div>
@@ -61,10 +50,16 @@
         </nav>
         <!-- 페이지 -->
     </div>
+    <% 
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');  // months are zero-indexed
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        
+        return `${year}.${month}.${day} ${hours}:${minutes}`;
+    }
+    %>
 
-    <script>
-        //상세보기
-        $("#btn-list").on("click", function(){
-        location.href="/board"
-    })
-    </script>

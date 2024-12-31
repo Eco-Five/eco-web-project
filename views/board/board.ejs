@@ -13,7 +13,7 @@
                         <option selected>전체</option>
                         <option value="1">환경뉴스</option>
                         <option value="2">친환경팁</option>
-                        <option value="2">자유게시판</option>
+                        <option value="3">자유게시판</option>
                     </select>
                     <a href="/board/write"><button class="btn btn-dark">글쓰기</button></a>
                 </div>
@@ -27,7 +27,7 @@
                             <div class="w-100">
                                 <h5 class="mb-1"><%= board.title %></h5>
                                 <p class="mb-1 text-truncate"><%= board.content %></p>
-                                <small class="text-muted"><%= board.name %> · <%= board.board_date %> · <i class="bi bi-eye"></i> 165 · <i class="bi bi-suit-heart"></i> 28</small>
+                                <small class="text-muted"><%= board.name %> · <%= formatDate(board.board_date) %> · <i class="bi bi-eye"></i> 165 · <i class="bi bi-suit-heart"></i> 28</small>
                             </div>
                         </a>
                     <% }) %>
@@ -73,5 +73,18 @@
         </div>
     </div>
 
+
+<% 
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');  // months are zero-indexed
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+}
+%>
 
 
