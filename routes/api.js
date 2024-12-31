@@ -72,7 +72,7 @@ router.post('/memberInsert', async (req, res) => {
 
     } catch (error) {
         console.error("memberInsert 오류: ", error)
-        res.status(500).json({ message: "서버오류"})
+        res.status(500).json({ message: "서버오류" })
     }
 })
 
@@ -89,7 +89,7 @@ router.post('/memberLogin', async (req, res) => {
         if (match) {
             res.cookie('uid', rows[0].email, { httpOnly: true, path: '/' })
             res.cookie('pwd', match)
-            res.status(201).json({ message: '로그인 성공', rows: match})
+            res.status(201).json({ message: '로그인 성공', rows: match })
         } else {
             res.status(201).json({ message: '계정이 일치하지 않습니다.' })
         }
@@ -100,7 +100,77 @@ router.post('/memberLogin', async (req, res) => {
     }
 })
 
+// 이메일 찾기
+router.post('/findEmail', async (req, res) => {
+    const { name, phone } = req.body
 
+    try {
+        sql = "select email from member where name = ? and phone = ?"
+        const [rows] = await pool.execute(sql, [name, phone])
+        res.status(201).json({ message: '이메일 찾기 성공', result: rows })
+    } catch (error) {
+        console.error("이메일 찾기 오류: ", error);
+        res.status(500).json({ message: "서버오류" })
+    }
+})
+
+// 비밀번호 재설정
+router.put('/resetPwd', async (req, res) => {
+    const { email, pwd, name, phone } = req.body;
+
+    try {
+        // 입력 값 검증
+        if (!email || !pwd || !name || !phone) {
+            return res.status(400).json({ message: "모든 필드를 입력해주세요." });
+        }
+
+        // 비밀번호 암호화
+        const bcrypt = require('bcrypt');
+        const hashedPassword = await bcrypt.hash(pwd, 10);
+
+        // 데이터베이스 업데이트
+        const sql = "UPDATE member SET pwd = ? WHERE email = ? AND name = ? AND phone = ?";
+        const [rows] = await pool.execute(sql, [hashedPassword, email, name, phone]);
+
+        if (rows.affectedRows === 0) {
+            return res.status(404).json({ message: "일치하는 회원 정보를 찾을 수 없습니다." });
+        }
+
+        res.status(200).json({ message: "비밀번호 재설정에 성공했습니다." });
+    } catch (error) {
+        console.error("비밀번호 재설정 오류: ", error);
+        res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    }
+});
+
+//비밀번호 재설정
+router.put('/resetPwd', async (req, res) => {
+    const { email, pwd, name, phone } = req.body;
+
+    try {
+        // 입력 값 검증
+        if (!email || !pwd || !name || !phone) {
+            return res.status(400).json({ message: "모든 필드를 입력해주세요." });
+        }
+
+        // 비밀번호 암호화
+        const bcrypt = require('bcrypt');
+        const hashedPassword = await bcrypt.hash(pwd, 10);
+
+        // 데이터베이스 업데이트
+        const sql = "UPDATE member SET pwd = ? WHERE email = ? AND name = ? AND phone = ?";
+        const [rows] = await pool.execute(sql, [hashedPassword, email, name, phone]);
+
+        if (rows.affectedRows === 0) {
+            return res.status(404).json({ message: "일치하는 회원 정보를 찾을 수 없습니다." });
+        }
+
+        res.status(200).json({ message: "비밀번호 재설정에 성공했습니다." });
+    } catch (error) {
+        console.error("비밀번호 재설정 오류: ", error);
+        res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    }
+});
 /*
 async function addMember() {
     const memberInfo = {

@@ -1,92 +1,167 @@
 <link rel="stylesheet" href="/styles/login/find.css">
-
 <div class="container d-flex flex-column align-items-center justify-content-center h-100">
-  <div class="mb-4">
-    <div class="logo">
-      <img src="/images/anyone/eco-mascot.png" alt="마스코트" style="width: 100px; height: 100px;">
-    </div>
-  </div>
-  <h1 class="h4 mb-4">계정 찾기</h1>
-  <div class="custom-card text-center">
-    <ul class="nav nav-tabs justify-content-center mb-4" id="accountTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="find-id-tab" data-bs-toggle="tab" data-bs-target="#find-id" type="button"
-          role="tab" aria-controls="find-id" aria-selected="true">아이디 찾기</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="find-password-tab" data-bs-toggle="tab" data-bs-target="#find-password"
-          type="button" role="tab" aria-controls="find-password" aria-selected="false">비밀번호 찾기</button>
-      </li>
-    </ul>
-    <div class="tab-content" id="accountTabContent">
-      <div class="tab-pane fade show active" id="find-id" role="tabpanel" aria-labelledby="find-id-tab">
-        <form id="findIdForm">
-          <div class="mb-3">
-            <label for="name" class="d-flex me-3 mb-2">이름</label>
-            <input type="text" id="name" class="form-control flex-grow-1" placeholder="👤 이름을 입력하세요" required>
-          </div>
-          <div class="mb-3">
-            <label for="phone" class="d-flex me-3 mb-2">전화번호</label>
-            <input type="text" id="phone" class="form-control flex-grow-1" placeholder="☎ 전화번호를 입력하세요" required>
-          </div>
-          <button type="ID" class="btn btn-dark w-100 mb-2">아이디 찾기</button>
-        </form>
-        <div id="idResult" class="mt-3 text-start d-none text-center">
-          <p class="result-box">찾은 아이디: <strong id="foundId">user123</strong></p>
+    <div class="mb-4">
+        <div class="logo">
+            <img src="/images/anyone/eco-mascot.png" alt="마스코트" style="width: 100px; height: 100px;">
         </div>
-      </div>
-      <div class="tab-pane fade show " id="find-password" role="tabpanel" aria-labelledby="find-password-tab">
-        <form id="findPasswordForm">
-          <div class="mb-3">
-            <label for="ID" class="d-flex me-3 mb-2">이메일</label>
-            <input type="text" id="ID" class="form-control flex-grow-1" placeholder="✉ 이메일을 입력하세요" required>
-          </div>
-          <div class="mb-3">
-            <label for="namePw" class="d-flex me-3 mb-2">이름</label>
-            <input type="text" id="namePw" class="form-control flex-grow-1" placeholder="👤 이름을 입력하세요" required>
-          </div>
-          <div class="mb-3">
-            <label for="namePw" class="d-flex me-3 mb-2">전화번호</label>
-            <input type="text" id="phonePw" class="form-control flex-grow-1" placeholder="☎ 전화번호를 입력하세요" required>
-          </div>
-          <button type="submit" class="btn btn-dark w-100 mb-2">비밀번호 찾기</button>
-        </form>
-        <div id="passwordResult" class="mt-3 text-start d-none text-center">
-          <p class="result-box">찾은 비밀번호: <strong password="foundPassword">오인명</strong></p>
-        </div>
-      </div>
     </div>
-  </div>
-  <div class="mt-4 text-center">
-    <a href="/login" class="text-muted me-3">로그인</a>
-    <span style="color: rgb(187, 188, 189);">|</span>
-    <a href="/register" class="text-muted me-3 ms-3">회원가입</a>
-    <span style="color: rgb(187, 188, 189);">|</span>
-    <a href="#" class="text-muted ms-3">고객센터</a>
-  </div>
+    <h1 class="h4 mb-4">계정 찾기</h1>
+    <div class="custom-card text-center">
+        <ul class="nav nav-tabs justify-content-center mb-4" id="accountTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="findId-tab" data-bs-toggle="tab" data-bs-target="#findId"
+                    type="button" role="tab" aria-controls="findId" aria-selected="true">아이디 찾기</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reset-password-tab" data-bs-toggle="tab" data-bs-target="#resetPwd"
+                    type="button" role="tab" aria-controls="resetPwd" aria-selected="false">비밀번호 재설정</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="accountTabContent">
+            <!----------------------------- 아이디 찾기 ------------------------------>
+            <!----------------------------- findId,findIdForm,name,phone,idResult,foundId ------------------------------>
+
+            <div class="tab-pane fade show active" id="findId" role="tabpanel" aria-labelledby="findId-tab">
+                <form id="findIdForm">
+                    <div class="mb-3">
+                        <label for="name" class="d-flex me-3 mb-2">이름</label>
+                        <input type="text" id="name" class="form-control flex-grow-1" placeholder="👤 이름을 입력하세요"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="d-flex me-3 mb-2">전화번호</label>
+                        <input type="text" id="phone" class="form-control flex-grow-1" placeholder="☎ 전화번호를 입력하세요"
+                            required>
+                    </div>
+                    <button type="ID" class="btn btn-dark w-100 mb-2">아이디 찾기</button>
+                </form>
+                <div id="idResult" class="mt-3 text-start d-none text-center text-succ">
+                    <p class="result-box">찾은 아이디: <strong id="foundId">이메일</strong></p>
+                </div>
+            </div>
+            <!--------------------------------------------------------- 비밀번호 재설정 -------------------------------------------------------------->
+            <!--------------------------------resetPwd,resetPwdForm,reEmail,reName,rePhone,password,repassword,resultPW ----------------------------->
+            <div class="tab-pane fade show" id="resetPwd" role="tabpanel" aria-labelledby="resetPwd-tab">
+                <form id="resetPwdForm">
+                    <div class="mb-3">
+                        <label for="reEmail" class="d-flex me-3 mb-2">이메일</label>
+                        <input type="text" id="reEmail" class="form-control flex-grow-1" placeholder="✉ 이메일을 입력하세요"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reName" class="d-flex me-3 mb-2">이름</label>
+                        <input type="text" id="reName" class="form-control flex-grow-1" placeholder="👤 이름을 입력하세요"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rePhone" class="d-flex me-3 mb-2">전화번호</label>
+                        <input type="text" id="rePhone" class="form-control flex-grow-1" placeholder="☎ 전화번호를 입력하세요"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="d-flex me-3 mb-2">새로운 비밀번호</label>
+                        <input type="text" id="password" class="form-control flex-grow-1"
+                            placeholder="🔒︎ 새로운 비밀번호를 입력하세요" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="repassword" class="d-flex me-3 mb-2">비밀번호 재입력</label>
+                        <input type="text" id="repassword" class="form-control flex-grow-1"
+                            placeholder="🔒︎ 비밀번호를 재입력하세요" required>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100 mb-2">비밀번호 재설정</button>
+                </form>
+                <div id="resultPW" class="mt-3 text-start d-none text-center text-danger">
+                    <p class="result-box">재설정한 비밀번호: <strong id="resultPW">PW</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-4 text-center">
+        <a href="/login" class="text-muted me-3">로그인</a>
+        <span style="color: rgb(187, 188, 189);">|</span>
+        <a href="/register" class="text-muted me-3 ms-3">회원가입</a>
+        <span style="color: rgb(187, 188, 189);">|</span>
+        <a href="/question" class="text-muted ms-3">고객센터</a>
+    </div>
 </div>
-
-
-<!-- Bootstrap JS -->
 <script>
-  document.getElementById('findIdForm').addEventListener('submit', function (event) {
+// 공통 UI 업데이트 함수
+function updateElementContent(elementId, content, removeClasses, addClasses) {
+    const element = document.getElementById(elementId);
+    if (content) element.textContent = content; // 내용 업데이트
+    element.classList.remove(...removeClasses); // 제거할 클래스
+    element.classList.add(...addClasses);       // 추가할 클래스
+    element.classList.remove('d-none');         // 항상 표시되도록
+}
+
+// 아이디 찾기
+async function findEmail(name, phone) {
+    const memInfo = { name, phone };
+
+    const response = await fetch('/api/findEmail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(memInfo),
+    });
+
+    const rows = await response.json();
+    if (rows.result.length > 0) {
+        // 성공 시
+        updateElementContent('foundId', rows.result[0].email, ['text-danger'], ['text-success']);
+    } else {
+        // 실패 시
+        updateElementContent('foundId', '회원이 정보가 없습니다.', ['text-success'], ['text-danger']);
+    }
+    document.getElementById('idResult').classList.remove('d-none'); // 항상 표시
+}
+
+document.getElementById('findIdForm').addEventListener('submit', function (event) {
     event.preventDefault();
     const name = document.getElementById('name').value;
     const phone = document.getElementById('phone').value;
+    findEmail(name, phone);
+});
 
-    if (name && phone) {
-      document.getElementById('idResult').classList.remove('d-none');
-    }
-  });
-
-  document.getElementById('findPasswordForm').addEventListener('submit', function (event) {
+// 비밀번호 재설정
+document.getElementById('resetPwdForm').addEventListener('submit', async function (event) {
     event.preventDefault();
-    const ID = document.getElementById('ID').value;
-    const name = document.getElementById('namePw').value;
-    const phone = document.getElementById('phonePw').value;
 
-    if (name && phone && ID) {
-      document.getElementById('passwordResult').classList.remove('d-none');
+    const email = document.getElementById('reEmail').value;
+    const name = document.getElementById('reName').value;
+    const phone = document.getElementById('rePhone').value;
+    const password = document.getElementById('password').value;
+    const repassword = document.getElementById('repassword').value;
+
+    if (password !== repassword) {
+        alert("비밀번호가 일치하지 않습니다. 다시 입력해주세요.");
+        return;
     }
-  });
+
+    const resetInfo = { email, pwd: password, name, phone };
+
+    try {
+        const response = await fetch('/api/resetPwd', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(resetInfo),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(result.message || "비밀번호 재설정에 성공했습니다.");
+            window.location.href = "/login"; // 로그인 페이지로 리다이렉트
+        } else {
+            alert(result.message || "비밀번호 재설정에 실패했습니다.");
+            updateElementContent('resultPW', '비밀번호 재설정에 실패했습니다.', ['text-success'], ['text-danger']);
+        }
+    } catch (error) {
+        console.error("비밀번호 재설정 중 오류 발생:", error);
+        alert("서버 오류가 발생했습니다. 다시 시도해주세요.");
+    }
+
+    document.getElementById('resultPW').classList.remove('d-none'); // 항상 표시
+});
+
 </script>
