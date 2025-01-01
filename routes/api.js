@@ -101,7 +101,8 @@ router.get('/board', async(req,res)=>{
     try{
         const sql = `select b.*, m.name AS name
                     from board b
-                    JOIN member m ON b.member_id = m.member_id`
+                    JOIN member m ON b.member_id = m.member_id
+                    ORDER BY b.board_id DESC`
         const [rows] = await pool.execute(sql)
         //res.json(rows)
         //데이터를 템플릿으로 전달
@@ -116,27 +117,6 @@ router.get('/board', async(req,res)=>{
     }
     
 })
-
-/************************* 커뮤니티글작성 ***************************/
-//http://localhost:5678/api/board/write
-router.post('/board/write', async(req,res)=>{
-    //사용자가 화면에서 입력한 값 담기
-    const {content_type_id, title, content} = req.body
-    try{
-        //데이터베이스 쿼리 실행 하기
-        const sql = `insert into board(content_type_id, title, content, board_date, image_url, member_id)
-                        values (?,?,?,now(),?,?)`
-        const values = [content_type_id,title,content,'https://placehold.co/180x100',1]
-        const [result] = await pool.execute(sql,values)
-        //조회 결과가 없는 경우 처리
-        console.log(result)//1이면 입력 성공. 0이면 입력 실패
-        //성공시 응답하기
-        res.json({success:true, result:result})
-    }catch(error){
-        console.error('Database error:', error)
-        return res.status(500).send({message:'글 쓰기 처리 중 오류가 발생했습니다.'})
-    }
-    })
 
 /************************* 커뮤니티글상세보기 ***************************/
 //http://localhost:5678/api/board/read?b_no=2
@@ -171,36 +151,24 @@ router.get('/board/read', async (req, res) => {
     }
 })
 
-/************************* 커뮤니티글수정-PUT***************************/
-//http://localhost:5678/api/board/update?b_no=2
-router.put('/board/update', async(req,res)=>{
-    const b_no=req.query.b_no
-    //사용자가 화면에서 수정한 값 담기
+/************************* 커뮤니티글작성 ***************************/
+//http://localhost:5678/api/board/write
+router.post('/board/write', async(req,res)=>{
+    //사용자가 화면에서 입력한 값 담기
     const {content_type_id, title, content} = req.body
-    //필수 필드 확인
-    if(!content_type_id || !title||!content){
-    console.error("Missing fields : ", req.body)
-    return res.status(400).send("요청한 데이터가 틀렸을 때.")
-    }
     try{
         //데이터베이스 쿼리 실행 하기
-        const sql = `update board
-                    set content_type_id = ?, title = ?, content = ?, board_date = now(), image_url = ?
-                    where board_id=?`
-        const values = [content_type_id,title,content,'https://placehold.co/180x100',b_no]
+        const sql = `insert into board(content_type_id, title, content, board_date, image_url, member_id)
+                        values (?,?,?,now(),?,?)`
+        const values = [content_type_id,title,content,'https://placehold.co/180x100',1]
         const [result] = await pool.execute(sql,values)
         //조회 결과가 없는 경우 처리
-        console.log(result)//1이면 수정 성공. 0이면 수정 실패
+        console.log(result)//1이면 입력 성공. 0이면 입력 실패
         //성공시 응답하기
         res.json({success:true, result:result})
-        res.render('index',{
-            title:'커뮤니티수정', 
-            pageName: 'board/update.ejs',
-            board: rows[0]
-            })
     }catch(error){
         console.error('Database error:', error)
-        return res.status(500).send({message:'글 수정 처리 중 오류가 발생했습니다.'})
+        return res.status(500).send({message:'글 쓰기 처리 중 오류가 발생했습니다.'})
     }
     })
 
@@ -208,28 +176,25 @@ router.put('/board/update', async(req,res)=>{
 // 1. /board/update URL로의 요청이 /api/board/update로 리디렉션됨
 // 2. api.js에서 해당 경로를 처리할 수 있도록 GET 요청을 추가하여 수정 페이지를 렌더링
 // 3. 수정된 URL 경로를 통해 수정 기능을 정상적으로 작동시킬 수 있다.
-router.get('/board/update', async (req, res) => {
+router.get('/board/update', async (req, res, next) => {
     // 쿼리 스트링을 통해 member_id 정보 가져오기
     const b_no = req.query.b_no
 
-    if (!b_no) {
-        return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
-    }
-
     try {
-        const sql = `select b.*, m.name AS name
-                    from board b
-                    JOIN member m ON b.member_id = m.member_id
-                    where board_id = ?`
+        const sql = `SELECT b.*, c.type_name AS type_name
+                    FROM board b
+                    JOIN content_type c ON b.content_type_id = c.content_type_id
+                    WHERE board_id = ?`
         const [rows] = await pool.execute(sql, [b_no])
+
         //조회 결과가 없는 경우 처리
         if(rows.length===0){
             return res.status(404).send({message:'해당 글이 없습니다.'})
         }
-        //성공시 응답
+        //성공시 응답 - 수정 폼 렌더링
         //res.json(rows) // 결과값을 JSON로 변환하여 전달
         res.render('index',{
-            title:'커뮤니티상세보기', 
+            title:'커뮤니티 수정', 
             pageName: 'board/update.ejs',
             board: rows[0]
             })
@@ -239,25 +204,62 @@ router.get('/board/update', async (req, res) => {
     }
 })
 
-
+/************************* 커뮤니티글수정-PUT***************************/
+//http://localhost:5678/api/board/update?b_no=2
+router.put('/board/update', async(req,res)=>{
+    //const b_no=req.body.b_no
+    //사용자가 화면에서 수정한 값 담기
+    const {b_no, content_type_id, title, content} = req.body
+    //필수 필드 확인
+    if(!content_type_id || !title||!content){
+    console.error("Missing fields : ", req.body)
+    return res.status(400).send("필수 필드를 채우세요.")
+    }
+    try{
+        //데이터베이스 쿼리 실행 하기
+        const sql = `UPDATE board
+                    SET content_type_id = ?, title = ?, content = ?, board_date = now(), image_url = ?
+                    WHERE board_id = ?`;
+        const values = [content_type_id,title,content,'https://placehold.co/180x100',b_no]
+        const [result] = await pool.execute(sql,values)
+        //조회 결과가 없는 경우 처리
+        console.log(result)//1이면 수정 성공. 0이면 수정 실패
+        //성공시 응답하기
+        res.json({success:true, result:result})
+    }catch(error){
+        console.error('Database error:', error)
+        return res.status(500).send({message:'글 수정 처리 중 오류가 발생했습니다.'})
+    }
+    })
 
 /************************* 커뮤니티글삭제 ***************************/
-
-
-
+router.delete('/board/delete/:b_no', async(req, res)=>{
+    //사용자가 화면에서 수정한 값 담기
+    const b_no = req.params.b_no
+    console.log(b_no)
+    const sql = "DELETE FROM board WHERE board_id=?"
+    try{
+        const [result] = await db.get().execute(sql,[b_no])
+        //조회 결과가 없는 경우 처리
+        console.log(result)//1이면 삭제 성공. 0이면 삭제 실패
+        //성공시 응답하기
+        res.json({result:result})
+    }catch(error){
+        console.error('Database error:', error)
+        return res.status(500).send({message:'글 삭제 처리 중 오류가 발생했습니다.'})
+        }
+    })
 
 
 /************************* 고객문의글목록 ***************************/
 //http://localhost:5678/api/question
 router.get('/question', async(req,res)=>{
     try{
-        // const sql = `select i.*, m.name AS name
-        //             from inquiry i
-        //             JOIN member m ON i.member_id = m.member_id`
         const sql = `select i.*, m.name AS name, s.status_name AS status
                     from inquiry i
                     LEFT JOIN member m ON i.member_id = m.member_id
-                    LEFT JOIN inquiry_status s ON i.inquiry_status_id = s.inquiry_status_id`
+                    LEFT JOIN inquiry_status s ON i.inquiry_status_id = s.inquiry_status_id
+                    ORDER BY i.inquiry_id DESC`
         const [rows] = await pool.execute(sql)
         //res.json(rows)
         //데이터를 템플릿으로 전달
@@ -283,10 +285,14 @@ router.get('/question/read', async (req, res) => {
     }
 
     try {
-        const sql = `select i.*, m.name AS name
-                    from inquiry i
-                    JOIN member m ON i.member_id = m.member_id
-                    where inquiry_id = ?`
+        const sql = `SELECT i.*, m.name AS name, ic.*
+                    FROM inquiry i, member m, inquiry_comment ic
+                    WHERE i.inquiry_id=?
+                    AND i.inquiry_id =ic.inquiry_id`
+        // const sql = `select i.*, m.name AS name
+        //             from inquiry i
+        //             JOIN member m ON i.member_id = m.member_id
+        //             where inquiry_id = ?`
         const [rows] = await pool.execute(sql, [q_no])
         //조회 결과가 없는 경우 처리
         if(rows.length===0){
@@ -305,72 +311,78 @@ router.get('/question/read', async (req, res) => {
     }
 })
 
-/************************* 고객문의글수정-PUT***************************/
-//http://localhost:5678/api/board/update?b_no=2
-router.put('/question/update', async(req,res)=>{
-    const q_no=req.query.q_no
-    //사용자가 화면에서 수정한 값 담기
+/************************* 고객문의글작성 ***************************/
+router.post('/board/write', async(req,res)=>{
+    //사용자가 화면에서 입력한 값 담기
     const {content_type_id, title, content} = req.body
-    //필수 필드 확인
-    if(!content_type_id || !title||!content){
-    console.error("Missing fields : ", req.body)
-    return res.status(400).send("요청한 데이터가 틀렸을 때.")
-    }
     try{
         //데이터베이스 쿼리 실행 하기
-        const sql = `update board
-                    set content_type_id = ?, title = ?, content = ?, board_date = now(), image_url = ?
-                    where board_id=?`
-        const values = [content_type_id,title,content,'https://placehold.co/180x100',b_no]
+        const sql = `insert into inquiry(content_type_id, title, content, inquiry_date, image_url, member_id)
+                        values (?,?,?,now(),?,?)`
+        const values = [content_type_id,title,content,'https://placehold.co/180x100',1]
         const [result] = await pool.execute(sql,values)
         //조회 결과가 없는 경우 처리
-        console.log(result)//1이면 수정 성공. 0이면 수정 실패
+        console.log(result)//1이면 입력 성공. 0이면 입력 실패
         //성공시 응답하기
         res.json({success:true, result:result})
-        res.render('index',{
-            title:'커뮤니티수정', 
-            pageName: 'board/update.ejs',
-            board: rows[0]
-            })
     }catch(error){
         console.error('Database error:', error)
-        return res.status(500).send({message:'글 수정 처리 중 오류가 발생했습니다.'})
+        return res.status(500).send({message:'글 쓰기 처리 중 오류가 발생했습니다.'})
     }
     })
 
-/************************* 커뮤니티글수정-GET ***************************/
-// 1. /board/update URL로의 요청이 /api/board/update로 리디렉션됨
-// 2. api.js에서 해당 경로를 처리할 수 있도록 GET 요청을 추가하여 수정 페이지를 렌더링
-// 3. 수정된 URL 경로를 통해 수정 기능을 정상적으로 작동시킬 수 있다.
-router.get('/board/update', async (req, res) => {
-    // 쿼리 스트링을 통해 member_id 정보 가져오기
-    const b_no = req.query.b_no
-
-    if (!b_no) {
-        return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
-    }
+/************************* 고객문의글수정-GET ***************************/
+router.get('/question/update', async (req, res, next) => {
+    const q_no = req.query.q_no
 
     try {
-        const sql = `select b.*, m.name AS name
-                    from board b
-                    JOIN member m ON b.member_id = m.member_id
-                    where board_id = ?`
-        const [rows] = await pool.execute(sql, [b_no])
+        const sql = `SELECT i.*, c.type_name AS type_name
+                    FROM inquiry i
+                    JOIN content_type c ON i.content_type_id = c.content_type_id
+                    WHERE inquiry_id = ?`
+        const [rows] = await pool.execute(sql, [q_no])
+
         //조회 결과가 없는 경우 처리
         if(rows.length===0){
             return res.status(404).send({message:'해당 글이 없습니다.'})
         }
-        //성공시 응답
+        //성공시 응답 - 수정 폼 렌더링
         //res.json(rows) // 결과값을 JSON로 변환하여 전달
         res.render('index',{
-            title:'커뮤니티상세보기', 
-            pageName: 'board/update.ejs',
-            board: rows[0]
+            title:'고객문의 수정', 
+            pageName: 'question/update.ejs',
+            inquiry: rows[0]
             })
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
         res.status(500).json({ message: "서버 오류" })
     }
 })
+
+/************************* 고객문의글수정-PUT***************************/
+router.put('/question/update', async(req,res)=>{
+    //사용자가 화면에서 수정한 값 담기
+    const {q_no, content_type_id, title, content} = req.body
+    //필수 필드 확인
+    if(!content_type_id || !title||!content){
+    console.error("Missing fields : ", req.body)
+    return res.status(400).send("필수 필드를 채우세요.")
+    }
+    try{
+        //데이터베이스 쿼리 실행 하기
+        const sql = `UPDATE inquiry
+                    SET content_type_id = ?, title = ?, content = ?, inquiry_date = now()
+                    WHERE inquiry_id = ?`;
+        const values = [content_type_id,title,content,q_no]
+        const [result] = await pool.execute(sql,values)
+        //조회 결과가 없는 경우 처리
+        console.log(result)//1이면 수정 성공. 0이면 수정 실패
+        //성공시 응답하기
+        res.json({success:true, result:result})
+    }catch(error){
+        console.error('Database error:', error)
+        return res.status(500).send({message:'글 수정 처리 중 오류가 발생했습니다.'})
+    }
+    })
 
 module.exports = router;
