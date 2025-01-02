@@ -123,11 +123,9 @@ router.get('/board', async(req,res)=>{
 router.get('/board/read', async (req, res) => {
     // 쿼리 스트링을 통해 member_id 정보 가져오기
     const b_no = req.query.b_no
-
     if (!b_no) {
         return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
     }
-
     try {
         const sql = `select b.*, m.name AS name
                     from board b
@@ -179,14 +177,12 @@ router.post('/board/write', async(req,res)=>{
 router.get('/board/update', async (req, res, next) => {
     // 쿼리 스트링을 통해 member_id 정보 가져오기
     const b_no = req.query.b_no
-
     try {
         const sql = `SELECT b.*, c.type_name AS type_name
                     FROM board b
                     JOIN content_type c ON b.content_type_id = c.content_type_id
                     WHERE board_id = ?`
         const [rows] = await pool.execute(sql, [b_no])
-
         //조회 결과가 없는 경우 처리
         if(rows.length===0){
             return res.status(404).send({message:'해당 글이 없습니다.'})
@@ -233,9 +229,9 @@ router.put('/board/update', async(req,res)=>{
     })
 
 /************************* 커뮤니티글삭제 ***************************/
-router.delete('/board/delete/:b_no', async(req, res)=>{
-    //사용자가 화면에서 수정한 값 담기
-    const b_no = req.params.b_no
+router.delete('/board/delete', async(req, res)=>{
+    //DELETE 요청 시, 데이터를 본문으로 보내고 있기 때문에, 서버에서는 req.body.b_no로 받아야 함
+    const b_no = req.body.b_no
     console.log(b_no)
     const sql = "DELETE FROM board WHERE board_id=?"
     try{
@@ -243,13 +239,16 @@ router.delete('/board/delete/:b_no', async(req, res)=>{
         //조회 결과가 없는 경우 처리
         console.log(result)//1이면 삭제 성공. 0이면 삭제 실패
         //성공시 응답하기
-        res.json({result:result})
+        if (result.affectedRows > 0) {
+            res.json({ success: true, message: '삭제 완료되었습니다.' })
+        } else {
+            res.json({ success: false, message: '삭제 실패했습니다.' })
+        }
     }catch(error){
         console.error('Database error:', error)
         return res.status(500).send({message:'글 삭제 처리 중 오류가 발생했습니다.'})
         }
     })
-
 
 /************************* 고객문의글목록 ***************************/
 //http://localhost:5678/api/question
@@ -279,11 +278,9 @@ router.get('/question', async(req,res)=>{
 router.get('/question/read', async (req, res) => {
     // 쿼리 스트링을 통해 member_id 정보 가져오기
     const q_no = req.query.q_no
-
     if (!q_no) {
         return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
     }
-
     try {
         const sql = `SELECT i.*, m.name AS name, ic.*
                     FROM inquiry i, member m, inquiry_comment ic
@@ -312,14 +309,14 @@ router.get('/question/read', async (req, res) => {
 })
 
 /************************* 고객문의글작성 ***************************/
-router.post('/board/write', async(req,res)=>{
+router.post('/question/write', async(req,res)=>{
     //사용자가 화면에서 입력한 값 담기
     const {content_type_id, title, content} = req.body
     try{
         //데이터베이스 쿼리 실행 하기
-        const sql = `insert into inquiry(content_type_id, title, content, inquiry_date, image_url, member_id)
+        const sql = `insert into inquiry(content_type_id, title, content, inquiry_date, member_id, inquiry_status_id)
                         values (?,?,?,now(),?,?)`
-        const values = [content_type_id,title,content,'https://placehold.co/180x100',1]
+        const values = [content_type_id,title,content,1,1]
         const [result] = await pool.execute(sql,values)
         //조회 결과가 없는 경우 처리
         console.log(result)//1이면 입력 성공. 0이면 입력 실패
@@ -383,6 +380,23 @@ router.put('/question/update', async(req,res)=>{
         console.error('Database error:', error)
         return res.status(500).send({message:'글 수정 처리 중 오류가 발생했습니다.'})
     }
+    })
+
+/************************* 고객문의글삭제 ***************************/
+router.delete('/question/delete', async(req, res)=>{
+    //사용자가 화면에서 수정한 값 담기
+    const q_no = req.params.q_no
+    const sql = "DELETE FROM inquiry WHERE inquiry_id=?"
+    try{
+        const [result] = await db.get().execute(sql,[q_no])
+        //조회 결과가 없는 경우 처리
+        console.log(result)//1이면 삭제 성공. 0이면 삭제 실패
+        //성공시 응답하기
+        res.json({result:result})
+    }catch(error){
+        console.error('Database error:', error)
+        return res.status(500).send({message:'글 삭제 처리 중 오류가 발생했습니다.'})
+        }
     })
 
 module.exports = router;

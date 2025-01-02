@@ -31,8 +31,13 @@
                         <td><a href="/question/read?q_no=<%= question.inquiry_id %>"><%=question.title %></a></td>
                         <td><%=question.name%></td>
                         <td><%=formatDate(question.inquiry_date)%></td>
-                        <td><span class="badge bg-warning"><%=question.status%></span></td>
-                        <!-- <td><span class="badge bg-success"><%=question.status%></span></td> -->
+                        <td>
+                            <% if (question.status === '답변대기') { %>
+                                <span class="badge bg-warning"><%= question.status %></span>
+                            <% } else if (question.status === '답변완료') { %>
+                                <span class="badge bg-success"><%= question.status %></span>
+                            <% } %>
+                        </td>
                     </tr>
                     <% }) %>
                 </tbody>

@@ -46,11 +46,6 @@ router.put('/board/update', function(req, res, next) {
   const b_no = req.body.b_no
   res.redirect(`/api/board/update?b_no=${b_no}`);
 });
-// 글 삭제 
-router.delete('/board/delete', function(req, res, next){
-  const b_no = req.body.b_no
-  res.redirect(`/api/board/delete`)
-})
 
 
 /* 고객문의 */
@@ -77,5 +72,10 @@ router.put('/question/update', function(req, res, next) {
   const q_no = req.body.q_no
   res.redirect(`/api/question/update?q_no=${q_no}`);
 });
+
+// 글 삭제 
+router.delete('/question/delete', function(req, res, next){
+  res.render('index', { title: '고객문의삭제',pageName:'question/delete.ejs'});
+})
 
 module.exports = router;

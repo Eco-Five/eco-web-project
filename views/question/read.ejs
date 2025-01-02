@@ -18,10 +18,10 @@
 
     <!-- 댓글 섹션 -->
     <div>
-        <h5>댓글</h5>
+        <h5>답변</h5>
         <!-- 댓글 작성 섹션 -->
         <div class="mb-3">
-            <textarea class="form-control" rows="3" placeholder="댓글을 작성해주세요."></textarea>
+            <textarea class="form-control" rows="3" placeholder="관리자만 댓글을 작성할 수 있습니다."></textarea>
             <div class="text-end mt-2">
                 <button class="btn btn-dark">댓글 작성</button>
             </div>
@@ -41,10 +41,10 @@
 $("#btn-list").on("click", function(){
     location.href="/question"
 })
-
+/*
 //게시글 삭제하기
 $("#btn-delete").on("click", function(){
-    const b_no = "<%=board.board_id %>"
+    const q_no = "<%=question.inquiry_id %>"
 
     if(confirm("게시물을 삭제하시겠습니까?")){
         $.ajax({
@@ -64,6 +64,7 @@ $("#btn-delete").on("click", function(){
                 });
         }
     })
+*/
 
 //게시글 수정하기
 $("#btn-update").on("click", function(){
