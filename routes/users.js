@@ -8,13 +8,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/payment', function(req, res, next) {
-  res.render('index', {
-    title: 'main',
-    pageName: 'payment/payment.ejs',
-    clientId: process.env.NAVER_PAY_CLIENT_ID,
-    chainId: process.env.NAVER_PAY_CHAIN_ID,
-    localhostIP: process.env.LOCALHOST_IP
-  });
+  res.render('index', { title: 'main', pageName: 'payment/payment.ejs' });
 });
 
 // resultCode=Success&paymentId=20241228NP1181024354

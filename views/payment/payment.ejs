@@ -85,7 +85,6 @@
 
 
 <!-- Bootstrap JS -->
-<script src="https://nsp.pay.naver.com/sdk/js/naverpay.min.js"></script>
 <script>
     let subsPlan = ''
     let subsPrice = 0
@@ -102,36 +101,17 @@
         });
     });
 
-
-    // NaverPay
-    const oPay = Naver.Pay.create({
-        "mode": "development", // development or production
-        "clientId": "<%= clientId %>",
-        "chainId": "<%= chainId %>",
-    });
-
-
     //직접 만드신 네이버페이 결제버튼에 click Event를 할당하세요
-    const elNaverPayBtn = document.getElementById("naverPayBtn");
-    elNaverPayBtn.addEventListener("click", function () {
-        const termsChecked = document.getElementById("termsCheck").checked;
-        const privacyChecked = document.getElementById("privacyCheck").checked;
-
-        if (!termsChecked || !privacyChecked) {
-            alert("이용약관 및 개인정보처리방침에 동의해야 결제를 진행할 수 있습니다.");
-            return;
+    const naverPayBtn = document.getElementById("naverPayBtn");
+    naverPayBtn.addEventListener("click", async function () {
+        const payInfo = {
             
-        } else {
-            oPay.open({
-                "merchantPayKey": "202412270n1edr",
-                "productName": subsPlan,
-                "productCount": "1",
-                "totalPayAmount": subsPrice,
-                "taxScopeAmount": subsPrice,
-                "taxExScopeAmount": "0",
-                "returnUrl": `http://<%= localhostIP %>:5678/users/payment/resultPay?subsPlan=${subsPlan}&subsPrice=${subsPrice}`
-            });
         }
-
+        
+        const response = await fetch('/api/naverPay', {
+            method: 'POST',
+            headers: { "Content-Type": 'application/json' },
+            body: JSON.stringify()
+        })
     });
 </script>

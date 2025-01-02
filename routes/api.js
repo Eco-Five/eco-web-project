@@ -1,5 +1,7 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express')
+var router = express.Router()
+const { v4: uuidv4 } = require('uuid')
+require('dotenv').config()
 
 /***************************** MySQL CRUD *****************************/
 const pool = require('../connDB.js')
@@ -136,6 +138,49 @@ async function addMember() {
 
 /****************************** DELETE ********************************/
 
+
+
+
+/***************************** Naver Pay ******************************/
+router.post('/naverPay', async (req, res) => {
+    const payInfo = {
+        "merchantPayKey": "mpaykey",
+        "productName": "상품명",
+        "productCount": 1,
+        "totalPayAmount": 10,
+        "taxScopeAmount": 10,
+        "taxExScopeAmount": 0,
+        "returnUrl": "https://localhost:5678/users/payment/resultPay",
+        "productItems": [{
+                "categoryType": "BOOK",
+                "categoryId": "GENERAL",
+                "uid": "107922211",
+                "name": "한국사",
+                "count": 1
+        }]
+    }
+
+    url = 'https://dev-pub.apis.naver.com/naverpay-partner/naverpay/payments/v2/reserve'
+
+    try {
+        const naverPayInfo = await fetch(url, {
+            method: 'POST',
+            headers: {
+                "X-Naver-Client-Id": process.env.NAVER_PAY_CLIENT_ID,
+                "X-Naver-Client-Secret": process.env.NAVER_PAY_CLIENT_SECRET,
+                "X-NaverPay-Chain-Id": process.env.NAVER_PAY_CHAIN_ID,
+                "X-NaverPay-Idempotency-Key": uuidv4(),
+                "Content-Type": 'application/json'
+            },
+            body: JSON.stringify(payInfo)
+        })
+        const data = await naverPayInfo.json()
+        res.status(201).json(data)
+        
+    } catch (error) {
+        res.status(500).json({message: error})
+    }
+})
 
 
 module.exports = router;
