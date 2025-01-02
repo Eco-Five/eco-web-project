@@ -143,25 +143,19 @@ async function addMember() {
 
 /***************************** Naver Pay ******************************/
 router.post('/naverPay', async (req, res) => {
+    const { subsPlan, subsPrice } = req.body
+
     const payInfo = {
         "merchantPayKey": "mpaykey",
-        "productName": "상품명",
+        "productName": subsPlan,
         "productCount": 1,
-        "totalPayAmount": 10,
-        "taxScopeAmount": 10,
+        "totalPayAmount": parseInt(subsPrice),
+        "taxScopeAmount": parseInt(subsPrice),
         "taxExScopeAmount": 0,
-        "returnUrl": "https://localhost:5678/users/payment/resultPay",
-        "productItems": [{
-                "categoryType": "BOOK",
-                "categoryId": "GENERAL",
-                "uid": "107922211",
-                "name": "한국사",
-                "count": 1
-        }]
+        "returnUrl": `https://localhost:5678/users/payment/resultPay?subsPlan=${subsPlan}&subsPrice=${subsPrice}`
     }
 
     url = 'https://dev-pub.apis.naver.com/naverpay-partner/naverpay/payments/v2/reserve'
-
     try {
         const naverPayInfo = await fetch(url, {
             method: 'POST',

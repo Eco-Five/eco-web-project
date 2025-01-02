@@ -103,15 +103,25 @@
 
     //직접 만드신 네이버페이 결제버튼에 click Event를 할당하세요
     const naverPayBtn = document.getElementById("naverPayBtn");
+
     naverPayBtn.addEventListener("click", async function () {
-        const payInfo = {
-            
+        if(!$('#termsCheck').is(':checked') && !$('#privacyCheck').is(':checked')) {
+            alert('이용약관과 개인정보처리방침에 체크해주세요!')
+
+        } else if(subsPrice === 0) {
+            alert('구독상품을 선택해주세요!')
+
+        } else {
+            const response = await fetch('/api/naverPay', {
+                method: 'POST',
+                headers: { "Content-Type": 'application/json' },
+                body: JSON.stringify({
+                    subsPlan: subsPlan,
+                    subsPrice: subsPrice
+                })
+            })
+            const result = await response.json()
+            window.location.href = `https://test-m.pay.naver.com/payments/${result.body.reserveId}`
         }
-        
-        const response = await fetch('/api/naverPay', {
-            method: 'POST',
-            headers: { "Content-Type": 'application/json' },
-            body: JSON.stringify()
-        })
     });
 </script>
