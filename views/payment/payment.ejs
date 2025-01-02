@@ -55,39 +55,33 @@
 
         <form class="p-3 mb-3 bg-light">
             <p class="fw-bold">선택한 구독상품</p>
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between mb-3">
                 <span id="selected-plan">선택없음</span>
                 <div>
                     <span id="selected-price" class="fw-bold fs-5">₩0</span><span
                         style="font-size: clamp(0.6rem, 1.0vw, 0.9rem);">/월</span>
                 </div>
             </div>
+
+            <!-- 이용약관 및 개인정보처리방침 체크박스 추가 -->
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="termsCheck" required>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">이용약관</a>에 동의합니다.
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="privacyCheck" required>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">개인정보처리방침</a>에 동의합니다.
+            </div>
         </form>
 
         <form>
             <input type="button" id="naverPayBtn" class="btn btn-success w-100" value="네이버페이 결제">
-            <div class="mb-3 mt-3">
-                <label for="card-number" class="form-label">카드 번호</label>
-                <input type="text" class="form-control" id="card-number" placeholder="0000 0000 0000 0000">
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="expiry-date" class="form-label">유효기간</label>
-                    <input type="text" class="form-control" id="expiry-date" placeholder="MM/YY">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="cvc" class="form-label">CVC</label>
-                    <input type="text" class="form-control" id="cvc" placeholder="123">
-                </div>
-            </div>
-            <div class="mb-3">
-                <label for="card-holder" class="form-label">카드 소유자</label>
-                <input type="text" class="form-control" id="card-holder" placeholder="이름 입력">
-            </div>
-            <input type="button" class="btn btn-dark w-100" value="카드 결제">
         </form>
     </div>
 </div>
+
+<!-- Modal -->
+<%-include('termsModel.ejs')%>
 
 
 <!-- Bootstrap JS -->
@@ -120,14 +114,24 @@
     //직접 만드신 네이버페이 결제버튼에 click Event를 할당하세요
     const elNaverPayBtn = document.getElementById("naverPayBtn");
     elNaverPayBtn.addEventListener("click", function () {
-        oPay.open({
-            "merchantPayKey": "202412270n1edr",
-            "productName": subsPlan,
-            "productCount": "1",
-            "totalPayAmount": subsPrice,
-            "taxScopeAmount": subsPrice,
-            "taxExScopeAmount": "0",
-            "returnUrl": `http://<%= localhostIP %>:5678/users/payment/resultPay?subsPlan=${subsPlan}&subsPrice=${subsPrice}`
-        });
+        const termsChecked = document.getElementById("termsCheck").checked;
+        const privacyChecked = document.getElementById("privacyCheck").checked;
+
+        if (!termsChecked || !privacyChecked) {
+            alert("이용약관 및 개인정보처리방침에 동의해야 결제를 진행할 수 있습니다.");
+            return;
+            
+        } else {
+            oPay.open({
+                "merchantPayKey": "202412270n1edr",
+                "productName": subsPlan,
+                "productCount": "1",
+                "totalPayAmount": subsPrice,
+                "taxScopeAmount": subsPrice,
+                "taxExScopeAmount": "0",
+                "returnUrl": `http://<%= localhostIP %>:5678/users/payment/resultPay?subsPlan=${subsPlan}&subsPrice=${subsPrice}`
+            });
+        }
+
     });
 </script>
