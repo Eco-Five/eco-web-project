@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const path = require('path');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -72,10 +73,5 @@ router.put('/question/update', function(req, res, next) {
   const q_no = req.body.q_no
   res.redirect(`/api/question/update?q_no=${q_no}`);
 });
-
-// 글 삭제 
-router.delete('/question/delete', function(req, res, next){
-  res.render('index', { title: '고객문의삭제',pageName:'question/delete.ejs'});
-})
 
 module.exports = router;

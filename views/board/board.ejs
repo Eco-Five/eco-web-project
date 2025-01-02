@@ -23,7 +23,7 @@
                 <div class="list-group">
                     <% boards.forEach(board => { %>
                         <a href="/board/read?b_no=<%= board.board_id %>" class="list-group-item list-group-item-action d-flex gap-3 py-3">
-                            <img src="<%= board.img_url || 'https://placehold.co/180x100' %>" alt="thumbnail" class="rounded">
+                            <img src="<%= board.image_url || 'https://placehold.co/180x100' %>" alt="thumbnail" class="rounded">
                             <div class="w-100">
                                 <h5 class="mb-1"><%= board.title %></h5>
                                 <p class="mb-1 text-truncate"><%= board.content %></p>

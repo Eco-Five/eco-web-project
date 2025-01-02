@@ -21,6 +21,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+// 이미지 파일 디렉토리
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

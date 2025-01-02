@@ -1,5 +1,7 @@
 /* board */
 .list-group-item {
+    display: flex; /*이미지, 텍스트 나란히 정렬*/
+    gap:15px;
     padding: 20px;
 }
 
@@ -7,9 +9,11 @@
     width: 180px; 
     height: 100px; 
     object-fit: cover; /* 이미지 비율 유지 */
+    display: block;
 }
 
 .list-group-item .w-100 {
+    flex:1; /* 텍스트 부분이 남은 공간 차지 */
     display: flex;
     flex-direction: column;
     justify-content: center;
