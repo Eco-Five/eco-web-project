@@ -125,7 +125,7 @@ async function addMember() {
 }
 */
 
-//네이버API 서버
+//네이버쇼핑API 서버
 router.post("/naverShop", async (req, res) => {
     const query = req.body;
     const page = req.body.page;
