@@ -6,7 +6,6 @@
         </div>
     </div>
 </div>
-
 <hr />
 
 <div class="container my-4">
@@ -26,6 +25,9 @@
                         {{format lprice}}
                         <span class="cart ms-3" style="cursor: pointer;color:green">ecobag</span>
                     </b>
+                    <a href="{{link}}">
+                        <button style="background-color: white;">네이버쇼핑</button>
+                    </a>
                 </div>
                 <%-include("itemModal.ejs") %>
             </div>
@@ -36,43 +38,88 @@
 
 <div class="text-center mt-2">
     <button class="btn btn-dark btn-sm px-5" id="prev">이전</button>
-    <span id="page" class="px-3">1/5</span>
+    <span id="page" class="px-3">1/9</span>
     <button class="btn btn-dark btn-sm px-5" id="next">다음</button>
 </div>
 
-
 <script>
-    // 네이버 상품 API 호출 함수
-    async function productList() {
-        const query = document.getElementById('query').value
+    let currentPage = 1;  
+    const itemsPerPage = 12; 
 
+    // 페이지 로드 시 기본 쿼리값
+    document.addEventListener('DOMContentLoaded', () => {
+        const defaultQuery = "친환경";  
+        productList(defaultQuery, currentPage);  
+    });
+
+    // 네이버API 호출 함수
+    async function productList(query, page = 1) {
         const response = await fetch(`/api/naverShop`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ values: query })
+            body: JSON.stringify({ values: query, page: page })  
         });
-        const data = await response.json(); // response 받은 데이터
+        const data = await response.json();
         
-        // Handlebars에 객체 할당
-        let temp = Handlebars.compile($("#card-template").html())
-        $("#card-container").html(temp(data))
-        console.log(data);
+    // Handlebars에 객체 할당
+    let temp = Handlebars.compile($("#card-template").html());
+    $("#card-container").html(temp(data));  
+
+    // 페이지 표시 업데이트
+    document.getElementById('page').textContent = `${data.currentPage}/${data.totalPages}`;
+
+    // 이전/다음 버튼 상태 업데이트
+    document.getElementById('prev').disabled = data.currentPage === 1;
+    document.getElementById('next').disabled = data.currentPage === data.totalPages;
     }
 
     // 버튼 클릭 시 동작
-    const btnSearch = document.getElementById('btnSearch')
+    const btnSearch = document.getElementById('btnSearch');
     btnSearch.addEventListener('click', async () => {
-        productList()
-    })
+        currentPage = 1;  
+        const query = document.getElementById('query').value;  
+        productList(query, currentPage);  
+    });
 
     // 검색창 Enter 시 동작
-    const inputQuery = document.getElementById('query')
-    inputQuery.addEventListener('keydown', async () => {
-        if(event.keyCode === 13) { productList() }
-    })
+    const inputQuery = document.getElementById('query');
+    inputQuery.addEventListener('keydown', async (event) => {
+        if (event.keyCode === 13) {  
+            currentPage = 1;  
+            const query = inputQuery.value; 
+            productList(query, currentPage);  
+        }
+    });
+
+    // 이전 페이지 버튼 클릭 시
+    document.getElementById('prev').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            const query = document.getElementById('query').value;
+            productList(query, currentPage);
+        }
+    });
+
+    // 다음 페이지 버튼 클릭 시
+    document.getElementById('next').addEventListener('click', () => {
+        currentPage++;
+        const query = document.getElementById('query').value;
+        productList(query, currentPage);
+    });
 </script>
 
+<script>
+    // Handlebars Helper 가격 포맷형식
+    Handlebars.registerHelper("format", function (price) {
+        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '원';
+    });
 
+    // Handlebars Helper HTML 태그제거
+    Handlebars.registerHelper("clean", function (title) {
+        const cleanedTitle = title.replace(/<[^>]+>/g, '');
+        return cleanedTitle;
+    });
+</script>
 
 <script>
     // 모달 호출
@@ -80,18 +127,5 @@
         let index = $(this).attr("index")
         console.log(index)
         $(`#modal${index}`).modal("show")
-    })
-</script>
-
-
-<script>
-    // Handlebars Hellper 가격 포맷형식
-    Handlebars.registerHelper("format", function (price) {
-        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '원';
-    })
-    // Handlebars Hellper HTML 태그제거
-    Handlebars.registerHelper("clean", function (title) {
-        const cleanedTitle = title.replace(/<[^>]+>/g, '');
-        return cleanedTitle;
     })
 </script>

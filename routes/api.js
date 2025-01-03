@@ -125,12 +125,14 @@ async function addMember() {
 }
 */
 
-
-// 네이버 API 서버 코드 통합
+//네이버API 서버
 router.post("/naverShop", async (req, res) => {
-    const query = req.body
+    const query = req.body;
+    const page = req.body.page;
+    const itemsPerPage = 12;
+
     try {
-        url = `https://openapi.naver.com/v1/search/shop.json?query=${query.values}&display=20`
+        const url = `https://openapi.naver.com/v1/search/shop.json?query=${query.values}&display=100`;
         
         const responseNaverShop = await fetch(url, {
             method: 'GET',
@@ -138,14 +140,28 @@ router.post("/naverShop", async (req, res) => {
                 "X-Naver-Client-Id": process.env.NAVER_CLIENT_ID,
                 "X-Naver-Client-Secret": process.env.NAVER_CLIENT_SECRET
             }
-        })
-        const data = await responseNaverShop.json()
-        res.status(201).json({ result: '정상 작동', list: data.items})
+        });
+
+        const data = await responseNaverShop.json();
+        const items = data.items;
+
+        // 페이징 처리
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+        const startIndex = (page - 1) * itemsPerPage;
+        const paginatedItems = items.slice(startIndex, startIndex + itemsPerPage);
+
+        res.status(200).json({
+            result: '정상 작동',
+            list: paginatedItems,
+            totalPages: totalPages,
+            currentPage: page
+        });
 
     } catch (error) {
-        res.status(500).json({ result: '서버 오류' })
+        res.status(500).json({ result: '서버 오류' });
     }
 });
+
 
 
 
