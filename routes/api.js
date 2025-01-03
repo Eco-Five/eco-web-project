@@ -1,7 +1,9 @@
 var express = require('express')
 var router = express.Router()
-const { v4: uuidv4 } = require('uuid')
 require('dotenv').config()
+
+const app = express()
+const session = require('express-session')
 
 /***************************** MySQL CRUD *****************************/
 const pool = require('../connDB.js')
@@ -128,58 +130,55 @@ async function addMember() {
 */
 
 
-/******************************** PUT *********************************/
-
-
-
-/******************************* PATCH ********************************/
-
-
-
-/****************************** DELETE ********************************/
-
-
-
-
-/***************************** Naver Pay ******************************/
-router.post('/naverPay', async (req, res) => {
-    const { subsPlan, subsPrice } = req.body
-
-    const payInfo = {
-        "merchantPayKey": "mpaykey",
-        "productName": subsPlan,
-        "productCount": 1,
-        "totalPayAmount": parseInt(subsPrice),
-        "taxScopeAmount": parseInt(subsPrice),
-        "taxExScopeAmount": 0,
-        "returnUrl": `https://localhost:5678/users/payment/resultPay?subsPlan=${subsPlan}&subsPrice=${subsPrice}`
-    }
-
-    url = 'https://dev-pub.apis.naver.com/naverpay-partner/naverpay/payments/v2/reserve'
-    try {
-        const naverPayInfo = await fetch(url, {
-            method: 'POST',
-            headers: {
-                "X-Naver-Client-Id": process.env.NAVER_PAY_CLIENT_ID,
-                "X-Naver-Client-Secret": process.env.NAVER_PAY_CLIENT_SECRET,
-                "X-NaverPay-Chain-Id": process.env.NAVER_PAY_CHAIN_ID,
-                "X-NaverPay-Idempotency-Key": uuidv4(),
-                "Content-Type": 'application/json'
-            },
-            body: JSON.stringify(payInfo)
-        })
-        const data = await naverPayInfo.json()
-        res.status(201).json(data)
-        
-    } catch (error) {
-        res.status(500).json({message: error})
-    }
-})
-/***************************** Naver Pay ******************************/
-
 
 /************************** Google OAuth2 *****************************/
+const passport = require("passport")
+const { Strategy: GoogleStrategy } = require("passport-google-oauth20");
 
+// Session 설정 및 Passport 초기화
+app.use(session({ secret: "secret", resave: false, saveUninitialized: true }))
+app.use(passport.initialize())
+app.use(passport.session())
+
+// Google OAuth2 Strategy 설정
+const google = {
+  clientID: process.env.GOOGLE_CLIENT_ID,   // 클라이언트 ID
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,   // 클라이언트 보안 비밀번호
+  callbackURL: "https://localhost:5678/login"    // 리디렉션 URI
+}
+
+passport.use(
+    new GoogleStrategy(google, (accessToken, refreshToken, profile, done) => {
+        // 로그인 성공 시 콜백
+        console.log("Google profile:", profile)
+        return done(null, profile)      // 프로필 정보 저장
+    })
+)
+
+// 세션에 사용자 정보 저장
+passport.serializeUser((user, done) => done(null, user))
+passport.deserializeUser((user, done) => done(null, user))
+
+router.get('/googleAuth',
+    passport.authenticate("google", { scope: ["profile", "email"]} )
+)
+
+router.get('/auth/google/callback',
+    passport.authenticate("google", { failureRedirect: '/' }), (req, res) => {
+        // 로그인 성공
+        res.redirect("/profile")
+    }
+)
+
+router.get('/profile', (req, res) => {
+    if(!req.isAuthenticated()) {
+        return res.redirect("/")
+    }
+    res.send(`
+        <h1>Welcome, ${req.user.displayName}</h1>
+        <p>Email: ${req.user.emails[0].value}</p>
+    `)
+})
 
 /************************** Google OAuth2 *****************************/
 

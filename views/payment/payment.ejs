@@ -114,7 +114,7 @@
             alert('구독상품을 선택해주세요!')
 
         } else {
-            const response = await fetch('/api/naverPay', {
+            const response = await fetch('/users/naverPay', {
                 method: 'POST',
                 headers: { "Content-Type": 'application/json' },
                 body: JSON.stringify({
