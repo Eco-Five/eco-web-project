@@ -25,6 +25,13 @@
                 </button>
                 <div id="user-info"></div>
             </div>
+            <!-- Google Sign-in -->
+            <div id="g_id_onload"
+                data-client_id="621458895237-1dgrts87dd6kbv05utpj0nghp88o1lvr.apps.googleusercontent.com"
+                data-callback="handleCredentialResponse">
+            </div>
+            <div class="g_id_signin" data-type="standard"></div>
+            <!-- Google Sign-in -->
         </form>
         <div class="text-center mt-4">
             <p class="text-secondary">아직 회원이 아니신가요?</p>
@@ -40,51 +47,5 @@
     </div>
 </div>
 
-<script type="module">
-    // firebase-config.js에서 Firebase 앱 가져오기
-    import { app } from '/javascripts/firebase.js';
-
-    // Firebase 모듈 가져오기
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-
-    // Firebase 인증 초기화
-    const auth = getAuth(app);
-
-    // Google 인증 제공자 설정
-    const provider = new GoogleAuthProvider();
-
-    // Google 로그인 버튼 클릭 이벤트
-    document.getElementById('google-login').addEventListener('click', async () => {
-        try {
-            // Firebase Authentication을 사용해 Google 로그인
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-
-            // 사용자 정보를 화면에 표시
-            document.getElementById('user-info').innerHTML = `
-                <p>Logged in as: ${user.displayName}</p>
-                <p>Email: ${user.email}</p>
-                <img src="${user.photoURL}" alt="Profile Picture" style="width:100px; height:100px;">
-            `;
-        } catch (error) {
-            console.error("Error during login:", error);
-            alert("Failed to log in. Please try again.");
-        }
-    });
-
-    // 로그아웃 버튼 클릭 이벤트
-    document.getElementById('logout').addEventListener('click', async () => {
-        try {
-            // Firebase 인증 로그아웃
-            await signOut(auth);
-
-            // 사용자 정보를 화면에서 제거
-            document.getElementById('user-info').innerHTML = "<p>You have logged out.</p>";
-        } catch (error) {
-            console.error("Error during logout:", error);
-            alert("Failed to log out. Please try again.");
-        }
-    });
-</script>
 
 <%-include('./loginConnDB.ejs') %>

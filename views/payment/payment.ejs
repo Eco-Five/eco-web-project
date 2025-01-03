@@ -90,16 +90,18 @@
     let subsPrice = 0
 
     // Plan Selection Logic
-    $('.card').each(function () {
-        $(this).on('click', () => {
-            $('.card').removeClass('border-dark');
-            $(this).addClass('border-dark');
-            $('#selected-plan').html($(this).find('.card-title').text());
-            $('#selected-price').html($(this).find('.card-text').text());
-            subsPlan = $('#selected-plan').text()
-            subsPrice = $('#selected-price').text().slice(1, 3)
-        });
+    // function을 사용한 이유는 this를 동적으로 받기 위함
+    $('.card').on('click', function() {
+        $('.card').removeClass('border-dark');
+        $(this).addClass('border-dark');
+
+        $('#selected-plan').html($(this).find('.card-title').text());
+        $('#selected-price').html($(this).find('.card-text').text());
+        
+        subsPlan = $('#selected-plan').text()
+        subsPrice = $('#selected-price').text().slice(1, 3)
     });
+
 
     //직접 만드신 네이버페이 결제버튼에 click Event를 할당하세요
     const naverPayBtn = document.getElementById("naverPayBtn");

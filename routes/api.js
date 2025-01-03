@@ -175,6 +175,13 @@ router.post('/naverPay', async (req, res) => {
         res.status(500).json({message: error})
     }
 })
+/***************************** Naver Pay ******************************/
+
+
+/************************** Google OAuth2 *****************************/
+
+
+/************************** Google OAuth2 *****************************/
 
 
 module.exports = router;
