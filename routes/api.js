@@ -3,7 +3,6 @@ var router = express.Router()
 require('dotenv').config()
 
 const app = express()
-const session = require('express-session')
 
 /***************************** MySQL CRUD *****************************/
 const pool = require('../connDB.js')
@@ -76,7 +75,7 @@ router.post('/memberInsert', async (req, res) => {
 
     } catch (error) {
         console.error("memberInsert 오류: ", error)
-        res.status(500).json({ message: "서버오류"})
+        res.status(500).json({ message: "서버오류" })
     }
 })
 
@@ -93,7 +92,7 @@ router.post('/memberLogin', async (req, res) => {
         if (match) {
             res.cookie('uid', rows[0].email, { httpOnly: true, path: '/' })
             res.cookie('pwd', match)
-            res.status(201).json({ message: '로그인 성공', rows: match})
+            res.status(201).json({ message: '로그인 성공', rows: match })
         } else {
             res.status(201).json({ message: '계정이 일치하지 않습니다.' })
         }
@@ -132,53 +131,47 @@ async function addMember() {
 
 
 /************************** Google OAuth2 *****************************/
-const passport = require("passport")
-const { Strategy: GoogleStrategy } = require("passport-google-oauth20");
-
-// Session 설정 및 Passport 초기화
-app.use(session({ secret: "secret", resave: false, saveUninitialized: true }))
-app.use(passport.initialize())
-app.use(passport.session())
-
-// Google OAuth2 Strategy 설정
-const google = {
-  clientID: process.env.GOOGLE_CLIENT_ID,   // 클라이언트 ID
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,   // 클라이언트 보안 비밀번호
-  callbackURL: "https://localhost:5678/login"    // 리디렉션 URI
-}
-
-passport.use(
-    new GoogleStrategy(google, (accessToken, refreshToken, profile, done) => {
-        // 로그인 성공 시 콜백
-        console.log("Google profile:", profile)
-        return done(null, profile)      // 프로필 정보 저장
-    })
-)
-
-// 세션에 사용자 정보 저장
-passport.serializeUser((user, done) => done(null, user))
-passport.deserializeUser((user, done) => done(null, user))
-
-router.get('/googleAuth',
-    passport.authenticate("google", { scope: ["profile", "email"]} )
-)
-
-router.get('/auth/google/callback',
-    passport.authenticate("google", { failureRedirect: '/' }), (req, res) => {
-        // 로그인 성공
-        res.redirect("/profile")
-    }
-)
-
-router.get('/profile', (req, res) => {
-    if(!req.isAuthenticated()) {
-        return res.redirect("/")
-    }
-    res.send(`
-        <h1>Welcome, ${req.user.displayName}</h1>
-        <p>Email: ${req.user.emails[0].value}</p>
-    `)
+// 로그인 버튼을 누르면 도착하는 목적지 라우터
+// https://accounts.google.com/o/oauth2/v2/auth
+router.get('/auth/google', (req, res) => {
+    let url = 'https://accounts.google.com/o/oauth2/v2/auth'
+    url += '?client_id=' + process.env.GOOGLE_CLIENT_ID
+    url += '&redirect_uri=https://localhost:5678/api/login/redirect'
+    url += '&response_type=code'
+    // 구글에 등록된 유저 정보 email, profile을 가져오겠다 명시
+    url += '&scope=email profile'
+    // 완성된 url로 이동
+    res.redirect(url)
 })
+
+// 구글 계정 선택 화면에서 계정 선택 후, redirect된 주소
+router.get('/login/redirect', async (req, res) => {
+    // redirect_uri에 code=라는 쿼리스트링이 들어옵니다.
+    // 이 code를 사용해서 구글 인증 서버에 access_token을 요청할 수 있다.
+    const { code } = req.query
+    console.log(code)
+
+    // 구글 인증 서버에 토큰 요청하기
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        // body는 문자열로 변환하여 전송해야 하므로  
+        // URLSearchParams로 쿼리 문자열 형식으로 변환
+        body: new URLSearchParams({
+            code: code,
+            client_id: process.env.GOOGLE_CLIENT_ID,
+            client_secret: process.env.GOOGLE_CLIENT_SECRET,
+            redirect_uri: 'https://localhost:5678/api/login/redirect',
+            grant_type: 'authorization_code'
+        }).toString()
+    })
+    res.json(response.json())
+})
+
+
+
 
 /************************** Google OAuth2 *****************************/
 
