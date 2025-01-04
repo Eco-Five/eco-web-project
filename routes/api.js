@@ -91,7 +91,7 @@ router.post('/memberLogin', async (req, res) => {
             res.cookie('pwd', match)
             res.status(201).json({ message: '로그인 성공', rows: match })
         } else {
-            res.status(201).json({ message: '계정이 일치하지 않습니다.' })
+            res.status(400).json({ message: '계정이 일치하지 않습니다.' })
         }
 
     } catch (error) {
@@ -171,6 +171,11 @@ router.put('/resetPwd', async (req, res) => {
         res.status(500).json({ message: "서버 오류가 발생했습니다." });
     }
 });
+
+
+
+
+
 /*
 async function addMember() {
     const memberInfo = {
@@ -206,6 +211,20 @@ async function addMember() {
 
 /****************************** DELETE ********************************/
 
-
+/******************************** naver auth ********************************/
 
 module.exports = router;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
