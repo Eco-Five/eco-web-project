@@ -36,12 +36,11 @@
         </footer>
     </div>
 </div>
+<%-include('./loginConnDB.ejs') %>
 
 <!------------------------------------- naver Login ------------------------------------->
 
 <script type="module">
-
-    
 const handleNaverLogin = (event) => {
 event.preventDefault()  // 이벤트 전이 막기
 try {
@@ -55,3 +54,4 @@ try {
 // 해결방안은 전역변수에 등록할 것
 window.handleNaverLogin = handleNaverLogin; // 전역변수화
 </script>
+
