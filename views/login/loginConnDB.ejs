@@ -2,7 +2,7 @@
     // 로그인 정보 POST API 함수
     async function loginCheck(loginInfo) {
         try {
-            const response = await fetch('api/memberLogin', {
+            const response = await fetch('/api/memberLogin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
