@@ -24,7 +24,7 @@ router.get('/about', function(req, res, next) {
 });
 
 /* 커뮤니티 */
-// 목록
+//목록
 router.get('/board', function(req, res, next) {
   res.redirect('/api/board');
 });

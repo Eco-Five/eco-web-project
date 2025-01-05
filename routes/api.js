@@ -152,6 +152,46 @@ const upload = multer({
 });
 
 
+// /************************* 페이징처리 ***************************/
+// //http://localhost:5678/api/board
+// router.get('/board', async(req,res)=>{
+//     const page = parseInt(req.query.page, 10) || 1 //기본값 : 1페이지
+//     const limit = parseInt(req.query.limit, 10) || 10 //한 페이지 당 10개
+//     const offset = (page - 1) * limit
+//     try{
+//         const sql = `SELECT SQL_CALC_FOUND_ROWS b.*, 
+//                             m.name AS name, 
+//                             c.type_name AS type_name
+//                     FROM board b
+//                     LEFT JOIN member m ON b.member_id = m.member_id
+//                     LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
+//                     ORDER BY b.board_id DESC
+//                     LIMIT ?, ?`
+//         console.log('SQL Query:', sql);
+//         const [rows] = await pool.execute(sql, [offset, limit])
+//         //전체 게시글 수 
+//         const [[ {totalCount }]] = await pool.execute(`SELECT FOUND_ROWS() AS totalCount`)
+//         //res.json(rows)
+//         //데이터를 템플릿으로 전달
+//         res.render('index',{
+//             title:'커뮤니티목록', 
+//             pageName: 'board/board.ejs',
+//             boards:rows,
+//             pagination:{
+//                 currentPage : page,
+//                 totalPages : Math.ceil(totalCount / limit),
+//                 totalCount,
+//             },
+//             });
+//     }catch(error){
+//         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
+//         console.log('Page:', page, 'Limit:', limit, 'Offset:', offset);
+
+//         res.status(500).json({ message: "서버 오류" })
+//     }
+    
+// })
+
 /************************* 커뮤니티글목록 ***************************/
 //http://localhost:5678/api/board
 router.get('/board', async(req,res)=>{
@@ -175,6 +215,7 @@ router.get('/board', async(req,res)=>{
     }
     
 })
+
 
 /************************* 커뮤니티글상세보기 ***************************/
 //http://localhost:5678/api/board/2

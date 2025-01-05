@@ -11,7 +11,7 @@
                 <div class="mb-3 d-flex justify-content-between">
                     <select class="form-select w-auto">
                         <option selected>전체</option>
-                        <option value="1">환경뉴스</option>
+                        <option value="1">친환경뉴스</option>
                         <option value="2">친환경팁</option>
                         <option value="3">자유게시판</option>
                     </select>
@@ -54,6 +54,15 @@
                     </ul>
                 </nav>
                 <!-- 페이지 -->
+
+                <!-- 
+<% for (let i = 1; i <= pagination.totalPages; i++) { %>
+                            <li class="page-item <%= i === pagination.currentPage ? 'active' : '' %>">
+                                <a class="page-link" href="/board?page=<%= i %>"><%= i %></a>
+                            </li>
+                        <% } %> 
+        -->
+
             </div>
 
             <!-- 사이드바(인기게시글) -->
@@ -95,5 +104,6 @@ function formatDate(dateStr) {
     return `${year}.${month}.${day} ${hours}:${minutes}`;
 }
 %>
+
 
 
