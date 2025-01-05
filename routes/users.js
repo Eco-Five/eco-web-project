@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const pool = require('../connDB.js')
 require('dotenv').config();
 
 /* GET users listing. */
@@ -55,24 +56,27 @@ router.post('/naverPay', async (req, res) => {
 /************************** Naver Pay Result **************************/
 // resultCode=Success&paymentId=20241228NP1181024354
 router.get('/payment/resultPay', async function(req, res, next) {
-  const { subsPlan, subsPrice, resultCode, paymentId } = req.query;
-  const datetime = new Date().toLocaleString()
+  const { subsPlan, subsPrice, resultCode, paymentId } = req.query
+  const datetime = new Date().toISOString().split('T')[0]
+  const end_date = new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0];
 
   res.render('index', { title: '결제결과창', pageName:'payment/resultPay.ejs',
     subsPlan, subsPrice, resultCode, paymentId, datetime
   });
 
-  try {
-    const sql = `insert into member (name, email, pwd, phone, eco_point, image_url, member_type_id, subs_id, address)
-    values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-
-    const values = [name, email, pwdHash, phone, 100, 'https://placehold.co/250x200', member_type_id, 1, address]
-    const [result] = await pool.execute(sql, values);
-    res.status(201).json({ message: '회원가입 성공', memId: result.insertId })
-
-  } catch (error) {
-    console.error("memberInsert 오류: ", error)
-    res.status(500).json({ message: "서버오류"})
+  if(req.session?.user?.isAuthenticated) {
+    try {
+      const sql = `insert into payment (payment_date, payment_token, start_date, end_date, member_id, subs_id, payment_type_id, subs_status_id) 
+                    values (?, ?, ?, ?, (select member_id from member where email = ?), (select subs_id from subs where name = ?), 5, 1);`
+  
+      const values = [datetime, paymentId, datetime, end_date, req.session.user.email, subsPlan]
+  
+      const [result] = await pool.execute(sql, values);
+      console.log(result);
+  
+    } catch (error) {
+      console.error("resultPay 오류: ", error)
+    }
   }
 });
 /************************** Naver Pay Result **************************/
