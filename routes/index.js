@@ -30,22 +30,22 @@ router.get('/board', function(req, res, next) {
 });
 // 글 상세보기 
 router.get('/board/read', function(req, res, next) {
-  const b_no = req.query.b_no
-  res.redirect(`/api/board/read?b_no=${b_no}`);
+  const b_no = req.params.b_no
+  res.redirect(`/api/board/${b_no}`);
 });
 // 글 작성 
 router.get('/board/write', function(req, res, next) {
   res.render('index', { title: '커뮤니티작성',pageName:'board/write.ejs'});
 });
 // 글 수정 - GET 
-router.get('/board/update', function(req, res, next) {
-  const b_no = req.query.b_no
-  res.redirect(`/api/board/update?b_no=${b_no}`);
+router.get('/board/update/:b_no', function(req, res, next) {
+  const b_no = req.params.b_no
+  res.redirect(`/api/board/update/${b_no}`);
 });
 // 글 수정 - PUT 
-router.put('/board/update', function(req, res, next) {
-  const b_no = req.body.b_no
-  res.redirect(`/api/board/update?b_no=${b_no}`);
+router.put('/board/update/:b_no', function(req, res, next) {
+  const b_no = req.params.b_no
+  res.redirect(`/api/board/update/${b_no}`);
 });
 
 
@@ -56,22 +56,27 @@ router.get('/question', function(req, res, next) {
 });
 // 글 상세보기 
 router.get('/question/read', function(req, res, next) {
-  const q_no = req.query.q_no
-  res.redirect(`/api/question/read?q_no=${q_no}`);
+  const q_no = req.params.q_no
+  res.redirect(`/api/question/${q_no}`);
 });
 // 글 작성 
 router.get('/question/write', function(req, res, next) {
   res.render('index', { title: '고객문의작성',pageName:'question/write.ejs'});
 });
+// //댓글 작성
+// router.get('/question/read', function(req, res, next) {
+//   const q_no = req.params.q_no
+//   res.render('index', {pageName:'question/read.ejs'});
+// })
 // 글 수정 - GET 
-router.get('/question/update', function(req, res, next) {
-  const q_no = req.query.q_no
-  res.redirect(`/api/question/update?q_no=${q_no}`);
+router.get('/question/update/:q_no', function(req, res, next) {
+  const q_no = req.params.q_no
+  res.redirect(`/api/question/update/${q_no}`);
 });
 // 글 수정 - PUT 
-router.put('/question/update', function(req, res, next) {
-  const q_no = req.body.q_no
-  res.redirect(`/api/question/update?q_no=${q_no}`);
+router.put('/question/update/:q_no', function(req, res, next) {
+  const q_no = req.params.q_no
+  res.redirect(`/api/question/update/${q_no}`);
 });
 
 module.exports = router;

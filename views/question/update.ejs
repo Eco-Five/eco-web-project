@@ -52,7 +52,7 @@
     
                 // 서버로 AJAX 요청을 보내기
                 $.ajax({
-                    url: '/api/question/update',  // 서버의 수정 API 경로
+                    url: `/api/question/update/${q_no}`,  // 서버의 수정 API 경로
                     type: 'PUT',
                     data: {
                         q_no: q_no,

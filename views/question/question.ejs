@@ -28,7 +28,7 @@
                     <% questions.forEach(question => { %>
                     <tr>
                         <td><%=question.inquiry_id%></td>
-                        <td><a href="/question/read?q_no=<%= question.inquiry_id %>"><%=question.title %></a></td>
+                        <td><a href="question/<%= question.inquiry_id %>"><%= question.title %></a></td>
                         <td><%=question.name%></td>
                         <td><%=formatDate(question.inquiry_date)%></td>
                         <td>
