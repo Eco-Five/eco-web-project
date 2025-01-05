@@ -30,12 +30,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 /**************************************** Session ***************************************/
 const session = require('express-session')
-const RedisStore = require('connect-redis')
+const { RedisStore } = require('connect-redis')
 const Redis = require('ioredis')
 
 // Redis 클라이언트 설정
 const redisClient = new Redis({
-  host: localhost, port: 6379
+  host: 'localhost', port: 6379
 })
 
 // express-session 미들웨어를 설정
@@ -43,12 +43,13 @@ app.use(session({
     store: new RedisStore({ client: redisClient }),
     secret: 'secret',
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true, httpOnly: true, maxAge: 1000 * 60 * 60 }
+    saveUninitialized: false,  // 초기화되지 않은 세션 저장하지 않음
+    cookie: { secure: true, maxAge: 1000 * 60 * 60 }
     // secure : https 사용 시, true로 설정
     // maxAge : 쿠키 만료 기간을 1시간으로 설정
 }))
 /**************************************** Session ***************************************/
+
 
 /****************************************** https ***************************************/
 app.use((req, res, next) => {
@@ -83,5 +84,6 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
 
 module.exports = app;

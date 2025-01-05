@@ -150,14 +150,16 @@ router.get('/signup/redirect', async (req, res) => {
                     email: req.body.loginEmail,
                     isAuthenticated: true,
                 }
-                res.status(200).json({ message: '로그인 성공', result: match })
-            
+                //res.status(200).json({ message: '로그인 성공', result: match })
+                res.redirect('/')
+                            
             // 회원가입 진행
             } else if(!match) {
                 const signupResult = await signupUtil({
                     name: name, email: email, pwd: id, img_url: picture, member_type_id: 2,
                 })
-                return res.status(200).json({ message: '회원가입 성공', memId: signupResult.insertId })
+                //return res.status(200).json({ message: '회원가입 성공', memId: signupResult.insertId })
+                res.redirect('/')
             }
         } catch (error) {
             console.error(error)
@@ -172,7 +174,7 @@ router.get('/signup/redirect', async (req, res) => {
 /************************************* Google OAuth2 *************************************/
 
 
-/*************************************** Protected ***************************************/
+/************************************** Session Mng **************************************/
 router.get('/protected', (req, res) => {
     if(req.session?.user?.isAuthenticated) {
         res.status(200).json({ message: '인증된 사용자 입니다.', user: req.session.user });
@@ -181,8 +183,18 @@ router.get('/protected', (req, res) => {
     }
 })
 
-/*************************************** Protected ***************************************/
-
+router.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if(err) {
+            console.error('session delete error: ', err)
+            return res.status(500).json({ message: '로그아웃 실패' })
+        }
+        res.clearCookie('connect.sid')
+        res.redirect('/')
+        // res.status(200).json({ message: '로그아웃 성공' })
+    })
+})
+/************************************** Session Mng **************************************/
 
 
 module.exports = router;
