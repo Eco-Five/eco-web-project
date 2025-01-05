@@ -54,11 +54,14 @@
     }
 
     // 이 코드는 DOM(Document Object Model)이 완전히 로드된 후 실행
-    $(document).ready(() => {
-        const pwd = getCookie('pwd')
-        console.log(pwd);
+    $(document).ready(async () => {
+        const response = await fetch('/api/protected', {
+            method: 'GET',
+            credentials: 'include'  // 세션 쿠키를 포함
+        })
+        const result = await response.json()
 
-        if(pwd) {
+        if(result.user.isAuthenticated) {
             $('#login, #logout, #mypage, #subs').toggle()
         }
     })

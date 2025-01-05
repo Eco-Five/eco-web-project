@@ -2,8 +2,6 @@ var express = require('express')
 var router = express.Router()
 require('dotenv').config()
 
-const https = require('https');
-const agent = new https.Agent({ rejectUnauthorized: false });
 
 /************************************** MySQL CRUD **************************************/
 const pool = require('../connDB.js')
@@ -33,45 +31,60 @@ async function comparePwd(inputPwd, storedHashedPwd) {
     return match; // true 또는 false 반환
 }
 
-
 /******************************** 일반 회원가입 및 로그인 ********************************/
-// 회원가입 : 데이터 DB에 추가하는 API + 비밀번호 해시
-router.post('/memberInsert', async (req, res) => {
+// 회원가입 : 유틸리티 함수
+const signupUtil = async (memInfo) => {
     // 클라이언트로부터 받은 데이터
-    const { name, email, pwd, phone, img_url, member_type_id, address } = req.body;
+    const { name, email, pwd, phone, img_url, member_type_id, address } = memInfo;
+
+    // 비동기 처리된 함수 선언 시, await을 붙이는 이유는
+    // promise가 해결된 후의 값을 반환받기 위해서 입니다.
+    let pwdHash = await hashPwd(pwd)
+    const sql = `insert into member (name, email, pwd, phone, eco_point, image_url, member_type_id, subs_id, address)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+
+    const values = [name, email, pwdHash, phone || null, 100, img_url, member_type_id, 1, address || null]
+    const [result] = await pool.execute(sql, values)
+    return result
+}
+
+// 로그인 : 유틸리티 함수
+const loginUtil = async (loginInfo) => {
+    const { loginEmail, loginPwd } = loginInfo
+    const sql = 'select * from member where email = ?'
+    
+    const [rows] = await pool.execute(sql, [loginEmail])
+    if (rows.length === 0) {
+        return false; // 사용자 없음
+    }
+    const match = await comparePwd(loginPwd, rows[0].pwd)
+    return match
+}
+
+
+// 회원가입 : member data DB에 추가 + 비밀번호 해시
+router.post('/memberInsert', async (req, res) => {
     try {
-        // 비동기 처리된 함수 선언 시, await을 붙이는 이유는
-        // promise가 해결된 후의 값을 반환받기 위해서 입니다.
-        let pwdHash = await hashPwd(pwd)
-        const sql = `insert into member (name, email, pwd, phone, eco_point, image_url, member_type_id, subs_id, address)
-                    values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-
-        const values = [name, email, pwdHash, phone || null, 100, img_url, member_type_id, 1, address || null]
-        const [result] = await pool.execute(sql, values)
+        const result = await signupUtil(req.body)
         res.status(201).json({ message: '회원가입 성공', memId: result.insertId })
-
     } catch (error) {
-        console.error("memberInsert 오류: ", error)
+        console.error("signupHandler 오류: ", error)
         res.status(500).json({ message: "서버오류" })
     }
 })
 
-
-// 로그인 : 정보 확인 API + 비밀번호 해시 비교
+// 로그인 : 회원 이메일 및 비밀번호 해시값 비교
 router.post('/memberLogin', async (req, res) => {
-    // 쿼리 스트링을 통해 member_id 정보 가져오기
-    const { loginEmail, loginPwd } = req.body
     try {
-        sql = 'select * from member where email = ?'
-        const [rows] = await pool.execute(sql, [loginEmail])
-        let match = await comparePwd(loginPwd, rows[0].pwd)
-
+        const match = await loginUtil(req.body)
         if (match) {
-            res.cookie('uid', rows[0].email, { httpOnly: true, path: '/' })
-            res.cookie('pwd', match)
-            res.status(201).json({ message: '로그인 성공', rows: match, result: true })
+            req.session.user = {
+                email: req.body.loginEmail,
+                isAuthenticated: true,
+            }
+            res.status(200).json({ message: '로그인 성공', result: match })
         } else {
-            res.status(201).json({ message: '계정이 일치하지 않습니다.', result: false })
+            res.status(401).json({ message: '계정이 일치하지 않습니다.', result: match})
         }
 
     } catch (error) {
@@ -129,92 +142,47 @@ router.get('/signup/redirect', async (req, res) => {
         const { name, email, id, picture  } = await res_userInfo.json()
 
 
-        // 로그인 진행
-        const res_login = await fetch('/api/memberLogin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ loginEmail: email, loginPwd: id })
-        });
-        const { result } = await res_login.json()
-
-        if(result) {
-            res.send('Login Success!')
-        } else {
-            // 로그인 실패 시, 회원가입 진행
-            const res_signup = await fetch('/api/memberInsert', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: name,
-                    email: email,
-                    pwd: id,
-                    phone: null,
-                    img_url: picture,
-                    member_type_id: 1,
-                    address: null
+        try {
+            // 로그인 진행
+            const match = await loginUtil({ loginEmail: email, loginPwd: id })
+            if (match) {
+                req.session.user = {
+                    email: req.body.loginEmail,
+                    isAuthenticated: true,
+                }
+                res.status(200).json({ message: '로그인 성공', result: match })
+            
+            // 회원가입 진행
+            } else if(!match) {
+                const signupResult = await signupUtil({
+                    name: name, email: email, pwd: id, img_url: picture, member_type_id: 2,
                 })
-            });
-            const signupResult = await res_signup.json()
-            res.json(signupResult)
+                return res.status(200).json({ message: '회원가입 성공', memId: signupResult.insertId })
+            }
+        } catch (error) {
+            console.error(error)
+            return res.status(500).json({ message: '로그인 또는 회원가입 오류' })
         }
+
     } catch (error) {
-        console.error("구글 요청 오류: ", error);
+        console.error("구글 요청 오류: ", error)
         res.status(500).json({ message: "서버 오류" })
     }
 })
 /************************************* Google OAuth2 *************************************/
 
 
-
-/******************************************* GET *****************************************/
-// 로그인 정보 확인 API + 비밀번호 해시 비교
-router.get('/member', async (req, res) => {
-    // 쿼리 스트링을 통해 member_id 정보 가져오기
-    const memId = req.query.memId
-    try {
-        sql = 'select * from member where email = ?'
-        const [rows] = await pool.execute(sql, [memId])
-        res.json(rows) // 결과값을 JSON로 변환하여 전달
-
-    } catch (error) {
-        console.error("api/member 오류: ", error)
-        res.status(500).json({ message: "서버오류" })
+/*************************************** Protected ***************************************/
+router.get('/protected', (req, res) => {
+    if(req.session?.user?.isAuthenticated) {
+        res.status(200).json({ message: '인증된 사용자 입니다.', user: req.session.user });
+    } else {
+        res.status(401).json({ message: '로그인이 필요합니다.' }); // 인증되지 않은 경우 401 상태 코드 반환
     }
 })
 
+/*************************************** Protected ***************************************/
 
-/* 클라이언트 측의 쿼리스트링을 이용한 함수 예시
-async function getMember(memberId) {
-    const response = await fetch(`/member?member_id=${memberId}`); // 쿼리스트링을 포함한 URL
-    const data = await response.json();
-    console.log(data);
-}
-// 사용 예시
-getMember(1); // member_id가 1인 회원 조회
-*/
 
-/*
-async function addMember() {
-    const memberInfo = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        pwd: document.getElementById('pwd').value,
-        phone: document.getElementById('phone').value,
-        member_type_id: document.getElementById('member_type_id').value,
-        address: document.getElementById('address').value,
-    };
-
-    const response = await fetch('api/memberInsert', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(memberInfo), // 객체를 JSON 문자열로 변환하여 전송
-    });
-
-    const data = await response.json();
-    console.log(data);
-}
-*/
 
 module.exports = router;

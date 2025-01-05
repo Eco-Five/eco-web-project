@@ -27,12 +27,30 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/api', apiRouter);     // hogi 추가
 
+/**************************************** Session ***************************************/
+const session = require('express-session')
+const RedisStore = require('connect-redis')
+const Redis = require('ioredis')
 
-// HTTP에서 HTTPS로 리디렉션 추가
+// Redis 클라이언트 설정
+const redisClient = new Redis({
+  host: localhost, port: 6379
+})
+
+// express-session 미들웨어를 설정
+app.use(session({
+    store: new RedisStore({ client: redisClient }),
+    secret: 'secret',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true, httpOnly: true, maxAge: 1000 * 60 * 60 }
+    // secure : https 사용 시, true로 설정
+    // maxAge : 쿠키 만료 기간을 1시간으로 설정
+}))
+/**************************************** Session ***************************************/
+
+/****************************************** https ***************************************/
 app.use((req, res, next) => {
   if (req.secure) {
     next(); // HTTPS인 경우 다음 미들웨어로 이동
@@ -40,6 +58,13 @@ app.use((req, res, next) => {
     res.redirect(`https://${req.headers.host}${req.url}`); // HTTPS로 리디렉션
   }
 });
+/****************************************** https ***************************************/
+
+
+// 라우터 설정 (세션 설정 후 등록)
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+app.use('/api', apiRouter);     // hogi 추가
 
 
 // catch 404 and forward to error handler
