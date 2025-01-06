@@ -247,6 +247,46 @@ router.get('/logout', (req, res) => {
 
 
 
+
+/******************************** 네이버 쇼핑 ********************************/
+// 네이버쇼핑API 서버
+router.post("/naverShop", async (req, res) => {
+    const query = req.body;
+    const page = req.body.page; 
+    const itemsPerPage = 12; 
+
+    try {
+        const url = `https://openapi.naver.com/v1/search/shop.json?query=${query.values}&display=100`;
+        
+        const responseNaverShop = await fetch(url, {
+            method: 'GET',
+            headers: {
+                "X-Naver-Client-Id": process.env.NAVER_CLIENT_ID,
+                "X-Naver-Client-Secret": process.env.NAVER_CLIENT_SECRET
+            }
+        });
+
+        const data = await responseNaverShop.json();
+        const items = data.items;
+
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+
+        res.status(200).json({
+            result: '정상 작동',
+            list: items,          
+            totalPages: totalPages,  
+            currentPage: page     
+        });
+
+    } catch (error) {
+        res.status(500).json({ result: '서버 오류' });
+    }
+});
+/******************************** 네이버 쇼핑 ********************************/
+
+
+
+
 /************************* 이미지 업로드 ***************************/
 // 1. 저장 설정 (storage)
 /**
@@ -646,6 +686,5 @@ router.delete('/question/:q_no', async(req, res)=>{
         return res.status(500).send({message:'글 삭제 처리 중 오류가 발생했습니다.'})
         }
     })
-
 
 module.exports = router;

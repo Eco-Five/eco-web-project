@@ -84,6 +84,14 @@ router.put('/question/update/:q_no', function(req, res, next) {
   res.redirect(`/api/question/update/${q_no}`);
 });
 
+/* 상품목록 페이지 */
+router.get('/product', function(req, res, next) {
+  res.render('index', { title: '상품목록', pageName: 'product/itemList.ejs' });
+});
+/* 마이 페이지 */
+router.get('/mypage', function(req, res, next) {
+  res.render('index', { title: '마이페이지', pageName: 'mypage/mypage.ejs' });
+});
 
 /* 네이버 로그인 */
 router.get('/auth/naver/callback', async (req, res, next) => {
