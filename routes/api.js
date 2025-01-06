@@ -152,70 +152,41 @@ const upload = multer({
 });
 
 
-// /************************* 페이징처리 ***************************/
-// //http://localhost:5678/api/board
-// router.get('/board', async(req,res)=>{
-//     const page = parseInt(req.query.page, 10) || 1 //기본값 : 1페이지
-//     const limit = parseInt(req.query.limit, 10) || 10 //한 페이지 당 10개
-//     const offset = (page - 1) * limit
-//     try{
-//         const sql = `SELECT SQL_CALC_FOUND_ROWS b.*, 
-//                             m.name AS name, 
-//                             c.type_name AS type_name
-//                     FROM board b
-//                     LEFT JOIN member m ON b.member_id = m.member_id
-//                     LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
-//                     ORDER BY b.board_id DESC
-//                     LIMIT ?, ?`
-//         console.log('SQL Query:', sql);
-//         const [rows] = await pool.execute(sql, [offset, limit])
-//         //전체 게시글 수 
-//         const [[ {totalCount }]] = await pool.execute(`SELECT FOUND_ROWS() AS totalCount`)
-//         //res.json(rows)
-//         //데이터를 템플릿으로 전달
-//         res.render('index',{
-//             title:'커뮤니티목록', 
-//             pageName: 'board/board.ejs',
-//             boards:rows,
-//             pagination:{
-//                 currentPage : page,
-//                 totalPages : Math.ceil(totalCount / limit),
-//                 totalCount,
-//             },
-//             });
-//     }catch(error){
-//         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
-//         console.log('Page:', page, 'Limit:', limit, 'Offset:', offset);
-
-//         res.status(500).json({ message: "서버 오류" })
-//     }
-    
-// })
-
 /************************* 커뮤니티글목록 ***************************/
-//http://localhost:5678/api/board
-router.get('/board', async(req,res)=>{
-    try{
-        const sql = `select b.*, m.name AS name, c.type_name AS type_name
-                    from board b
+router.get('/board', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
+        const perPage = 5; // 한 페이지당 5개 글
+        const offset = (page - 1) * perPage;
+
+        // LIMIT과 OFFSET 값을 쿼리 인자에 맞게 전달
+        const sql = `SELECT b.*, m.name AS name, c.type_name AS type_name
+                    FROM board b
                     LEFT JOIN member m ON b.member_id = m.member_id
                     LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
-                    ORDER BY b.board_id DESC`
-        const [rows] = await pool.execute(sql)
-        //res.json(rows)
-        //데이터를 템플릿으로 전달
-        res.render('index',{
-            title:'커뮤니티목록', 
-            pageName: 'board/board.ejs',
-            boards:rows
-            })
-    }catch(error){
-        console.error("커넥션 혹은 SQL쿼리 오류: ", error);
-        res.status(500).json({ message: "서버 오류" })
-    }
-    
-})
+                    ORDER BY b.board_id DESC
+                    LIMIT ${perPage} OFFSET ${offset}`;  // 쿼리 내에 직접 숫자 값을 삽입
 
+        const [rows] = await pool.execute(sql);
+
+        // 총 글 수를 구해서 페이지 수 계산
+        const totalSql = `SELECT COUNT(*) AS total FROM board`;
+        const [totalRows] = await pool.execute(totalSql);
+        const totalBoards = totalRows[0].total;
+        const totalPages = Math.ceil(totalBoards / perPage);
+
+        res.render('index', {
+            title: '커뮤니티목록',
+            pageName: 'board/board.ejs',
+            boards: rows,
+            currentPage: page,
+            totalPages: totalPages
+        });
+    } catch (error) {
+        console.error("커넥션 혹은 SQL쿼리 오류: ", error);
+        res.status(500).json({ message: "서버 오류" });
+    }
+});
 
 /************************* 커뮤니티글상세보기 ***************************/
 //http://localhost:5678/api/board/2
@@ -341,29 +312,41 @@ router.delete('/board/:b_no', async(req, res)=>{
     })
 
 
-
 /************************* 고객문의글목록 ***************************/
-//http://localhost:5678/api/question
-router.get('/question', async(req,res)=>{
-    try{
-        const sql = `select i.*, m.name AS name, s.status_name AS status
+router.get('/question', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
+        const perPage = 5; // 한 페이지당 5개 글
+        const offset = (page - 1) * perPage;
+
+        // LIMIT과 OFFSET 값을 쿼리 인자에 맞게 전달
+        const sql = `SELECT i.*, m.name AS name, s.status_name AS status
                     from inquiry i
                     LEFT JOIN member m ON i.member_id = m.member_id
                     LEFT JOIN inquiry_status s ON i.inquiry_status_id = s.inquiry_status_id
-                    ORDER BY i.inquiry_id DESC`
-        const [rows] = await pool.execute(sql)
-        //res.json(rows)
-        //데이터를 템플릿으로 전달
-        res.render('index',{
-            title:'고객문의목록', 
+                    ORDER BY i.inquiry_id DESC
+                    LIMIT ${perPage} OFFSET ${offset}`;  // 쿼리 내에 직접 숫자 값을 삽입
+
+        const [rows] = await pool.execute(sql);
+
+        // 총 글 수를 구해서 페이지 수 계산
+        const totalSql = `SELECT COUNT(*) AS total FROM inquiry`;
+        const [totalRows] = await pool.execute(totalSql);
+        const totalBoards = totalRows[0].total;
+        const totalPages = Math.ceil(totalBoards / perPage);
+
+        res.render('index', {
+            title: '고객문의목록',
             pageName: 'question/question.ejs',
-            questions:rows
-            })
-    }catch(error){
+            questions: rows,
+            currentPage: page,
+            totalPages: totalPages
+        });
+    } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
-        res.status(500).json({ message: "서버 오류" })
+        res.status(500).json({ message: "서버 오류" });
     }
-})
+});
 
 /************************* 고객문의글상세보기 ***************************/
 //http://localhost:5678/api/question/read?q_no=2
