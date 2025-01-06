@@ -151,14 +151,12 @@ const upload = multer({
     fileFilter: fileFilter // 파일 필터링 설정
 });
 
-
 /************************* 커뮤니티글목록 ***************************/
 router.get('/board', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
         const perPage = 5; // 한 페이지당 5개 글
         const offset = (page - 1) * perPage;
-
         // LIMIT과 OFFSET 값을 쿼리 인자에 맞게 전달
         const sql = `SELECT b.*, m.name AS name, c.type_name AS type_name
                     FROM board b
@@ -166,15 +164,12 @@ router.get('/board', async (req, res) => {
                     LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
                     ORDER BY b.board_id DESC
                     LIMIT ${perPage} OFFSET ${offset}`;  // 쿼리 내에 직접 숫자 값을 삽입
-
         const [rows] = await pool.execute(sql);
-
         // 총 글 수를 구해서 페이지 수 계산
         const totalSql = `SELECT COUNT(*) AS total FROM board`;
         const [totalRows] = await pool.execute(totalSql);
         const totalBoards = totalRows[0].total;
         const totalPages = Math.ceil(totalBoards / perPage);
-
         res.render('index', {
             title: '커뮤니티목록',
             pageName: 'board/board.ejs',
