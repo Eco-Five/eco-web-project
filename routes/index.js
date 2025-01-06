@@ -103,8 +103,8 @@ router.get('/auth/naver/callback', async (req, res, next) => {
     });
 
     console.log(res2.data);
-    const { name, email, mobile } = res2.data.response;
-    console.log(name, email, mobile);
+    const { name, email, mobile, id, profile_image } = res2.data.response;
+    console.log(name, email, mobile, id, profile_image);
 
     try {
       const sql1 = 'SELECT * FROM member WHERE email=?';
@@ -112,8 +112,8 @@ router.get('/auth/naver/callback', async (req, res, next) => {
       if (rows.length > 0) {
         return res.redirect('/');
       }
-      const sql='INSERT INTO member (name, email, phone, member_type_id,subs_id ) VALUES (?, ?, ?, ?, ?)'
-      const [naver] = await pool.execute(sql, [name, email, mobile, 3, 1]);
+      const sql='INSERT INTO member (name, email, phone, member_type_id,subs_id, pwd, image_url, eco_point ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+      const [naver] = await pool.execute(sql, [name, email, mobile, 3, 1, id, profile_image, 100]);
       
       res.redirect('/');
       return res.status(201).json({ message: '네이버 로그인 성공', rows: naver })
