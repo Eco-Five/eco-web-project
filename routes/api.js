@@ -125,11 +125,11 @@ async function addMember() {
 }
 */
 
-//네이버쇼핑API 서버
+// 네이버쇼핑API 서버
 router.post("/naverShop", async (req, res) => {
     const query = req.body;
-    const page = req.body.page;
-    const itemsPerPage = 12;
+    const page = req.body.page; 
+    const itemsPerPage = 12; 
 
     try {
         const url = `https://openapi.naver.com/v1/search/shop.json?query=${query.values}&display=100`;
@@ -145,22 +145,20 @@ router.post("/naverShop", async (req, res) => {
         const data = await responseNaverShop.json();
         const items = data.items;
 
-        // 페이징 처리
         const totalPages = Math.ceil(items.length / itemsPerPage);
-        const startIndex = (page - 1) * itemsPerPage;
-        const paginatedItems = items.slice(startIndex, startIndex + itemsPerPage);
 
         res.status(200).json({
             result: '정상 작동',
-            list: paginatedItems,
-            totalPages: totalPages,
-            currentPage: page
+            list: items,          
+            totalPages: totalPages,  
+            currentPage: page     
         });
 
     } catch (error) {
         res.status(500).json({ result: '서버 오류' });
     }
 });
+
 
 
 
