@@ -71,5 +71,9 @@ router.get('/question/update', function(req, res, next) {
 router.get('/product', function(req, res, next) {
   res.render('index', { title: '상품목록', pageName: 'product/itemList.ejs' });
 });
+/* 마이 페이지 */
+router.get('/mypage', function(req, res, next) {
+  res.render('index', { title: '마이페이지', pageName: 'mypage/mypage.ejs' });
+});
 
 module.exports = router;
