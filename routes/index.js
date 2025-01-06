@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var axios = require('axios');
 const pool  = require('../connDB');
+require('dotenv').config()
 
 
 /* GET home page. */
@@ -83,9 +84,9 @@ router.get('/auth/naver/callback', async (req, res, next) => {
       },
       params: {
         grant_type: "authorization_code",
-        client_id: "qQ8VvLEMNDDPFbFMd263",
-        client_secret: "JgE3ICRCuZ",
-        redirect_uri: "http://localhost:5678/auth/naver/callback",
+        client_id: process.env.NAVER_LOGIN_CLIENT_ID,
+        client_secret: process.env.NAVER_LOGIN_CLIENT_SECRET,
+        redirect_uri: "https://localhost:5678/auth/naver/callback",
         code: code,
         state: state
       }
