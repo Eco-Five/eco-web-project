@@ -1,3 +1,57 @@
+/* board */
+.list-group-item {
+    display: flex; /*이미지, 텍스트 나란히 정렬*/
+    gap:15px;
+    padding: 20px;
+}
+
+.list-group-item img {
+    width: 180px; 
+    height: 100px; 
+    object-fit: cover; /* 이미지 비율 유지 */
+    display: block;
+}
+
+.list-group-item .w-100 {
+    flex:1; /* 텍스트 부분이 남은 공간 차지 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.list-group-item h5 {
+    font-size: 1.25rem; /* 제목 글씨 크기 */
+}
+
+.list-group-item p {
+    font-size: 1rem; /* 본문 글씨 크기 */
+}
+
+.page-link {
+    color: black;
+}
+
+.page-item.active .page-link {
+    color:white;
+    font-weight: bold;
+    background-color: black;
+    border-color: black;
+}
+
+.page-iink:focus, .page-link:hover{
+    color:white;
+    background-color: black;   
+}
+
+.pagination .page-item{
+    margin: 0 5px;
+}
+
+.col-lg-4 .list-group{
+    margin-top: 28px;
+}
+
+/* write, update */
 .card-header {
     height: 150px;
     display: flex;
@@ -5,12 +59,12 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-}
+}    
 
 .card-header h4 {
     margin-bottom: 10px; 
-}
+}    
 .card-header p {
     margin-top: 15px; 
-}
+}    
 
