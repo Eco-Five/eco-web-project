@@ -69,6 +69,7 @@ router.get('/question/update', function(req, res, next) {
   res.render('index', { title: '고객문의수정',pageName:'question/update.ejs'});
 });
 
+
 /* 네이버 로그인 */
 router.get('/auth/naver/callback', async (req, res, next) => {
   console.log('네이버 코드 받기: ' + req.query.code);
@@ -111,7 +112,7 @@ router.get('/auth/naver/callback', async (req, res, next) => {
         return res.redirect('/');
       }
       const sql='INSERT INTO member (name, email, phone, member_type_id,subs_id ) VALUES (?, ?, ?, ?, ?)'
-      const [naver] = await pool.execute(sql, [name, email, mobile, 1, 2]);
+      const [naver] = await pool.execute(sql, [name, email, mobile, 3, 1]);
       
       res.redirect('/');
       return res.status(201).json({ message: '네이버 로그인 성공', rows: naver })
