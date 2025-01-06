@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'main', pageName: 'main/home.ejs' });
@@ -21,6 +22,7 @@ router.get('/register', function(req, res, next) {
 router.get('/about', function(req, res, next) {
   res.render('index', { title: 'about', pageName: 'main/about.ejs' });
 });
+
 
 
 /* 커뮤니티 목록 */
@@ -64,5 +66,6 @@ router.get('/question/read', function(req, res, next) {
 router.get('/question/update', function(req, res, next) {
   res.render('index', { title: '고객문의수정',pageName:'question/update.ejs'});
 });
+
 
 module.exports = router;

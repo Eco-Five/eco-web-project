@@ -1,8 +1,8 @@
 <!---------------------------- 네비게이션 ---------------------------------->
 <!-- https://www.w3schools.com/bootstrap5/bootstrap_navbar.php -->
-<nav class="navbar navbar-expand-sm" style="background-color: white;">
+<nav class="navbar navbar-expand-sm" style="border-bottom: 1px solid #ddd">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">
+        <a id="ecologo" class="navbar-brand" href="#">
             <img src="/images/anyone/eco-logo.png" alt="Logo" style="width:30px;" class="rounded-pill">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse">
@@ -22,13 +22,47 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/question">고객문의</a>
                 </li>
+                <li id="subs" class="nav-item" style="display:none">
+                    <a class="nav-link" href="/users/payment">구독</a>
+                </li>
             </ul>
             <form class="d-flex">
-                <a href="/login">
+                <a id="mypage" class="nav-link m-2 me-3" href="#" style="display: none;">마이페이지</a>
+                <a id="logout" href="/api/logout" style="display: none;">
+                    <button class="btn btn-dark" type="button">로그아웃</button>
+                </a>
+                <a id="login" href="/login">
                     <button class="btn btn-dark" type="button">로그인</button>
                 </a>
             </form>
         </div>
     </div>
 </nav>
+
+
+<script>
+    // 이 코드는 DOM(Document Object Model)이 완전히 로드된 후 실행
+    $(document).ready(async () => {
+        try {
+            const response = await fetch('/api/protected', {
+                method: 'GET',
+                credentials: 'include'  // 세션 쿠키를 포함
+            })
+            const result = await response.json()
+
+            if(result.user.isAuthenticated) {
+                $('#login, #logout, #mypage, #subs').toggle()
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    })
+
+    // 로그아웃 시, sid를 삭제
+    $('#logout').on('click', async () => {
+        // // $('#login, #logout, #mypage, #subs').toggle()
+        const response = await fetch('/api/logout', { method: 'GET' })
+        window.location.href = '/'
+    })
+</script>
 <!---------------------------- 네비게이션 ---------------------------------->
