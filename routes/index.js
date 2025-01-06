@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const path = require('path');
 var axios = require('axios');
 const pool  = require('../connDB');
 require('dotenv').config()
@@ -27,47 +28,60 @@ router.get('/about', function(req, res, next) {
 });
 
 
-
-/* 커뮤니티 목록 */
+/* 커뮤니티 */
+//목록
 router.get('/board', function(req, res, next) {
-  res.render('index', { title: '커뮤니티목록',pageName:'board/board.ejs'});
+  res.redirect('/api/board');
 });
-/* 커뮤니티 작성 */
+// 글 상세보기 
+router.get('/board/read', function(req, res, next) {
+  const b_no = req.params.b_no
+  res.redirect(`/api/board/${b_no}`);
+});
+// 글 작성 
 router.get('/board/write', function(req, res, next) {
   res.render('index', { title: '커뮤니티작성',pageName:'board/write.ejs'});
 });
-/* router.get('/board/:id', function(req, res, next) {
-/* router.get('/board/update/:id', function(req, res, next) {
-  //사용자가 선택한 값을 쿼리스트링으로 받아오는 코드 추가함
-  let id = req.params.id
-  res.render('index', { title: '상세보기', pageName: 'posts/read.ejs', id:id });
-  res.render('index', { title: '상세보기', pageName: 'posts/update.ejs', id:id });
-}); */
-/* 커뮤니티 글 상세보기 */
-router.get('/board/read', function(req, res, next) {
-  res.render('index', { title: '커뮤니티상세보기',pageName:'board/read.ejs'});
+// 글 수정 - GET 
+router.get('/board/update/:b_no', function(req, res, next) {
+  const b_no = req.params.b_no
+  res.redirect(`/api/board/update/${b_no}`);
 });
-/* 커뮤니티 수정 */
-router.get('/board/update', function(req, res, next) {
-  res.render('index', { title: '커뮤니티수정',pageName:'board/update.ejs'});
+// 글 수정 - PUT 
+router.put('/board/update/:b_no', function(req, res, next) {
+  const b_no = req.params.b_no
+  res.redirect(`/api/board/update/${b_no}`);
 });
 
 
-/* 고객문의 목록 */
+/* 고객문의 */
+// 목록
 router.get('/question', function(req, res, next) {
-  res.render('index', { title: '고객문의목록',pageName:'question/question.ejs'});
+  res.redirect('/api/question');
 });
-/* 고객문의 작성 */
+// 글 상세보기 
+router.get('/question/read', function(req, res, next) {
+  const q_no = req.params.q_no
+  res.redirect(`/api/question/${q_no}`);
+});
+// 글 작성 
 router.get('/question/write', function(req, res, next) {
   res.render('index', { title: '고객문의작성',pageName:'question/write.ejs'});
 });
-/* 고객문의 글 상세보기 */
-router.get('/question/read', function(req, res, next) {
-  res.render('index', { title: '고객문의상세보기',pageName:'question/read.ejs'});
+// //댓글 작성
+// router.get('/question/read', function(req, res, next) {
+//   const q_no = req.params.q_no
+//   res.render('index', {pageName:'question/read.ejs'});
+// })
+// 글 수정 - GET 
+router.get('/question/update/:q_no', function(req, res, next) {
+  const q_no = req.params.q_no
+  res.redirect(`/api/question/update/${q_no}`);
 });
-/* 고객문의 수정 */
-router.get('/question/update', function(req, res, next) {
-  res.render('index', { title: '고객문의수정',pageName:'question/update.ejs'});
+// 글 수정 - PUT 
+router.put('/question/update/:q_no', function(req, res, next) {
+  const q_no = req.params.q_no
+  res.redirect(`/api/question/update/${q_no}`);
 });
 
 
