@@ -15,7 +15,7 @@
                 <input type="password" id="loginPwd" class="form-control py-2 ps-4" placeholder="🔒︎ 비밀번호를 입력하세요" required>
             </div>
             <button type="submit" class="btn btn-success w-100 custom-btn py-2">로그인</button>
-            <div class="text-center mt-3">
+            <div class="text-center mt-3 mb-3">
                 <a href="/login/find" class="text-decoration-none text-secondary">아이디/비밀번호 찾기</a>
             </div>
             <div class="d-flex justify-content-between">
@@ -26,6 +26,10 @@
                     </button>
                 </a>
             </div>
+            <button onclick="handleNaverLogin(event)" class="naver-login-button" style="width: 100%; padding: 10px; background-color: #1EC800; border: none; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+                <img src="/images/login/naver.png" alt="네이버 로그인" style="height: 24px; margin-right: 8px;">
+                <span style="color: white; font-size: 16px;"></span>
+            </button>
         </form>
         <div class="text-center mt-4">
             <p class="text-secondary">아직 회원이 아니신가요?</p>
@@ -40,6 +44,22 @@
         </footer>
     </div>
 </div>
-
-
 <%-include('./loginConnDB.ejs') %>
+
+<!------------------------------------- naver Login ------------------------------------->
+
+<script type="module">
+const handleNaverLogin = (event) => {
+event.preventDefault()  // 이벤트 전이 막기
+try {
+    const naverAuthUrl = 'https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=qQ8VvLEMNDDPFbFMd263&redirect_uri=https://localhost:5678/auth/naver/callback&state=STATE_STRING';
+    window.location.href = naverAuthUrl  // 브라우저 리다이렉션 (axios, request, fetch) 불필요
+} catch (error) {
+    console.error("인증코드 받기 실패!!", error)
+}
+}
+// 두번째 주의사항 모듈 지역변수 취급되므로 호출이 안됨
+// 해결방안은 전역변수에 등록할 것
+window.handleNaverLogin = handleNaverLogin; // 전역변수화
+</script>
+

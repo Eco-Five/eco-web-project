@@ -31,6 +31,7 @@ async function comparePwd(inputPwd, storedHashedPwd) {
     return match; // true 또는 false 반환
 }
 
+
 /******************************** 일반 회원가입 및 로그인 ********************************/
 // 회원가입 : 유틸리티 함수
 const signupUtil = async (memInfo) => {
@@ -60,8 +61,7 @@ const loginUtil = async (loginInfo) => {
     const match = await comparePwd(loginPwd, rows[0].pwd)
     return match
 }
-
-
+/******************************** 일반 회원가입 및 로그인 ********************************/
 // 회원가입 : member data DB에 추가 + 비밀번호 해시
 router.post('/memberInsert', async (req, res) => {
     try {
@@ -94,6 +94,52 @@ router.post('/memberLogin', async (req, res) => {
 })
 /******************************** 일반 회원가입 및 로그인 ********************************/
 
+
+
+/********************************** 회원정보 찾기 및 수정 **********************************/
+// 이메일 찾기
+router.post('/findEmail', async (req, res) => {
+    const { name, phone } = req.body
+
+    try {
+        sql = "select email from member where name = ? and phone = ?"
+        const [rows] = await pool.execute(sql, [name, phone])
+        res.status(201).json({ message: '이메일 찾기 성공', result: rows })
+    } catch (error) {
+        console.error("이메일 찾기 오류: ", error);
+        res.status(500).json({ message: "서버오류" })
+    }
+})
+
+// 비밀번호 재설정
+router.put('/resetPwd', async (req, res) => {
+    const { email, pwd, name, phone } = req.body;
+
+    try {
+        // 입력 값 검증
+        if (!email || !pwd || !name || !phone) {
+            return res.status(400).json({ message: "모든 필드를 입력해주세요." });
+        }
+
+        // 비밀번호 암호화
+        const bcrypt = require('bcrypt');
+        const hashedPassword = await bcrypt.hash(pwd, 10);
+
+        // 데이터베이스 업데이트
+        const sql = "UPDATE member SET pwd = ? WHERE email = ? AND name = ? AND phone = ?";
+        const [rows] = await pool.execute(sql, [hashedPassword, email, name, phone]);
+
+        if (rows.affectedRows === 0) {
+            return res.status(404).json({ message: "일치하는 회원 정보를 찾을 수 없습니다." });
+        }
+
+        res.status(200).json({ message: "비밀번호 재설정에 성공했습니다." });
+    } catch (error) {
+        console.error("비밀번호 재설정 오류: ", error);
+        res.status(500).json({ message: "서버 오류가 발생했습니다." });
+    }
+});
+/********************************** 회원정보 찾기 및 수정 **********************************/
 
 
 /************************************* Google OAuth2 *************************************/
@@ -172,6 +218,7 @@ router.get('/signup/redirect', async (req, res) => {
     }
 })
 /************************************* Google OAuth2 *************************************/
+
 
 
 /************************************** Session Mng **************************************/
