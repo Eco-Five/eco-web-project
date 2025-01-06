@@ -1,6 +1,10 @@
 var express = require('express');
 var router = express.Router();
 const path = require('path');
+var axios = require('axios');
+const pool  = require('../connDB');
+require('dotenv').config()
+
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -22,6 +26,7 @@ router.get('/register', function(req, res, next) {
 router.get('/about', function(req, res, next) {
   res.render('index', { title: 'about', pageName: 'main/about.ejs' });
 });
+
 
 /* 커뮤니티 */
 //목록
@@ -77,6 +82,63 @@ router.get('/question/update/:q_no', function(req, res, next) {
 router.put('/question/update/:q_no', function(req, res, next) {
   const q_no = req.params.q_no
   res.redirect(`/api/question/update/${q_no}`);
+});
+
+
+/* 네이버 로그인 */
+router.get('/auth/naver/callback', async (req, res, next) => {
+  console.log('네이버 코드 받기: ' + req.query.code);
+  console.log('네이버 상태 받기: ' + req.query.state);
+  const code = req.query.code;
+  const state = req.query.state;
+  try {
+    const res1 = await axios.post('https://nid.naver.com/oauth2.0/token', null, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
+      },
+      params: {
+        grant_type: "authorization_code",
+        client_id: process.env.NAVER_LOGIN_CLIENT_ID,
+        client_secret: process.env.NAVER_LOGIN_CLIENT_SECRET,
+        redirect_uri: "https://localhost:5678/auth/naver/callback",
+        code: code,
+        state: state
+      }
+    });
+    
+    const accessToken = res1.data.access_token;
+    console.log("accessToken:", accessToken);
+
+    const res2 = await axios.post('https://openapi.naver.com/v1/nid/me', null, {
+      headers: {
+        "Authorization": "Bearer " + accessToken,
+        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
+      }
+    });
+
+    console.log(res2.data);
+    const { name, email, mobile } = res2.data.response;
+    console.log(name, email, mobile);
+
+    try {
+      const sql1 = 'SELECT * FROM member WHERE email=?';
+      const [rows] = await pool.execute(sql1, [email]);
+      if (rows.length > 0) {
+        return res.redirect('/');
+      }
+      const sql='INSERT INTO member (name, email, phone, member_type_id,subs_id ) VALUES (?, ?, ?, ?, ?)'
+      const [naver] = await pool.execute(sql, [name, email, mobile, 3, 1]);
+      
+      res.redirect('/');
+      return res.status(201).json({ message: '네이버 로그인 성공', rows: naver })
+      } catch (error) {
+            console.error(error);
+  }
+
+  } catch (error) {
+    console.error("네이버 로그인 오류: ", error);
+    res.status(500).json({ message: "서버오류" })
+  }
 });
 
 module.exports = router;
