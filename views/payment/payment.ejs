@@ -107,7 +107,7 @@
     const naverPayBtn = document.getElementById("naverPayBtn");
 
     naverPayBtn.addEventListener("click", async function () {
-        if(!$('#termsCheck').is(':checked') && !$('#privacyCheck').is(':checked')) {
+        if(!$('#termsCheck').is(':checked') || !$('#privacyCheck').is(':checked')) {
             alert('이용약관과 개인정보처리방침에 체크해주세요!')
 
         } else if(subsPrice === 0) {

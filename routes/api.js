@@ -61,7 +61,7 @@ const loginUtil = async (loginInfo) => {
         return false; // 사용자 없음
     }
     const match = await comparePwd(loginPwd, rows[0].pwd)
-    return match
+    return { match: match, userInfo: rows[0] }
 }
 /******************************** 일반 회원가입 및 로그인 ********************************/
 // 회원가입 : member data DB에 추가 + 비밀번호 해시
@@ -78,15 +78,17 @@ router.post('/memberInsert', async (req, res) => {
 // 로그인 : 회원 이메일 및 비밀번호 해시값 비교
 router.post('/memberLogin', async (req, res) => {
     try {
-        const match = await loginUtil(req.body)
+        const {match, userInfo} = await loginUtil(req.body)
+        console.log(userInfo);
         if (match) {
             req.session.user = {
-                email: req.body.loginEmail,
+                email: userInfo.email,
+                name: userInfo.name,
                 isAuthenticated: true,
             }
             res.status(200).json({ message: '로그인 성공', result: match })
         } else {
-            res.status(401).json({ message: '계정이 일치하지 않습니다.', result: match})
+            res.status(401).json({ message: '계정이 일치하지 않습니다.', result: match })
         }
 
     } catch (error) {
@@ -195,7 +197,8 @@ router.get('/signup/redirect', async (req, res) => {
             const match = await loginUtil({ loginEmail: email, loginPwd: id })
             if (match) {
                 req.session.user = {
-                    email: req.body.loginEmail,
+                    email: email,
+                    name: name,
                     isAuthenticated: true,
                 }
                 //res.status(200).json({ message: '로그인 성공', result: match })
@@ -206,6 +209,11 @@ router.get('/signup/redirect', async (req, res) => {
                 const signupResult = await signupUtil({
                     name: name, email: email, pwd: id, img_url: picture, member_type_id: 2,
                 })
+                req.session.user = {
+                    email: email,
+                    name: name,
+                    isAuthenticated: true,
+                }
                 //return res.status(200).json({ message: '회원가입 성공', memId: signupResult.insertId })
                 res.redirect('/')
             }

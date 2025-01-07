@@ -82,4 +82,10 @@ router.get('/payment/resultPay', async function(req, res, next) {
 /************************** Naver Pay Result **************************/
 
 
+/**************************** Youtube API ****************************/
+
+
+/**************************** Youtube API ****************************/
+
+
 module.exports = router;

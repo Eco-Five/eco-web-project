@@ -43,6 +43,7 @@
 <script>
     // 이 코드는 DOM(Document Object Model)이 완전히 로드된 후 실행
     $(document).ready(async () => {
+        console.log(document.cookie);
         try {
             const response = await fetch('/api/protected', {
                 method: 'GET',
