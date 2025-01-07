@@ -1,0 +1,71 @@
+.profile-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-pic img {
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+}
+
+.profile-info {
+    margin-left: 20px;
+}
+
+.progress-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.progress-circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: #e0f7e9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+}
+
+.my-eco-bag, .my-eco-history {
+    margin-bottom: 20px;
+}
+
+.eco-item, .history-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+}
+
+.item-actions button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+
+.settings {
+    text-align: center;
+}
+
+.settings button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+}
