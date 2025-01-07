@@ -14,6 +14,7 @@
                         <option value="2">친환경팁</option>
                         <option value="3">자유게시판</option>
                     </select>
+                    <a href="#"><button class="btn btn-dark" id="visitor">글쓰기</button></a>
                     <a href="/board/write"><button class="btn btn-dark">글쓰기</button></a>
                 </div>
                 <!-- 카테고리 선택-->
@@ -117,5 +118,8 @@ function formatDate(dateStr) {
 }
 %>
 
-
-
+<script>
+$("#visitor").on("click", function(){
+    alert("회원만 글쓰기가 가능합니다.")
+    })
+</script>

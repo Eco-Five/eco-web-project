@@ -31,7 +31,7 @@ router.get('/about', function(req, res, next) {
 /* 커뮤니티 */
 //목록
 router.get('/board', function(req, res, next) {
-  res.redirect('/api/board');
+  res.redirect('api/board');
 });
 // 글 상세보기 
 router.get('/board/read', function(req, res, next) {
