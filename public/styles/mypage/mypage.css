@@ -22,7 +22,7 @@
     margin-left: 20px;
 }
 
-.progress-section {
+.payment-info {
     text-align: center;
     margin-bottom: 20px;
 }
@@ -38,11 +38,11 @@
     margin: auto;
 }
 
-.my-eco-bag, .my-eco-history {
+.ecobag-info, .ecobag-hist {
     margin-bottom: 20px;
 }
 
-.eco-item, .history-item {
+.eco-item, .hist-item {
     display: flex;
     justify-content: space-between;
     padding: 10px;
