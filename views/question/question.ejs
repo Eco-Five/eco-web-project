@@ -11,9 +11,13 @@
                 <option value="5" <% if(category === '5'){ %> selected <% } %>>상품</option>
                 <option value="6" <% if(category === '6'){ %> selected <% } %>>교환/반품</option>
             </select>
-            
-                <a href="/question/write"><button class="btn btn-dark">문의하기</button></a>
-            
+            <% if (user && user.isAuthenticated) { %>
+                <!-- 로그인 상태 -->
+                <a href="/board/write"><button class="btn btn-dark">문의하기</button></a>
+            <% } else { %>
+                <!-- 비로그인 상태 -->
+                <a href="#"><button class="btn btn-dark" id="visitor">문의하기</button></a>
+            <% } %>
         </div>
         <div class="table-responsive">
             <table class="table table-bordered">
@@ -83,6 +87,10 @@
     </div>
 
     <script>
+        $('#visitor').on('click',function(){
+            alert("회원만 글쓰기가 가능합니다")
+        })
+
         document.getElementById('category-select').addEventListener('change', function() {
         const selectedCategory = this.value;
         const currentPage = new URLSearchParams(window.location.search).get('page') || 1; // 현재 페이지 번호를 가져옵니다.

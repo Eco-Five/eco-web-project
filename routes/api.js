@@ -570,6 +570,27 @@ router.post('/question/write', async(req,res)=>{
     })
 
 // /************************* 고객문의댓글작성 ***************************/
+router.post('/question/:q_no', async(req,res)=>{
+    //사용자가 화면에서 입력한 값 담기
+    const q_no = req.params.q_no
+    const {comment} = req.body
+    try{
+        //데이터베이스 쿼리 실행 하기
+        const sql = `insert into inquiry_comment(comment, comment_date, inquiry_id)
+                        values (?,now(),?)`
+        const values = [comment,q_no]
+        const [result] = await pool.execute(sql,values)
+        //조회 결과가 없는 경우 처리
+        console.log(result)//1이면 입력 성공. 0이면 입력 실패
+        //성공시 응답하기
+        res.json({success:true, result:result})
+    }catch(error){
+        console.error('Database error:', error)
+        return res.status(500).send({message:'댓글 쓰기 처리 중 오류가 발생했습니다.'})
+    }
+    })
+
+// /************************* 고객문의댓글작성 ***************************/
 // router.post('/question/comment', async(req,res)=>{
 //     //사용자가 화면에서 입력한 값 담기
 //     const { inquiry_id, comment } = req.body;
