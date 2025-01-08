@@ -22,22 +22,6 @@
     margin-left: 20px;
 }
 
-.payment-info {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.progress-circle {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background-color: #e0f7e9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: auto;
-}
-
 .ecobag-info, .ecobag-hist {
     margin-bottom: 20px;
 }
@@ -51,21 +35,9 @@
     margin-bottom: 10px;
 }
 
-.item-actions button {
+button {
     margin-left: 10px;
     padding: 5px 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-}
-
-.settings {
-    text-align: center;
-}
-
-.settings button {
-    padding: 10px 20px;
     border: none;
     border-radius: 4px;
 }

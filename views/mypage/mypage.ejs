@@ -6,19 +6,43 @@
             <img src="../images/anyone/eco-mascot.png" alt="프로필사진">
         </div>
         <div class="profile-info">
-            <h4>김에코님</h4>
+            <p>구독 : 프리미엄</p>
             <p>3,500 point</p>
         </div>
     </div>
-
-    <div class="payment-info">
-        <div class="progress-circle">
-            <p>[구독정보]<br>프리미엄</p>
+    <div class="custom-card text-center">
+        <div class="tab-content" id="accountTabContent">
+            <div class="tab-pane fade show active" id="find-id" role="tabpanel" aria-labelledby="find-id-tab">
+                    <div class="mb-3 d-flex align-items-center">
+                        <label for="name" class="d-flex me-3 mb-2" style="flex-shrink: 0; width: 10%;">이름</label>
+                        <input type="text" id="name" style="width: 60%;" required>
+                        <button style="max-width: 15%; margin-left: 5px;">변경</button>
+                    </div>
+                    <div class="mb-3 d-flex align-items-center">
+                        <label for="email" class="d-flex me-3 mb-2" style="flex-shrink: 0; width: 10%;">이메일</label>
+                        <input type="text" id="email" style="width: 60%;" required>
+                        <button style="max-width: 15%; margin-left: 5px;">변경</button>
+                    </div>
+                    <div class="mb-3 d-flex align-items-center">
+                        <label for="phone" class="d-flex me-3 mb-2" style="flex-shrink: 0; width: 10%;">전화번호</label>
+                        <input type="text" id="phone" style="width: 60%;" required>
+                        <button style="max-width: 15%; margin-left: 5px;">변경</button>
+                    </div>
+                    <div class="mb-3 d-flex align-items-center">
+                        <label for="local" class="d-flex me-3 mb-2" style="flex-shrink: 0; width: 10%;">주소</label>
+                        <input type="text" id="local" style="width: 60%;" required>
+                        <button style="max-width: 15%; margin-left: 5px;">변경</button>
+                    </div>
+            </div>
         </div>
     </div>
-
+    
+    
+<br/>
+<hr/>
+<br/>
     <div class="ecobag-info">
-        <h4>나의 에코백</h4>
+        <h5>나의 에코백</h5>
         <div class="eco-item">
             <div class="item-info">
                 <p>친환경 스테인리스 텀블러</p>
@@ -32,14 +56,10 @@
     </div>
 
     <div class="ecobag-hist">
-        <h4>나의 활동 내역</h4>
+        <h5>나의 활동 내역</h5>
         <div class="hist-item">
             <p>친환경 제품 리뷰</p>
             <p>2023-04-10</p>
         </div>
-    </div>
-
-    <div class="settings">
-        <button>개인정보 수정</button>
     </div>
 </div>
