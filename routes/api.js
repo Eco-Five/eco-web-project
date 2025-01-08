@@ -307,25 +307,39 @@ router.get('/board', async (req, res) => {
         const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
         const perPage = 5; // 한 페이지당 5개 글
         const offset = (page - 1) * perPage;
-        // LIMIT과 OFFSET 값을 쿼리 인자에 맞게 전달
-        const sql = `SELECT b.*, m.name AS name, c.type_name AS type_name
-                    FROM board b
-                    LEFT JOIN member m ON b.member_id = m.member_id
-                    LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
-                    ORDER BY b.board_id DESC
-                    LIMIT ${perPage} OFFSET ${offset}`;  // 쿼리 내에 직접 숫자 값을 삽입
-        const [rows] = await pool.execute(sql);
-        // 총 글 수를 구해서 페이지 수 계산
-        const totalSql = `SELECT COUNT(*) AS total FROM board`;
-        const [totalRows] = await pool.execute(totalSql);
+        const category = req.query.category || 'all'; // category 값 받기
+        let sql = `
+            SELECT b.*, m.name AS name, c.type_name AS type_name
+            FROM board b
+            LEFT JOIN member m ON b.member_id = m.member_id
+            LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
+            WHERE 1 = 1
+        `;
+        // 카테고리 값이 있으면 SQL 쿼리에 추가
+        if (category !== 'all') {
+            sql += ` AND c.content_type_id = ?`; // 카테고리로 필터링
+        }
+        sql += ` ORDER BY b.board_id DESC LIMIT ${perPage} OFFSET ${offset}`;
+
+        // 쿼리 파라미터 전달 (category가 'all'이 아니면 그 값 전달)
+        const params = category !== 'all' ? [category] : [];
+        const [rows] = await pool.execute(sql, params); // 쿼리 실행
+
+        // 총 게시물 수를 구하는 쿼리
+        const totalSql = `SELECT COUNT(*) AS total FROM board ${category !== 'all' ? 'WHERE content_type_id = ?' : ''}`;
+        const [totalRows] = await pool.execute(totalSql, category !== 'all' ? [category] : []);
         const totalBoards = totalRows[0].total;
         const totalPages = Math.ceil(totalBoards / perPage);
+
+        // 렌더링
         res.render('index', {
             title: '커뮤니티목록',
             pageName: 'board/board.ejs',
             boards: rows,
             currentPage: page,
-            totalPages: totalPages
+            totalPages: totalPages,
+            category: category, // 카테고리 값 전달
+            user: req.session.user // 세션 정보 전달
         });
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
@@ -463,20 +477,29 @@ router.get('/question', async (req, res) => {
         const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
         const perPage = 5; // 한 페이지당 5개 글
         const offset = (page - 1) * perPage;
+        const category = req.query.category || 'all'; // category 값 받기
 
         // LIMIT과 OFFSET 값을 쿼리 인자에 맞게 전달
-        const sql = `SELECT i.*, m.name AS name, s.status_name AS status
+        let sql = `SELECT i.*, m.name AS name, s.status_name AS status, c.type_name AS type_name
                     from inquiry i
                     LEFT JOIN member m ON i.member_id = m.member_id
                     LEFT JOIN inquiry_status s ON i.inquiry_status_id = s.inquiry_status_id
-                    ORDER BY i.inquiry_id DESC
-                    LIMIT ${perPage} OFFSET ${offset}`;  // 쿼리 내에 직접 숫자 값을 삽입
+                    LEFT JOIN content_type c ON i.content_type_id = c.content_type_id
+                    WHERE 1 = 1
+                    `;
+        // 카테고리 값이 있으면 SQL 쿼리에 추가
+        if(category !== 'all'){
+            sql += ` AND c.content_type_id = ?`;//카테고리로 필터링
+        }
+        sql += ` ORDER BY i.inquiry_id DESC LIMIT ${perPage} OFFSET ${offset}`;  // 쿼리 내에 직접 숫자 값을 삽입
 
-        const [rows] = await pool.execute(sql);
+        // 쿼리 파라미터 전달 (category가 'all'이 아니면 그 값 전달)
+        const params = category !== 'all' ? [category] : [];
+        const [rows] = await pool.execute(sql, params); // 쿼리 실행
 
-        // 총 글 수를 구해서 페이지 수 계산
-        const totalSql = `SELECT COUNT(*) AS total FROM inquiry`;
-        const [totalRows] = await pool.execute(totalSql);
+        // 총 게시물 수를 구하는 쿼리
+        const totalSql = `SELECT COUNT(*) AS total FROM inquiry ${category !== 'all' ? 'WHERE content_type_id = ?' : ''}`;
+        const [totalRows] = await pool.execute(totalSql, category !== 'all' ? [category] : []);
         const totalBoards = totalRows[0].total;
         const totalPages = Math.ceil(totalBoards / perPage);
 
@@ -485,7 +508,9 @@ router.get('/question', async (req, res) => {
             pageName: 'question/question.ejs',
             questions: rows,
             currentPage: page,
-            totalPages: totalPages
+            totalPages: totalPages,
+            category: category, // 카테고리 값 전달
+            user: req.session.user // 세션 정보 전달
         });
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
