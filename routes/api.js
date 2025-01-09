@@ -492,16 +492,28 @@ router.get('/board/:b_no', async (req, res) => {
     }
 })
 
-/************************* 커뮤니티글작성 ***************************/
+/************************* 커뮤니티글작성-GET(세션값 얻어오기) ***************************/
+//http://localhost:5678/api/board/write
+router.get('/board/write', (req, res) => {
+    const user = req.session.user || null;  // 세션에서 user 정보 가져오기
+    if (!user || !user.isAuthenticated) {
+        return res.redirect('/login');  // 로그인하지 않았다면 로그인 페이지로 리다이렉트
+    }
+
+    res.render('write', { user });  // EJS 템플릿에 user 정보 전달
+});
+
+/************************* 커뮤니티글작성-POST ***************************/
 //http://localhost:5678/api/board/write
 router.post('/board/write', upload.single('fileUpload'), async(req,res)=>{
     //사용자가 화면에서 입력한 값 담기
+    const user = req.session.user
     const {content_type_id, title, content} = req.body
     const filePath = req.file ? `/uploads/${req.file.filename} `: null;
     try{
         const sql = `insert into board(content_type_id, title, content, board_date, image_url, member_id)
                         values (?,?,?,now(),?,?)`
-        const values = [content_type_id,title,content,filePath,1]
+        const values = [content_type_id,title,content,filePath,user.member_id]
         const [result] = await pool.execute(sql,values)
         //조회 결과가 없는 경우 처리
         console.log(result)//1이면 입력 성공. 0이면 입력 실패

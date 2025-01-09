@@ -53,6 +53,7 @@
                 
                 const formData = new FormData()
                 formData.append('content_type_id',$("#category").val()) // 카테고리
+                const member_id=$("#member_id").val()//작성자mem_id 테스트
                 formData.append('title', $("#title").val()); // 제목
                 formData.append('content', $("#content").val()); // 내용
                 formData.append('fileUpload',$("#fileUpload")[0].files[0])
