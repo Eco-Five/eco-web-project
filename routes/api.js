@@ -19,7 +19,6 @@ const bcrypt = require('bcrypt')
 // sample) const [rows, fields] = await pool.execute(sql, [params]);
 // rows는 쿼리 실행결과로 반환된 데이터의 배열입니다.
 // fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
-
 router.post('/getUserInfo', async (req, res) => {
     try {
         const { userId } = req.body;
