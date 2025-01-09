@@ -3,6 +3,7 @@ var router = express.Router()
 require('dotenv').config()
 const multer = require('multer');
 const path = require('path');
+const axios = require('axios');
 
 
 /************************************** MySQL CRUD **************************************/
@@ -92,6 +93,22 @@ const loginUtil = async (loginInfo) => {
     const match = await comparePwd(loginPwd, rows[0].pwd)
     return { match: match, userInfo: rows[0] }
 }
+
+// 세션 유저정보 전처리
+const sessionInfo = async (userInfo) => {
+    return {
+        member_id: userInfo.member_id,
+        name: userInfo.name,
+        email: userInfo.email,
+        phone: userInfo.phone,
+        eco_point: userInfo.eco_point,
+        image_url : userInfo.image_url,
+        member_type_id: userInfo.member_type_id,
+        subs_id: userInfo.subs_id,
+        address: userInfo.address,
+        isAuthenticated: true,
+    }
+}
 /******************************** 일반 회원가입 및 로그인 ********************************/
 // 회원가입 : member data DB에 추가 + 비밀번호 해시
 router.post('/memberInsert', async (req, res) => {
@@ -108,13 +125,8 @@ router.post('/memberInsert', async (req, res) => {
 router.post('/memberLogin', async (req, res) => {
     try {
         const {match, userInfo} = await loginUtil(req.body)
-        console.log(userInfo);
         if (match) {
-            req.session.user = {
-                email: userInfo.email,
-                name: userInfo.name,
-                isAuthenticated: true,
-            }
+            req.session.user = await sessionInfo(userInfo)
             res.status(200).json({ message: '로그인 성공', result: match })
         } else {
             res.status(401).json({ message: '계정이 일치하지 않습니다.', result: match })
@@ -175,6 +187,7 @@ router.put('/resetPwd', async (req, res) => {
 /********************************** 회원정보 찾기 및 수정 **********************************/
 
 
+
 /************************************* Google OAuth2 *************************************/
 // 로그인 버튼을 누르면 도착하는 목적지 라우터
 // https://accounts.google.com/o/oauth2/v2/auth
@@ -223,28 +236,20 @@ router.get('/signup/redirect', async (req, res) => {
 
         try {
             // 로그인 진행
-            const match = await loginUtil({ loginEmail: email, loginPwd: id })
+            const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
+
             if (match) {
-                req.session.user = {
-                    email: email,
-                    name: name,
-                    isAuthenticated: true,
-                }
-                //res.status(200).json({ message: '로그인 성공', result: match })
-                res.redirect('/')
-                            
+                req.session.user = await sessionInfo(userInfo)
+                res.redirect('/') //res.status(200).json({ message: '로그인 성공', result: match })
+            
             // 회원가입 진행
             } else if(!match) {
-                const signupResult = await signupUtil({
-                    name: name, email: email, pwd: id, img_url: picture, member_type_id: 2,
-                })
-                req.session.user = {
-                    email: email,
-                    name: name,
-                    isAuthenticated: true,
-                }
-                //return res.status(200).json({ message: '회원가입 성공', memId: signupResult.insertId })
+                const signupResult = await signupUtil({ name: name, email: email, pwd: id, img_url: picture, member_type_id: 2 })
+                const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
+
+                req.session.user = await sessionInfo(userInfo)
                 res.redirect('/')
+                //return res.status(200).json({ message: '회원가입 성공', memId: signupResult.insertId })
             }
         } catch (error) {
             console.error(error)
@@ -282,6 +287,67 @@ router.get('/logout', (req, res) => {
 })
 /************************************** Session Mng **************************************/
 
+
+
+/************************************* Naver OAuth2 *************************************/
+/* 네이버 로그인 */
+router.get('/auth/naver/callback', async (req, res, next) => {
+    console.log('네이버 코드 받기: ' + req.query.code);
+    console.log('네이버 상태 받기: ' + req.query.state);
+    const code = req.query.code;
+    const state = req.query.state;
+    try {
+        const res1 = await axios.post('https://nid.naver.com/oauth2.0/token', null, {
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
+            },
+            params: {
+                grant_type: "authorization_code",
+                client_id: process.env.NAVER_LOGIN_CLIENT_ID,
+                client_secret: process.env.NAVER_LOGIN_CLIENT_SECRET,
+                redirect_uri: "https://localhost:5678/api/auth/naver/callback",
+                code: code,
+                state: state
+            }
+        });
+        const accessToken = res1.data.access_token;
+        console.log("accessToken:", accessToken);
+        const res2 = await axios.post('https://openapi.naver.com/v1/nid/me', null, {
+            headers: {
+                "Authorization": "Bearer " + accessToken,
+                "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
+            }
+        });
+        console.log(res2.data);
+        const { name, email, mobile, id, profile_image } = res2.data.response;
+        console.log(name, email, mobile, id, profile_image);
+
+        try {
+            // 로그인 진행
+            const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
+
+            if (match) {
+                req.session.user = await sessionInfo(userInfo)
+                return res.redirect('/') //res.status(200).json({ message: '로그인 성공', result: match })
+            
+            } else if(!match) {
+                const signupResult = await signupUtil({ name: name, email: email, pwd: id, phone: mobile, img_url: profile_image || null, member_type_id: 2 })
+                const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
+
+                req.session.user = await sessionInfo(userInfo)
+                res.redirect('/')
+                return res.status(200).json({ message: '네이버 로그인 성공', rows: naver })
+            }
+        
+        } catch (error) {
+            console.error(error);
+        }
+    } catch (error) {
+        console.error("네이버 로그인 오류: ", error);
+        res.status(500).json({ message: "서버오류" })
+    }
+});
+/************************************* Naver OAuth2 *************************************/
 
 
 
