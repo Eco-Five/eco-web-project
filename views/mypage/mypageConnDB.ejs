@@ -1,5 +1,5 @@
 <script>
-    async function getUserInfo() {
+async function getUserInfo() {
     try {
         const response = await fetch('/api/getUserInfo', {
             method: 'POST', 
@@ -31,4 +31,75 @@
 document.addEventListener('DOMContentLoaded', function() {
     getUserInfo();
 });
+
+
+async function updateUserInfo() {
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const phone = document.getElementById('phone').value;
+    const local = document.getElementById('local').value;
+
+    try {
+        const response = await fetch('/api/updateUserInfo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: "<%= member_id %>",
+                name: name,
+                email: email,
+                phone: phone,
+                address: local
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('정보 수정 성공.');
+        } else {
+            alert('정보 수정 실패.');
+        }
+    } catch (error) {
+        console.error('정보 수정 오류:', error);
+        alert('서버 오류.');
+    }
+}
+
+// 개인정보 수정 버튼 클릭 시 호출되는 함수
+document.querySelector('#updbtn').addEventListener('click', updateUserInfo);
+
+async function deleteUser() {
+    if (confirm('정말로 회원탈퇴하시겠습니까?')) {
+        try {
+            const response = await fetch('/api/deleteUser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: "<%= member_id %>" // 세션에서 가져온 member_id
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('회원탈퇴가 완료되었습니다.');
+
+                window.location.href = '/'; // 로그아웃 후 홈페이지나 로그인 페이지로 이동
+
+            } else {
+                alert('회원탈퇴에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('회원탈퇴 오류:', error);
+            alert('서버 오류가 발생했습니다.');
+        }
+    }
+}
+
+// 회원 탈퇴 버튼 클릭 시 호출되는 함수
+document.querySelector('#delbtn').addEventListener('click', deleteUser);
 </script>

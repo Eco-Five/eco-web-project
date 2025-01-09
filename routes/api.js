@@ -47,7 +47,65 @@ router.post('/getUserInfo', async (req, res) => {
     }
 });
 
+router.post('/updateUserInfo', async (req, res) => {
+    try {
+        const { userId, name, email, phone, address } = req.body;
 
+        const sql = `UPDATE member 
+                    SET name = ?, email = ?, phone = ?, address = ? 
+                    WHERE member_id = ?`;
+        const [result] = await pool.execute(sql, [name, email, phone, address, userId]);
+
+        if (result.affectedRows > 0) {
+            res.status(200).json({
+                success: true,
+                message: '사용자 정보가 업데이트되었습니다.'
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: '사용자 정보를 업데이트할 수 없습니다.'
+            });
+        }
+    } catch (error) {
+        console.error('사용자 정보 수정 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.'
+        });
+    }
+});
+
+// 회원 탈퇴 API
+router.post('/deleteUser', async (req, res) => {
+    try {
+        const { userId } = req.body;
+
+        // MySQL DELETE 쿼리 작성
+        const sql = `DELETE FROM member WHERE member_id = ?`;
+
+        // 실행
+        const [result] = await pool.execute(sql, [userId]);
+
+        if (result.affectedRows > 0) {
+            res.status(200).json({
+                success: true,
+                message: '회원 탈퇴가 완료되었습니다.'
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: '사용자를 찾을 수 없습니다.'
+            });
+        }
+    } catch (error) {
+        console.error('회원 탈퇴 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.'
+        });
+    }
+});
 
 
 // 비밀번호 해시화 함수
