@@ -40,34 +40,80 @@ async function comparePwd(inputPwd, storedHashedPwd) {
 const signupUtil = async (memInfo) => {
     // 클라이언트로부터 받은 데이터
     const { name, email, pwd, phone, img_url, member_type_id, address } = memInfo;
-
     // 비동기 처리된 함수 선언 시, await을 붙이는 이유는
     // promise가 해결된 후의 값을 반환받기 위해서 입니다.
     let pwdHash = await hashPwd(pwd)
     const sql = `insert into member (name, email, pwd, phone, eco_point, image_url, member_type_id, subs_id, address)
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-
+    values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     const values = [name, email, pwdHash, phone || null, 100, img_url, member_type_id, 1, address || null]
     const [result] = await pool.execute(sql, values)
     return result
 }
 
+//회원가입 이메일 비교 함수
+const checkEmailExists = async (email) => {
+    const sql = 'SELECT COUNT(*) AS count FROM member WHERE email = ?'; // members는 테이블 이름
+    const [rows] = await pool.execute(sql, [email]); // db는 데이터베이스 연결 객체
+    return rows[0].count > 0; // 존재하면 true 반환
+};
+
 // 로그인 : 유틸리티 함수
 const loginUtil = async (loginInfo) => {
     const { loginEmail, loginPwd } = loginInfo
     const sql = 'select * from member where email = ?'
-
     const [rows] = await pool.execute(sql, [loginEmail])
     if (rows.length === 0) {
         return false; // 사용자 없음
     }
     const match = await comparePwd(loginPwd, rows[0].pwd)
-    return match
+    return { match: match, userInfo: rows[0] }
+}
+const sessionInfo = async (userInfo) => {
+    return {
+        member_id: userInfo.member_id,
+        name: userInfo.name,
+        email: userInfo.email,
+        phone: userInfo.phone,
+        eco_point: userInfo.eco_point,
+        image_url : userInfo.image_url,
+        member_type_id: userInfo.member_type_id,
+        subs_id: userInfo.subs_id,
+        address: userInfo.address,
+        isAuthenticated: true,
+    }
 }
 /******************************** 일반 회원가입 및 로그인 ********************************/
+// 이메일 중복 확인 API
+router.post('/checkEmail', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: '이메일을 입력하세요.' });
+        }
+
+        const emailExists = await checkEmailExists(email);
+        if (emailExists) {
+            return res.status(200).json({ exists: true, message: '이미 가입된 이메일입니다.' });
+        } else {
+            return res.status(200).json({ exists: false, message: '가입 가능한 이메일입니다.' });
+        }
+    } catch (error) {
+        console.error('checkEmail 오류: ', error);
+        res.status(500).json({ message: '서버 오류' });
+    }
+});
+
+
 // 회원가입 : member data DB에 추가 + 비밀번호 해시
 router.post('/memberInsert', async (req, res) => {
     try {
+        const { email } = req.body;
+
+        // 이메일 중복 확인
+        const emailExists = await checkEmailExists(email);
+        if (emailExists) {
+            return res.status(400).json({ message: '이미 가입된 이메일입니다.' });
+        }
         const result = await signupUtil(req.body)
         res.status(201).json({ message: '회원가입 성공', memId: result.insertId })
     } catch (error) {
@@ -76,20 +122,18 @@ router.post('/memberInsert', async (req, res) => {
     }
 })
 
+
+
 // 로그인 : 회원 이메일 및 비밀번호 해시값 비교
 router.post('/memberLogin', async (req, res) => {
     try {
-        const match = await loginUtil(req.body)
+        const {match, userInfo} = await loginUtil(req.body)
         if (match) {
-            req.session.user = {
-                email: req.body.loginEmail,
-                isAuthenticated: true,
-            }
+            req.session.user = await sessionInfo(userInfo)
             res.status(200).json({ message: '로그인 성공', result: match })
         } else {
             res.status(401).json({ message: '계정이 일치하지 않습니다.', result: match })
         }
-
     } catch (error) {
         console.error("memberLogin 오류: ", error);
         res.status(500).json({ message: "서버오류" })
@@ -103,7 +147,6 @@ router.post('/memberLogin', async (req, res) => {
 // 이메일 찾기
 router.post('/findEmail', async (req, res) => {
     const { name, phone } = req.body
-
     try {
         sql = "select email from member where name = ? and phone = ?"
         const [rows] = await pool.execute(sql, [name, phone])
@@ -248,6 +291,18 @@ router.get('/logout', (req, res) => {
 
 
 /************************************** Naver Oauth2 **************************************/
+router.get('/auth/naver', (req, res) => {
+    try {
+        const id = process.env.NAVER_LOGIN_CLIENT_ID
+        const redirect_uri = 'https://localhost:5678/api/auth/naver/callback'
+        const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${id}&redirect_uri=${redirect_uri}&state=STATE_STRING`;
+        res.redirect(naverAuthUrl);
+    } catch (error) { 
+        console.error("인증코드 받기 실패!!", error)
+    }
+})
+
+
 /* 네이버 로그인 */
 router.get('/auth/naver/callback', async (req, res, next) => {
     console.log('네이버 코드 받기: ' + req.query.code);
