@@ -20,6 +20,36 @@ const bcrypt = require('bcrypt')
 // rows는 쿼리 실행결과로 반환된 데이터의 배열입니다.
 // fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
 
+router.post('/getUserInfo', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const sql = 'SELECT name, email, phone, address FROM member WHERE member_id = ?';
+        const [rows] = await pool.execute(sql, [userId]);
+
+        if (rows.length > 0) {
+            const user = rows[0];
+            res.status(200).json({
+                success: true,
+                data: user
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: '사용자를 찾을 수 없습니다.'
+            });
+        }
+    } catch (error) {
+        console.error('사용자 정보 조회 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.'
+        });
+    }
+});
+
+
+
+
 // 비밀번호 해시화 함수
 async function hashPwd(password) {
     const saltRounds = 10; // 해시 반복 횟수
