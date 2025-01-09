@@ -589,7 +589,7 @@ router.delete('/board/:b_no', async(req, res)=>{
 router.get('/question', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
-        const perPage = 5; // 한 페이지당 5개 글
+        const perPage = 15; // 한 페이지당 5개 글
         const offset = (page - 1) * perPage;
         const category = req.query.category || 'all'; // category 값 받기
 
@@ -640,7 +640,7 @@ router.get('/question/:q_no', async (req, res) => {
         return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
     }
     try {
-        const sql = `SELECT i.*, m.name AS name, ic.comment AS comment, ic.comment_date AS comment_date
+        const sql = `SELECT i.*, m.name AS name, ic.comment AS comment, ic.comment_date AS comment_date, ic.inquiry_comment_id AS inquiry_comment_id
                     FROM inquiry i
                     LEFT JOIN member m ON i.member_id = m.member_id
                     LEFT JOIN inquiry_comment ic ON i.inquiry_id = ic.inquiry_id
@@ -682,51 +682,6 @@ router.post('/question/write', async(req,res)=>{
         return res.status(500).send({message:'글 쓰기 처리 중 오류가 발생했습니다.'})
     }
     })
-
-// /************************* 고객문의댓글작성 ***************************/
-router.post('/question/:q_no', async(req,res)=>{
-    //사용자가 화면에서 입력한 값 담기
-    const q_no = req.params.q_no
-    const {comment} = req.body
-    try{
-        //데이터베이스 쿼리 실행 하기
-        const sql = `insert into inquiry_comment(comment, comment_date, inquiry_id)
-                        values (?,now(),?)`
-        const values = [comment,q_no]
-        const [result] = await pool.execute(sql,values)
-        //조회 결과가 없는 경우 처리
-        console.log(result)//1이면 입력 성공. 0이면 입력 실패
-        //성공시 응답하기
-        res.json({success:true, result:result})
-    }catch(error){
-        console.error('Database error:', error)
-        return res.status(500).send({message:'댓글 쓰기 처리 중 오류가 발생했습니다.'})
-    }
-    })
-
-// /************************* 고객문의댓글작성 ***************************/
-// router.post('/question/comment', async(req,res)=>{
-//     //사용자가 화면에서 입력한 값 담기
-//     const { inquiry_id, comment } = req.body;
-//     if (!inquiry_id || !comment) {
-//         return res.status(400).json({ success: false, message: "필수 값이 누락되었습니다." });
-//     }
-//     try{
-//         //데이터베이스 쿼리 실행 하기
-//         const sql = `insert into inquiry_comment(inquiry_id, comment, comment_date)
-//                         values (?, ?, now())`
-//         const [result] = await pool.execute(sql, [inquiry_id, comment])
-//         if (result.affectedRows > 0) {
-//             res.json({ success: true });
-//         } else {
-//             res.status(500).json({ success: false, message: "댓글 작성에 실패했습니다." });
-//         }
-//     } catch (error) {
-//         console.error("댓글 작성 중 오류: ", error);
-//         res.status(500).json({ success: false, message: "서버 오류가 발생했습니다." });
-//     }
-// })
-
 
 /************************* 고객문의글수정-GET ***************************/
 router.get('/question/update/:q_no', async (req, res, next) => {
@@ -788,8 +743,8 @@ router.delete('/question/:q_no', async(req, res)=>{
     //DELETE 요청 시, 데이터를 본문으로 보내고 있기 때문에, 서버에서는 req.body.b_no로 받아야 함
     const q_no = req.body.q_no
     //외래키 제약 조건 : inquiry_comment 참조 데이터 먼저 삭제
-    const sql1 = "DELETE FROM inquiry_comment WHERE inquiry_id=?"
-    const sql2 = "DELETE FROM inquiry WHERE inquiry_id=?"
+    const sql1 = `DELETE FROM inquiry_comment WHERE inquiry_id=?`
+    const sql2 = `DELETE FROM inquiry WHERE inquiry_id=?`
     try{
         await pool.execute(sql1,[q_no])
         const [result] = await pool.execute(sql2,[q_no])
@@ -800,6 +755,61 @@ router.delete('/question/:q_no', async(req, res)=>{
             res.json({ success: true, message: '삭제 완료되었습니다.' })
         } else {
             res.json({ success: false, message: '삭제 실패했습니다.' })
+        }
+    }catch(error){
+        console.error('Database error:', error)
+        return res.status(500).send({message:'글 삭제 처리 중 오류가 발생했습니다.'})
+        }
+    })
+
+
+/************************* 고객문의댓글작성+문의상태수정 ***************************/
+router.post('/question/:q_no', async(req,res)=>{
+    //사용자가 화면에서 입력한 값 담기
+    const q_no = req.params.q_no
+    const {comment} = req.body
+    try{
+        //댓글 작성 쿼리
+        const sql1 = `insert into inquiry_comment(comment, comment_date, inquiry_id)
+                        values (?,now(),?)`
+        //상태 수정 쿼리(inquiry_status_id = 2로 변경)
+        const sql2 = `update inquiry
+                        set inquiry_status_id = ? 
+                        where inquiry_id = ?`
+        await pool.execute(sql1,[comment,q_no])                                
+        const values = [2,q_no]
+        const [result] = await pool.execute(sql2,values)
+        //조회 결과가 없는 경우 처리
+        console.log(result)//1이면 입력 성공. 0이면 입력 실패
+        //성공시 응답하기
+        res.json({success:true, result:result})
+    }catch(error){
+        console.error('Database error:', error)
+        return res.status(500).send({message:'댓글 쓰기 처리 중 오류가 발생했습니다.'})
+    }
+    })
+    
+/************************* 고객문의댓글삭제+문의상태수정***************************/
+router.delete('/question/comment/:qc_no', async(req, res)=>{
+    const qc_no = req.params.qc_no
+    const q_no = req.body.q_no
+    //댓글 삭제 쿼리
+    const sql1 = `DELETE FROM inquiry_comment WHERE inquiry_comment_id=?`
+    //상태 수정 쿼리(inquiry_status_id = 1로 변경)
+    const sql2 = `update inquiry
+                    set inquiry_status_id = ? 
+                    where inquiry_id = ?`
+    try{
+        await pool.execute(sql1,[qc_no])     
+        const values = [1,q_no]
+        const [result] = await pool.execute(sql2,values)
+        //조회 결과가 없는 경우 처리
+        console.log(result)//1이면 삭제 성공. 0이면 삭제 실패
+        //성공시 응답하기
+        if (result.affectedRows > 0) {
+            res.json({ success: true, message: '댓글 삭제,상태 변경' })
+        } else {
+            res.json({ success: false, message: '댓글 삭제, 상태 변경 실패' })
         }
     }catch(error){
         console.error('Database error:', error)
