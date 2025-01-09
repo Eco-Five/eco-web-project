@@ -7,7 +7,7 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                userId: 2
+                userId: "<%=member_id%>"
             })
         });
         const data = await response.json();
