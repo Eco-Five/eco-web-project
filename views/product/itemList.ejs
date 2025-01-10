@@ -11,6 +11,7 @@
 <div class="row mt-3 justify-content-center">
     <div class="col-6 col-md-4 d-flex justify-content-end">
         <select id="sort" class="form-select" style="width: 150px;">
+            <option value="sim">정확도순</option>
             <option value="asc">낮은가격순</option>
             <option value="dsc">높은가격순</option>
         </select>
@@ -58,7 +59,7 @@
 
     // 페이지 로드 시 기본 쿼리값
     document.addEventListener('DOMContentLoaded', () => {
-        const defaultQuery = "제로웨이스트";  
+        const defaultQuery = "친환경";  
         const sort = document.getElementById("sort").value;
         productList(defaultQuery, currentPage, sort);  
     });
