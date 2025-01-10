@@ -8,6 +8,15 @@
 </div>
 <hr />
 
+<div class="row mt-3 justify-content-center">
+    <div class="col-6 col-md-4 d-flex justify-content-end">
+        <select id="sortOptions" class="form-select" style="width: 150px;">
+            <option value="lowPrice">낮은가격순</option>
+            <option value="highPrice">높은가격순</option>
+        </select>
+    </div>
+</div>
+
 <div class="container my-4">
     <div class="row" id="card-container"></div>
 </div>
@@ -21,6 +30,7 @@
             <div class="category-card">
                 <img src="{{image}}" index="{{@index}}" class="img-fluid" style="cursor: pointer;width:40%">
                 <div class="ellipsis mt-2">{{clean title}}</div>
+                <br />
                     <b>{{format lprice}}</b>
                         <button index="{{@index}}" class="btn btn-dark btn-sm" style="min-width: 10px; font-size: 0.7vw">에코백담기</button>
                     <a href="{{link}}">
