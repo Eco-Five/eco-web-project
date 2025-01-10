@@ -56,11 +56,13 @@
     const itemsPerPage = 12;
     let totalPages = 0;  
     let allItems = [];
+    const querySelect = document.getElementById('query');
+    const sortSelect = document.getElementById('sort');
 
     // 페이지 로드 시 기본 쿼리값
     document.addEventListener('DOMContentLoaded', () => {
         const defaultQuery = "친환경";  
-        const sort = document.getElementById("sort").value;
+        const sort = sortSelect.value;
         productList(defaultQuery, currentPage, sort);  
     });
 
@@ -97,17 +99,16 @@
     btnSearch.addEventListener('click', async () => {
         currentPage = 1; 
         const query = document.getElementById('query').value;
-        const sort = document.getElementById("sort").value;  
+        const sort = sortSelect.value;
         productList(query, currentPage, sort); 
     });
 
     // 검색창 Enter 시 동작
-    const inputQuery = document.getElementById('query');
-    inputQuery.addEventListener('keydown', async (event) => {
+    querySelect.addEventListener('keydown', async (event) => {
         if (event.keyCode === 13) {  
             currentPage = 1; 
-            const query = inputQuery.value; 
-            const sort = document.getElementById("sort").value;
+            const query = querySelect.value;
+            const sort = sortSelect.value;
             productList(query, currentPage, sort);
         }
     });
@@ -116,8 +117,8 @@
     document.getElementById('prev').addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
-            const query = document.getElementById('query').value;
-            const sort = document.getElementById("sort").value;
+            const query = querySelect.value;
+            const sort = sortSelect.value;
             productList(query, currentPage, sort); 
         }
     });
@@ -126,16 +127,15 @@
     document.getElementById('next').addEventListener('click', () => {
         if (currentPage < totalPages) {
             currentPage++;
-            const query = document.getElementById('query').value;
-            const sort = document.getElementById("sort").value;
+            const query = querySelect.value;
+            const sort = sortSelect.value;
             productList(query, currentPage, sort); 
         }
     });
 
     // 콤보박스 변경 시
-    const sortSelect = document.getElementById('sort');
     sortSelect.addEventListener('change', () => {
-        const query = document.getElementById('query').value;
+        const query = querySelect.value;
         const sort = sortSelect.value;
         currentPage = 1;  
         productList(query, currentPage, sort); 
