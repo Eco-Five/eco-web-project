@@ -11,8 +11,8 @@
 <div class="row mt-3 justify-content-center">
     <div class="col-6 col-md-4 d-flex justify-content-end">
         <select id="sort" class="form-select" style="width: 150px;">
-            <option value="dsc">낮은가격순</option>
-            <option value="asc">높은가격순</option>
+            <option value="asc">낮은가격순</option>
+            <option value="dsc">높은가격순</option>
         </select>
     </div>
 </div>
@@ -56,75 +56,90 @@
     let totalPages = 0;  
     let allItems = [];
 
-    //페이지 로드 시 기본 쿼리값
+    // 페이지 로드 시 기본 쿼리값
     document.addEventListener('DOMContentLoaded', () => {
-        const defaultQuery = "친환경";  
-        productList(defaultQuery, currentPage);
+        const defaultQuery = "제로웨이스트";  
+        const sort = document.getElementById("sort").value;
+        productList(defaultQuery, currentPage, sort);  
     });
 
-    //네이버API 호출 함수
-    async function productList(query, page = 1) {
+    // 네이버API 호출 함수
+    async function productList(query, page = 1, sort) {
         const response = await fetch(`/api/naverShop`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ values: query, page: page })  
+            body: JSON.stringify({ values: query, page: page, sort: sort })  
         });
         const data = await response.json();
         
         allItems = data.list;
         totalPages = data.totalPages;
 
-        //페이징 처리
+        // 페이징 처리
         const startIndex = (page - 1) * itemsPerPage;
         const paginatedItems = allItems.slice(startIndex, startIndex + itemsPerPage);
 
-        //Handlebars에 객체 할당
+        // Handlebars에 객체 할당
         let temp = Handlebars.compile($("#card-template").html());
         $("#card-container").html(temp({ list: paginatedItems }));  
 
-        //페이지 표시 업데이트
+        // 페이지 표시 업데이트
         document.getElementById('page').textContent = `${data.currentPage}/${totalPages}`;
 
-        //이전,다음 버튼 업데이트
+        // 이전, 다음 버튼 업데이트
         document.getElementById('prev').disabled = data.currentPage === 1;
         document.getElementById('next').disabled = data.currentPage === totalPages;
     }
 
-    //버튼 클릭 시 동작
+    // 검색 버튼 클릭 시
     const btnSearch = document.getElementById('btnSearch');
     btnSearch.addEventListener('click', async () => {
         currentPage = 1; 
-        const query = document.getElementById('query').value;  
-        productList(query, currentPage); 
+        const query = document.getElementById('query').value;
+        const sort = document.getElementById("sort").value;  
+        productList(query, currentPage, sort); 
     });
 
-    //검색창 Enter 시 동작
+    // 검색창 Enter 시 동작
     const inputQuery = document.getElementById('query');
     inputQuery.addEventListener('keydown', async (event) => {
         if (event.keyCode === 13) {  
             currentPage = 1; 
             const query = inputQuery.value; 
-            productList(query, currentPage);
+            const sort = document.getElementById("sort").value;
+            productList(query, currentPage, sort);
         }
     });
 
-    //이전 페이지 버튼 클릭 시
+    // 이전 페이지 버튼 클릭 시
     document.getElementById('prev').addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
             const query = document.getElementById('query').value;
-            productList(query, currentPage); 
+            const sort = document.getElementById("sort").value;
+            productList(query, currentPage, sort); 
         }
     });
 
-    //다음 페이지 버튼 클릭 시
+    // 다음 페이지 버튼 클릭 시
     document.getElementById('next').addEventListener('click', () => {
         if (currentPage < totalPages) {
             currentPage++;
             const query = document.getElementById('query').value;
-            productList(query, currentPage); 
+            const sort = document.getElementById("sort").value;
+            productList(query, currentPage, sort); 
         }
     });
+
+    // 콤보박스 변경 시
+    const sortSelect = document.getElementById('sort');
+    sortSelect.addEventListener('change', () => {
+        const query = document.getElementById('query').value;
+        const sort = sortSelect.value;
+        currentPage = 1;  
+        productList(query, currentPage, sort); 
+    });
+
 </script>
 
 <script>

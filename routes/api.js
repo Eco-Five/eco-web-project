@@ -407,12 +407,13 @@ router.get('/auth/naver/callback', async (req, res, next) => {
 /******************************** 네이버 쇼핑 ********************************/
 // 네이버쇼핑API 서버
 router.post("/naverShop", async (req, res) => {
-    const query = req.body;
+    const query = req.body.values; 
     const page = req.body.page; 
+    const sort = req.body.sort;   
     const itemsPerPage = 12; 
 
     try {
-        const url = `https://openapi.naver.com/v1/search/shop.json?query=${query.values}&display=100`;
+        const url = `https://openapi.naver.com/v1/search/shop.json?query=${query}&display=100&sort=${sort}`;
         
         const responseNaverShop = await fetch(url, {
             method: 'GET',
@@ -438,6 +439,7 @@ router.post("/naverShop", async (req, res) => {
         res.status(500).json({ result: '서버 오류' });
     }
 });
+
 /******************************** 네이버 쇼핑 ********************************/
 
 
