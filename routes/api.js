@@ -76,15 +76,10 @@ router.post('/updateUserInfo', async (req, res) => {
     }
 });
 
-// 회원 탈퇴 API
 router.post('/deleteUser', async (req, res) => {
     try {
         const { userId } = req.body;
-
-        // MySQL DELETE 쿼리 작성
         const sql = `DELETE FROM member WHERE member_id = ?`;
-
-        // 실행
         const [result] = await pool.execute(sql, [userId]);
 
         if (result.affectedRows > 0) {

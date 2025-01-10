@@ -13,7 +13,6 @@ async function getUserInfo() {
         const data = await response.json();
 
         if (data.success) {
-            // 사용자 정보가 정상적으로 조회된 경우, 각 input 필드에 값 설정
             const user = data.data;
             document.getElementById('name').value = user.name;
             document.getElementById('email').value = user.email;
@@ -27,7 +26,7 @@ async function getUserInfo() {
     }
 }
 
-// 페이지가 로드되면 사용자 정보 가져오기
+// select함수 호출
 document.addEventListener('DOMContentLoaded', function() {
     getUserInfo();
 });
@@ -58,6 +57,7 @@ async function updateUserInfo() {
 
         if (data.success) {
             alert('정보 수정 성공.');
+            window.location.href = '/';
         } else {
             alert('정보 수정 실패.');
         }
@@ -67,11 +67,11 @@ async function updateUserInfo() {
     }
 }
 
-// 개인정보 수정 버튼 클릭 시 호출되는 함수
+// update함수 호출
 document.querySelector('#updbtn').addEventListener('click', updateUserInfo);
 
 async function deleteUser() {
-    if (confirm('정말로 회원탈퇴하시겠습니까?')) {
+    if (confirm('회원탈퇴하시겠습니까?')) {
         try {
             const response = await fetch('/api/deleteUser', {
                 method: 'POST',
@@ -79,27 +79,44 @@ async function deleteUser() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    userId: "<%= member_id %>" // 세션에서 가져온 member_id
+                    userId: "<%= member_id %>"
                 })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                alert('회원탈퇴가 완료되었습니다.');
-
-                window.location.href = '/'; // 로그아웃 후 홈페이지나 로그인 페이지로 이동
+                await logoutUser();
+                alert('회원탈퇴 완료.');
+                window.location.href = '/';
 
             } else {
-                alert('회원탈퇴에 실패했습니다.');
+                alert('회원탈퇴 실패.');
             }
         } catch (error) {
             console.error('회원탈퇴 오류:', error);
-            alert('서버 오류가 발생했습니다.');
+            alert('서버 오류.');
         }
     }
 }
-
-// 회원 탈퇴 버튼 클릭 시 호출되는 함수
+// delete함수 호출
 document.querySelector('#delbtn').addEventListener('click', deleteUser);
+
+// 로그아웃 함수
+async function logoutUser() {
+    try {
+        const response = await fetch('/api/logout', {
+            method: 'GET'
+        });
+        if (response.ok) {
+            localStorage.removeItem('userToken'); 
+            sessionStorage.removeItem('userToken');
+            document.cookie = "connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 GMT"; // 쿠키 삭제
+        } else {
+            console.error('로그아웃 실패');
+        }
+    } catch (error) {
+        console.error('로그아웃 오류:', error);
+    }
+}
 </script>
