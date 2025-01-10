@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const noticeDB = require('./noticeConnDB');
 
 
 /* GET home page. */
@@ -67,5 +68,21 @@ router.get('/question/update', function(req, res, next) {
   res.render('index', { title: '고객문의수정',pageName:'question/update.ejs'});
 });
 
+/* 공지사항 목록 */
+router.get('/notice', function(req, res, next) {
+  res.render('index', { title: '공지사항목록',pageName:'notice/notice.ejs'});
+});
+/* 공지사항 작성 */
+router.get('/notice/write', function(req, res, next) {
+  res.render('index', { title: '공지사항작성',pageName:'notice/write.ejs'});
+});
+/* 공지사항 글 상세보기 */
+router.get('/notice/read', function(req, res, next) {
+  res.render('index', { title: '공지사항상세보기',pageName:'notice/read.ejs'});
+});
+/* 공지사항 수정 */
+router.get('/notice/update', function(req, res, next) {
+  res.render('index', { title: '공지사항수정',pageName:'notice/update.ejs'});
+});
 
 module.exports = router;

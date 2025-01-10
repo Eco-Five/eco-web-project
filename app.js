@@ -31,7 +31,6 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api', apiRouter);     // hogi 추가
 
-
 // HTTP에서 HTTPS로 리디렉션 추가
 app.use((req, res, next) => {
   if (req.secure) {
