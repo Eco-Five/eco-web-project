@@ -14,7 +14,7 @@
                         <option value="3" <% if(category ==='3'){ %> selected <% } %>>자유게시판</option>
                     </select>
                     <% if (user && user.isAuthenticated) { %>
-                        <% console.log(user); %>
+                        <!-- <% console.log(user); %> -->
                         <!-- 로그인 상태 -->
                         <a href="/board/write"><button class="btn btn-dark">글쓰기</button></a>
                     <% } else { %>

@@ -466,6 +466,7 @@ router.get('/board', async (req, res) => {
 router.get('/board/:b_no', async (req, res) => {
     // 쿼리 스트링을 통해 member_id 정보 가져오기
     const b_no = req.params.b_no
+    const user = req.session.user || null; // 로그인한 사용자가 없으면 null로 설정
     if (!b_no) {
         return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
     }
@@ -484,7 +485,8 @@ router.get('/board/:b_no', async (req, res) => {
         res.render('index',{
             title:'커뮤니티상세보기', 
             pageName: 'board/read.ejs',
-            board: rows[0]
+            board: rows[0],
+            user: user // 세션 정보 전달
             })
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
@@ -492,15 +494,22 @@ router.get('/board/:b_no', async (req, res) => {
     }
 })
 
-/************************* 커뮤니티글작성-GET(세션값 얻어오기) ***************************/
-//http://localhost:5678/api/board/write
+/************************* 커뮤니티글작성-GET ***************************/
 router.get('/board/write', (req, res) => {
-    const user = req.session.user || null;  // 세션에서 user 정보 가져오기
+    console.log('Current session:', req.session); // 세션 전체 정보 출력
+    console.log('Current session user:', req.session.user); // 세션의 user 정보 출력
+
+    const user = req.session.user || null; // 세션에서 user 정보 가져오기
     if (!user || !user.isAuthenticated) {
-        return res.redirect('/login');  // 로그인하지 않았다면 로그인 페이지로 리다이렉트
+        console.log('User not authenticated. Redirecting to login.');
+        return res.redirect('/login'); // 비로그인 사용자는 로그인 페이지로 리다이렉트
     }
 
-    res.render('write', { user });  // EJS 템플릿에 user 정보 전달
+    res.render('index', { 
+        title: '커뮤니티작성', 
+        pageName: 'board/write.ejs', 
+        user: user // EJS 템플릿에 user 정보 전달
+    });
 });
 
 /************************* 커뮤니티글작성-POST ***************************/
@@ -648,6 +657,7 @@ router.get('/question', async (req, res) => {
 //http://localhost:5678/api/question/read?q_no=2
 router.get('/question/:q_no', async (req, res) => {
     const q_no = req.params.q_no
+    const user = req.session.user || null; // 로그인한 사용자가 없으면 null로 설정
     if (!q_no) {
         return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
     }
@@ -667,7 +677,8 @@ router.get('/question/:q_no', async (req, res) => {
         res.render('index',{
             title:'고객문의상세보기', 
             pageName: 'question/read.ejs',
-            question: rows[0]
+            question: rows[0],
+            user:user
             })
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
@@ -675,15 +686,31 @@ router.get('/question/:q_no', async (req, res) => {
     }
 })
 
-/************************* 고객문의글작성 ***************************/
+/************************* 고객문의글작성-GET ***************************/
+router.get('/question/write', (req, res) => {
+    const user = req.session.user || null; // 세션에서 user 정보 가져오기
+    if (!user || !user.isAuthenticated) {
+        console.log('User not authenticated. Redirecting to login.');
+        return res.redirect('/login'); // 비로그인 사용자는 로그인 페이지로 리다이렉트
+    }
+
+    res.render('index', { 
+        title: '고객문의작성', 
+        pageName: 'question/write.ejs', 
+        user: user 
+    });
+});
+
+/************************* 고객문의글작성-POST ***************************/
 router.post('/question/write', async(req,res)=>{
     //사용자가 화면에서 입력한 값 담기
+    const user = req.session.user
     const {content_type_id, title, content} = req.body
     try{
         //데이터베이스 쿼리 실행 하기
         const sql = `insert into inquiry(content_type_id, title, content, inquiry_date, member_id, inquiry_status_id)
                         values (?,?,?,now(),?,?)`
-        const values = [content_type_id,title,content,1,1]
+        const values = [content_type_id,title,content,user.member_id,1]
         const [result] = await pool.execute(sql,values)
         //조회 결과가 없는 경우 처리
         console.log(result)//1이면 입력 성공. 0이면 입력 실패

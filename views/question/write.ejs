@@ -19,6 +19,11 @@
                         </select>
                     </div>
                     <div class="mb-3">
+                        <label for="title" class="form-label">작성자</label>
+                        <input type="text" class="form-control" id="member_id" value="<%= user ? user.member_id : '' %>" hidden>
+                        <input type="text" class="form-control" value="<%= user ? user.name : '' %>" readonly>
+                    </div>
+                    <div class="mb-3">
                         <label for="title" class="form-label">제목</label>
                         <input type="text" class="form-control" id="title" placeholder="제목을 입력하세요">
                     </div>
@@ -41,10 +46,11 @@
             location.href = "/question"; 
         })
 
-        // 작성 버튼 클릭 시 폼 데이터를 서버로 전송
+        // 작성 버튼 클릭 시 데이터를 서버로 전송
         $("#btn-write").click((event) => {
                 event.preventDefault();  // 폼 제출을 막고 AJAX로 처리
                 
+                const member_id = $("#member_id").val() // 카테고리
                 const content_type_id = $("#category").val() // 카테고리
                 const title = $("#title").val()  // 제목
                 const content = $("#content").val()  // 내용
