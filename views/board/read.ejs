@@ -2,12 +2,15 @@
     <!-- 게시글 상세 -->
     <div class="card p-4 mb-4">
         <h1 class="h4"> <%= board.title %></h1>
-        <small class="text-muted"><%= board.name %> · <%= formatDate(board.board_date)%> · <i class="bi bi-eye"></i> 1,234</small>
-        <p class="mt-3">
+        <small class="text-muted"><%= board.name %> · <%= formatDate(board.board_date)%> · <i class="bi bi-eye"></i> <%= board.view_count %></small>
+        <p class="mt-3" style="white-space: pre-line;">
             <%= board.content %>
         </p>
         <div class="d-flex justify-content-between align-items-center mt-4">
-            <span class="text-muted"><i class="bi bi-suit-heart-fill"></i> 좋아요 238</span>
+                <!-- 좋아요 버튼 -->
+            <button id="like" class="btn btn-outline-primary">
+                <i class="bi <%= board.heart === 1 ? 'bi-suit-heart-fill' : 'bi-suit-heart' %>"></i>  <span id="heart-count"><%= totalhearts %></span>
+            </button>
             <div>
                 <% if (user && user.member_id === board.member_id) { %>
                     <button class="btn btn-outline-primary btn-sm me-2" id="btn-update"><i class="bi bi-pencil"></i> 수정</button>
@@ -69,4 +72,26 @@
             }
         });
     })
+
+    // 좋아요 클릭 시 처리
+    $("#like").on("click", function() {
+        const b_no = "<%= board.board_id %>"; // 게시글 ID
+        $.ajax({
+            url: `/api/board/${b_no}/like`, // 서버의 좋아요 API 경로
+            type: 'POST',
+            success: function(response) {
+                if (response.totalHearts !== undefined) {
+                    // 좋아요 수가 정상적으로 응답되면 UI 업데이트
+                    $("#heart-count").text(response.totalHearts);
+                    const newIconClass = response.totalHearts > 0 ? 'bi-suit-heart-fill' : 'bi-suit-heart';
+                    $("#like i").attr('class', 'bi ' + newIconClass);
+                }
+            },
+            error: function(xhr, status, error) {
+                // 에러가 발생했을 때 콘솔에 출력
+                console.error("오류 발생: " + error);
+                alert("로그인이 필요합니다.");
+            }
+        });
+    });
     </script>

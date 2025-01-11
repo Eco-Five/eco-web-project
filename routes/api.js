@@ -8,7 +8,8 @@ const axios = require('axios');
 
 /************************************** MySQL CRUD **************************************/
 const pool = require('../connDB.js')
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
+const { appendFileSync } = require('fs');
 //  GET(조회), POST(입력), PUT(수정), DELETE(삭제)
 
 // sql쿼리 요청 방법은 2가지가 있습니다.
@@ -416,19 +417,19 @@ const upload = multer({
 });
 
 /************************* 커뮤니티글목록 ***************************/
+//http://localhost:5678/api/board
 router.get('/board', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
         const perPage = 5; // 한 페이지당 5개 글
         const offset = (page - 1) * perPage;
         const category = req.query.category || 'all'; // category 값 받기
-        let sql = `
-            SELECT b.*, m.name AS name, c.type_name AS type_name
-            FROM board b
-            LEFT JOIN member m ON b.member_id = m.member_id
-            LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
-            WHERE 1 = 1
-        `;
+        let sql = `SELECT b.*, m.name AS name, c.type_name AS type_name,
+                    IFNULL((SELECT COUNT (*) FROM board_heart WHERE board_id = b.board_id AND heart = 1), 0) AS totalhearts
+                    FROM board b
+                    LEFT JOIN member m ON b.member_id = m.member_id
+                    LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
+                    WHERE 1 = 1`;
         // 카테고리 값이 있으면 SQL 쿼리에 추가
         if (category !== 'all') {
             sql += ` AND c.content_type_id = ?`; // 카테고리로 필터링
@@ -445,6 +446,13 @@ router.get('/board', async (req, res) => {
         const totalBoards = totalRows[0].total;
         const totalPages = Math.ceil(totalBoards / perPage);
 
+        // 인기게시물
+        const popularSql = `SELECT board_id, title, view_count
+                            FROM board 
+                            ORDER BY view_count DESC
+                            LIMIT 3`
+        const [popularRows] = await pool.execute(popularSql)
+
         // 렌더링
         res.render('index', {
             title: '커뮤니티목록',
@@ -453,6 +461,7 @@ router.get('/board', async (req, res) => {
             currentPage: page,
             totalPages: totalPages,
             category: category, // 카테고리 값 전달
+            populars: popularRows,// 인기게시글 전달
             user: req.session.user // 세션 정보 전달
         });
     } catch (error) {
@@ -471,28 +480,70 @@ router.get('/board/:b_no', async (req, res) => {
         return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
     }
     try {
-        const sql = `select b.*, m.name AS name
-                    from board b
-                    JOIN member m ON b.member_id = m.member_id
-                    where board_id = ?`
-        const [rows] = await pool.execute(sql, [b_no])
+        // 조회수 증가 (모든 사용자 대상)
+        const sql1 = `UPDATE board
+                    SET view_count = view_count + 1
+                    WHERE board_id = ?`
+        await pool.execute(sql1, [b_no])
+        // 상세보기 렌더링 (+ 좋아요 상태)
+        const sql2 = `SELECT b.*, m.name AS name,
+                        IFNULL(bh.heart, 0) AS heart,
+                        IFNULL((SELECT COUNT (*) FROM board_heart WHERE board_id = b.board_id AND heart = 1), 0) AS totalhearts
+                        FROM board b
+                        JOIN member m ON b.member_id = m.member_id
+                        LEFT JOIN board_heart bh ON b.board_id = bh.board_id AND bh.member_id = ?
+                        WHERE b.board_id = ?`;
+                        const [rows] = await pool.execute(sql2, [user ? user.member_id : null, b_no]);
         //조회 결과가 없는 경우 처리
         if(rows.length===0){
             return res.status(404).send({message:'해당 글이 없습니다.'})
         }
         //성공시 응답
-        //res.json(rows) // 결과값을 JSON로 변환하여 전달
         res.render('index',{
             title:'커뮤니티상세보기', 
             pageName: 'board/read.ejs',
             board: rows[0],
-            user: user // 세션 정보 전달
+            user: user, // 세션 정보 전달
+            totalhearts: rows[0].totalhearts
             })
     } catch (error) {
-        console.error("커넥션 혹은 SQL쿼리 오류: ", error);
+        console.error("커넥션 혹은 SQL쿼리 오류: ", error)
         res.status(500).json({ message: "서버 오류" })
     }
 })
+
+/************************* 좋아요 ***************************/
+router.post('/board/:b_no/like', async (req, res) => {
+    const b_no = req.params.b_no;
+    const user = req.session.user; // 로그인한 사용자
+
+    if (!user) {
+        return res.status(401).send({ message: "로그인이 필요합니다." });
+    }
+
+    const userId = user.member_id;
+
+    try {
+        // 좋아요 상태 체크 및 추가/삭제
+        const checkSql = `SELECT COUNT(*) AS count FROM board_heart WHERE board_id = ? AND member_id = ?`;
+        const [check] = await pool.execute(checkSql, [b_no, userId]);
+
+        if (check[0].count > 0) {
+            // 좋아요가 이미 눌러졌다면 취소
+            await pool.execute(`DELETE FROM board_heart WHERE board_id = ? AND member_id = ?`, [b_no, userId]);
+        } else {
+            // 좋아요가 눌러지지 않았다면 추가
+            await pool.execute(`INSERT INTO board_heart (board_id, member_id, heart) VALUES (?, ?, 1)`, [b_no, userId]);
+        }
+
+        // 새로운 좋아요 수를 반환
+        const [countResult] = await pool.execute(`SELECT COUNT(*) AS totalhearts FROM board_heart WHERE board_id = ? AND heart = 1`, [b_no]);
+        res.json({ totalHearts: countResult[0].totalhearts });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "서버 오류" });
+    }
+});
 
 /************************* 커뮤니티글작성-GET ***************************/
 router.get('/board/write', (req, res) => {
@@ -564,7 +615,7 @@ router.get('/board/update/:b_no', async (req, res, next) => {
 })
 
 /************************* 커뮤니티글수정-PUT***************************/
-//http://localhost:5678/api/board/update?b_no=2
+//http://localhost:5678/api/board/update/2
 router.put('/board/update/:b_no', upload.single('fileUpload'), async(req,res)=>{
     //사용자가 화면에서 수정한 값 담기
     const b_no = req.params.b_no
@@ -589,9 +640,12 @@ router.put('/board/update/:b_no', upload.single('fileUpload'), async(req,res)=>{
 router.delete('/board/:b_no', async(req, res)=>{
     const b_no = req.params.b_no
     console.log(b_no)
-    const sql = "DELETE FROM board WHERE board_id=?"
+    //외래키 제약 조건 : board_heart 참조 데이터 먼저 삭제
+    const sql1 = "DELETE FROM board_heart WHERE board_id=?"
+    const sql2 = "DELETE FROM board WHERE board_id=?"
     try{
-        const [result] = await pool.execute(sql,[b_no])
+        await pool.execute(sql1,[b_no])
+        const [result] = await pool.execute(sql2,[b_no])
         console.log(result)//1이면 삭제 성공. 0이면 삭제 실패
         //성공시 응답하기
         if (result.affectedRows > 0) {
@@ -607,6 +661,7 @@ router.delete('/board/:b_no', async(req, res)=>{
 
 
 /************************* 고객문의글목록 ***************************/
+//http://localhost:5678/api/question
 router.get('/question', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
@@ -654,7 +709,7 @@ router.get('/question', async (req, res) => {
 });
 
 /************************* 고객문의글상세보기 ***************************/
-//http://localhost:5678/api/question/read?q_no=2
+//http://localhost:5678/api/question/2
 router.get('/question/:q_no', async (req, res) => {
     const q_no = req.params.q_no
     const user = req.session.user || null; // 로그인한 사용자가 없으면 null로 설정
@@ -702,6 +757,7 @@ router.get('/question/write', (req, res) => {
 });
 
 /************************* 고객문의글작성-POST ***************************/
+//http://localhost:5678/api/question/write
 router.post('/question/write', async(req,res)=>{
     //사용자가 화면에서 입력한 값 담기
     const user = req.session.user
@@ -751,6 +807,7 @@ router.get('/question/update/:q_no', async (req, res, next) => {
 })
 
 /************************* 고객문의글수정-PUT***************************/
+//http://localhost:5678/api/question/update/2
 router.put('/question/update/:q_no', async(req,res)=>{
     const q_no = req.params.q_no
     //사용자가 화면에서 수정한 값 담기
