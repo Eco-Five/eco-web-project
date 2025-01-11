@@ -37,8 +37,8 @@
 
 <script>
     const slideList = [
-        ["carousel-item active", "/images/main/baner1.png", "baner1"], 
-        ["carousel-item", "/images/main/baner2.png", "baner2"], 
+        ["carousel-item active", "/images/main/baner1.png", "baner1"],
+        ["carousel-item", "/images/main/baner2.png", "baner2"],
         ["carousel-item", "/images/main/baner3.png", "baner3"]]
 
     for (let slide of slideList) {
@@ -62,9 +62,9 @@
 
 <script type="module">
     const ecoList = [
-        ["images/main/zerowaste.png", "제로웨이스트"], 
-        ["images/main/organic.jpg", "유기농"], 
-        ["images/main/recycle.png", "재활용"], 
+        ["images/main/zerowaste.png", "제로웨이스트"],
+        ["images/main/organic.jpg", "유기농"],
+        ["images/main/recycle.png", "재활용"],
         ["images/main/ecopassion.jpg", "친환경패션"]];
         
     for (let ecoInfo of ecoList) {
@@ -210,3 +210,17 @@
     #zoom-img:hover { transform: scale(1.02); /* 커서 오버 시 10% 확대 */ }
 </style>
 <!-------------------------- 유튜브 -------------------------------->
+
+
+<!-------------------------- 쿼리스트링 alert 표시 -------------------------------->
+<script>
+    // 페이지가 로드될 때 쿼리 문자열을 확인
+    window.onload = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get('message'); // 'message' 쿼리 파라미터 가져오기
+        if (message) {
+            alert(message); // 메시지가 있으면 alert로 표시
+        }
+    }
+</script>
+<!-------------------------- 쿼리스트링 alert 표시 -------------------------------->
