@@ -14,29 +14,39 @@
     <table class="table table-bordered">
         <thead class="table-light">
             <tr>
-                <th>번호</th>
-                <th>카테고리</th>
-                <th>제목</th>
-                <th>작성일</th>
-                <th>조회수</th>
+                <th class="text-center" style="width: 5%;">번호</th>
+                <th class="text-center" style="width: 10%;">카테고리</th>
+                <th class="text-center" style="width: 50%;">제목</th>
+                <th class="text-center" style="width: 20%;">작성일</th>
+                <th class="text-center" style="width: 15%;">작성자</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td></td>
-                <td><span class="badge bg-info"></span></td>
-                <td><a href="#" class="text-decoration-none"></a></td>
-                <td></td>
-                <td></td>
-            </tr>
+            <% if (notices.length > 0) { %>
+                <% notices.forEach((notice) => { %>
+                    <tr>
+                        <td class="text-center"><%= notice.id %></td>
+                        <td class="text-center"><span class="badge bg-info"><%= notice.category || "없음" %></span></td>
+                        <td><a href="/notice/<%= notice.id %>" class="text-decoration-none"><%= notice.title %></a></td>
+                        <td class="text-center"><%= new Date(notice.notice_date).toLocaleDateString("ko-KR") %></td>
+                        <td class="text-center"><%= notice.member_name || "익명" %></td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr>
+                    <td colspan="5" class="text-center">공지사항이 없습니다.</td>
+                </tr>
+            <% } %>
         </tbody>
     </table>
 
     <nav>
         <ul class="pagination justify-content-center">
-            <li class="page-item"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                    <a class="page-link" href="/notice?page=<%= i %>"><%= i %></a>
+                </li>
+            <% } %>
         </ul>
     </nav>
 </div>

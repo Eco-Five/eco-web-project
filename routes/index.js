@@ -150,8 +150,20 @@ router.get('/auth/naver/callback', async (req, res, next) => {
 });
 
 /* 공지사항 목록 */
-router.get('/notice', function(req, res, next) {
-  res.render('index', { title: '공지사항목록', pageName:'notice/notice.ejs' });
+router.get('/notice', (req, res, next) => {
+  res.redirect('/api/notice');
+});
+
+/* 공지사항 상세보기 */
+router.get('/notice/:b_no', (req, res, next) => {
+  const b_no = req.params.b_no;
+  res.redirect(`/api/notice/${b_no}`);
+});
+
+/* 공지사항 수정 */ 
+router.put('/notice/update/:b_no', function(req, res, next) {
+  const q_no = req.params.q_no
+  res.redirect(`/api/notice/update/${q_no}`);
 });
 
 module.exports = router;

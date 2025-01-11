@@ -729,39 +729,129 @@ router.delete("/question/:q_no", async (req, res) => {
 
 /************************* 공지사항 글목록 ***************************/
 router.get("/notice", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const perPage = 5;
+    const offset = (page - 1) * perPage;
+    console.log("Pagination values:", { page, perPage, offset });
+
+    let rows = [];
+    let totalNotices = 0;
+
+    // Fetch notices
     try {
-      const page = parseInt(req.query.page) || 1;
-      const perPage = 5;
-      const offset = (page - 1) * perPage;
-  
       const sql = `
         SELECT b.notice_id AS id, b.title, b.notice_date, m.name AS member_name, c.type_name AS category
         FROM notice b
         LEFT JOIN member m ON b.member_id = m.member_id
         LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
         ORDER BY b.notice_id DESC
-        LIMIT ? OFFSET ?;
+        LIMIT 10 OFFSET 0;
       `;
-      const [rows] = await pool.execute(sql, [perPage, offset]);
-      console.log("Fetched notices:", rows); // Debug log for notices
-  
-      const totalSql = `SELECT COUNT(*) AS total FROM notice`;
-      const [totalRows] = await pool.execute(totalSql);
-      const totalNotices = totalRows[0].total;
-      const totalPages = Math.ceil(totalNotices / perPage);
-  
-      res.render("index", {
-        title: "공지사항목록",
-        pageName: "notice/notice.ejs",
-        notices: rows,
-        currentPage: page,
-        totalPages,
-      });
-    } catch (error) {
-      console.error("Database or query error: ", error);
-      res.status(500).send("Internal Server Error");
+      const [result] = await pool.execute(sql, [perPage, offset]);
+      rows = result;
+    } catch (queryError) {
+      console.error("Error fetching notices:", queryError);
     }
-  });
-  
+
+    // Fetch total count
+    try {
+      const totalSql = `SELECT COUNT(*) AS total FROM notice`;
+      const [totalResult] = await pool.execute(totalSql);
+      totalNotices = totalResult[0]?.total || 0;
+    } catch (countError) {
+      console.error("Error fetching total count:", countError);
+    }
+
+    const totalPages = Math.ceil(totalNotices / perPage);
+
+    res.render("index", {
+      title: "공지사항목록",
+      pageName: "notice/notice.ejs",
+      notices: rows,
+      currentPage: page,
+      totalPages,
+    });
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+/************************* 공지사항 상세보기 ***************************/
+router.get("/notice/:b_no", async (req, res) => {
+  const b_no = req.params.b_no;
+
+  if (!b_no) {
+    return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
+  }
+
+  try {
+    // Increment the views column
+    const updateSql = `UPDATE notice SET views = views + 1 WHERE notice_id = ?`;
+    await pool.execute(updateSql, [b_no]);
+
+    // Fetch the updated article details
+    const selectSql = `
+      SELECT b.notice_id AS id, b.title, b.notice_date AS date, b.content, b.views, 
+      m.name AS member_name, c.type_name AS category
+      FROM notice b
+      LEFT JOIN member m ON b.member_id = m.member_id
+      LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
+      WHERE b.notice_id = ?;
+    `;
+    const [rows] = await pool.execute(selectSql, [b_no]);
+
+    if (rows.length === 0) {
+      return res.status(404).send({ message: "해당 글이 없습니다." });
+    }
+
+    const notice = rows[0];
+
+    res.render("index", {
+      title: "공지사항 상세보기",
+      pageName: "notice/read.ejs",
+      notice,
+    });
+  } catch (error) {
+    console.error("Error fetching notice details:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+/************************* 공지사항글수정-PUT***************************/
+router.put("/notice/update/:b_no", async (req, res) => {
+  const b_no = req.params.b_no;
+  const { category, title, content } = req.body;
+
+  // Validate required fields
+  if (!category || !title || !content) {
+    console.error("Missing fields:", req.body);
+    return res.status(400).send("필수 필드를 채우세요.");
+  }
+
+  try {
+    // Update notice details in the database
+    const sql = `
+      UPDATE notice
+      SET category = ?, title = ?, content = ?, notice_date = NOW()
+      WHERE notice_id = ?;
+    `;
+    const values = [category, title, content, b_no];
+    const [result] = await pool.execute(sql, values);
+
+    console.log("Update result:", result);
+
+    // Redirect or respond based on success
+    if (result.affectedRows > 0) {
+      res.redirect(`/notice/${b_no}`); // Redirect to the updated notice
+    } else {
+      res.status(404).send("Notice not found.");
+    }
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).send("서버 오류가 발생했습니다.");
+  }
+});
 
 module.exports = router;
