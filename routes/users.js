@@ -19,7 +19,7 @@ router.get('/payment', function(req, res, next) {
 });
 
 
-/***************************** Naver Pay ******************************/
+/****************************** Naver Pay ******************************/
 router.post('/naverPay', async (req, res) => {
   const authResult = instanceLogic.sessionAuth(req, res)
   const { subsPlan, subsPrice } = req.body
@@ -54,7 +54,7 @@ router.post('/naverPay', async (req, res) => {
       res.status(500).json({message: error})
   }
 })
-/***************************** Naver Pay ******************************/
+/****************************** Naver Pay ******************************/
 
 
 /************************** Naver Pay Reserve **************************/
@@ -151,12 +151,34 @@ router.get('/payment/cancel', async (req, res) => {
 /************************** Naver Pay Cancel **************************/
 
 
+/**************************** Youtube API *****************************/
+router.get('/youtube', async (req, res, next) => {
+  const API_KEY = process.env.YOUTUBE_API_KEY
+  const url = 'https://youtube.googleapis.com/youtube/v3/search?'
 
+  try {
+    const response = await fetch(url + new URLSearchParams({
+          key           : API_KEY,
+          part          : 'snippet',
+          maxResults    : 3,
+          q             : '제로웨이스트',
+          regionCode    : 'kr',
+          order         : 'viewCount',
+          type          : 'video',
+          videoDuration : 'medium'
+      }), {
+        method: 'GET'
+    });
 
-/**************************** Youtube API ****************************/
+    const data = await response.json();
+    const youtubeData = { items: data.items };
+    res.status(200).json(youtubeData)
 
-
-/**************************** Youtube API ****************************/
+  } catch (error) {
+      console.error('Error fetching YouTube data:', error);
+  }
+})
+/**************************** Youtube API *****************************/
 
 
 module.exports = router;

@@ -1,7 +1,5 @@
-<%-include('mainData.ejs') %>
-
-<!------------------------- 이미지 슬라이드 -------------------------------->
-<!-- https://www.w3schools.com/bootstrap5/bootstrap_carousel.php -->
+<!-------------------------------- 이미지 슬라이드 -------------------------------->
+<!--------- https://www.w3schools.com/bootstrap5/bootstrap_carousel.php ----------->
 <div id="demo" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
     <!-- Indicators/dots -->
     <div class="carousel-indicators">
@@ -52,11 +50,10 @@
         $('#banner').append(slideImgHtml);
     }
 </script>
-<!------------------------- 이미지 슬라이드 -------------------------------->
+<!-------------------------------- 이미지 슬라이드 -------------------------------->
 
 
-
-<!-------------------------- 카테고리 -------------------------------->
+<!----------------------------------- 카테고리 ------------------------------------>
 <div id="card-container" class="d-flex justify-content-between mt-3 mb-3"
     style="width: 100%; font-size: clamp(0.6rem, 2.0vw, 1.0rem);"></div>
 
@@ -81,13 +78,14 @@
         $('#card-container').append(cardHtml);
     }
 </script>
-<!-------------------------- 카테고리 이동 -------------------------------->
+<!----------------------------------- 카테고리 ------------------------------------>
 
 
-
-<!-------------------------- 추천 제품 -------------------------------->
+<!----------------------------------- 추천 제품 ----------------------------------->
 <div style="width: 100%;">
-    <h2 class="text mt-5 ms-2 mb-3 fw-bold" style="font-size: clamp(1.2rem, 2vw, 3rem);">추천 제품</h2>
+    <h2 class="text mt-5 ms-2 mb-3 fw-bold" style="font-size: clamp(1.2rem, 2vw, 3rem);">
+        <i class="fa-solid fa-box"></i> 추천 제품
+    </h2>
     <div id="products" class="d-flex justify-content-between">
         <!-- Handlebars 템플릿이 여기에 렌더링됩니다. -->
     </div>
@@ -95,33 +93,53 @@
 
 <script id="product-card" type="text/x-handlebars-template">
     {{#each products}}
-    <div class="category-cart me-2 ms-2" style="border: 1px solid #e0e0e0; border-radius: 10px; flex: 1;">
-        <img class="img-fluid" src="{{image}}" alt="{{alt}}" style="width: 100%; object-fit: cover;">
-        <div class="p-3">
-            <span style="font-size: clamp(0.4rem, 2vw, 0.8rem);">{{mark}}</span>
-            <h4 class="card-title fw-bold" style="font-size: clamp(0.6rem, 2vw, 1.5rem);">{{alt}}</h4>
-            <p class="card-text" style="font-size: clamp(0.4rem, 1.5vw, 1rem);">{{description}}</p>
-            <div class="d-flex justify-content-between align-items-center p-2" >
-                <p class="mb-0 fw-bold" style="font-size: clamp(0.6rem, 2vw, 1.2rem);">{{price}}</p> <!-- 텍스트 크기 키움 -->
-                <button index="{{@index}}" class="btn btn-dark btn-sm" style="min-width: 10px; font-size: 1vw">에코백담기</button> <!-- 버튼 크기 조정 -->
-            </div>
+    <div class="category-cart me-2 ms-1" style="border: 1px solid #e0e0e0; border-radius: 10px; flex: 1; max-height: 550px;">
+        <div style="height: 53%; width: 100%;">
+            <img class="img-fluid" src="{{image}}" alt="{{category4}}" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <div class="p-3 m-0" style="height: 35%;">
+            <span style="font-size: clamp(0.4rem, 2vw, 0.8rem);">{{category4}}</span>
+            <h4 class="card-title fw-bold" style="font-size: clamp(0.4rem, 1.5vw, 1.3rem);">{{title}}</h4>
+            <p class="card-text" style="font-size: clamp(0.4rem, 1.5vw, 1rem);">{{mallName}}</p>
+        </div>
+        <div class="d-flex justify-content-between p-2 mb-2" style="height: 12%;">
+            <p class="fw-bold" style="font-size: clamp(0.6rem, 2vw, 1.2rem);">{{formatPrice lprice}}원</p> <!-- 텍스트 크기 키움 -->
+            <a href="{{link}}">
+                <button index="{{@index}}" class="btn btn-success btn-sm" style="min-width: 10px; font-size: 1.2vw;">네이버쇼핑</button> <!-- 버튼 크기 조정 -->
+            </a>
         </div>
     </div>
     {{/each}}
 </script>
 
 <script>
-    const productCard = document.getElementById("product-card").innerHTML;
-    const productCardTemp = Handlebars.compile(productCard);
-    const products = document.getElementById("products");
-    products.innerHTML = productCardTemp(mainData);
+    // NaverShop API
+    async function productList() {
+        const response = await fetch('/api/naverShop', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ values: "친환경 인증" })
+        })
+        const data = await response.json()
+        const productData = { products: [data.list[10], data.list[1], data.list[2], data.list[50]] }
+
+        const templateP = Handlebars.compile($("#product-card").html())
+        $("#products").html(templateP(productData))
+    }
+    productList()
+
+    // 천 단위 쉼표 추가하는 헬퍼 등록
+    Handlebars.registerHelper('formatPrice', function (price) {
+        return parseInt(price, 10).toLocaleString(); // 숫자를 쉼표 형식으로 변환
+    })
 </script>
-<!-------------------------- 추천 제품 -------------------------------->
+<!----------------------------------- 추천 제품 ----------------------------------->
 
 
-
-<!-------------------------- 환경데이터 API -------------------------------->
-<h2 class="text mt-5 ms-2 mb-3 fw-bold" style="font-size: clamp(1.2rem, 2vw, 3rem);">환경 데이터</h2>
+<!--------------------------------- 환경데이터 API -------------------------------->
+<h2 class="text mt-5 ms-2 mb-3 fw-bold" style="font-size: clamp(1.2rem, 2vw, 3rem);">
+    <i class="fa-solid fa-earth-americas"></i> 환경 데이터
+</h2>
 <div class="row ms-1 me-1">
     <div class="col-md-4">
         <div class="impact-card" style="border: 1px solid #e0e0e0; border-radius: 10px; text-align: center;">
@@ -132,7 +150,7 @@
     </div>
     <div class="col-md-4">
         <div class="impact-card" style="border: 1px solid #e0e0e0; border-radius: 10px; text-align: center;">
-            <i class="m-4 fa-solid fa-earth-americas" style="font-size: 2rem;"></i>
+            <i class="m-4 fa-solid fa-industry" style="font-size: 2rem;"></i>
             <h5 class="fw-bold">탄소 배출 감소량</h5>
             <p>25,000kg</p>
         </div>
@@ -145,11 +163,10 @@
         </div>
     </div>
 </div>
-<!-------------------------- 환경데이터 API -------------------------------->
+<!--------------------------------- 환경데이터 API -------------------------------->
 
 
-
-<!-------------------------- 유튜브 -------------------------------->
+<!------------------------------------ 유튜브 ------------------------------------->
 <h2 class="text mt-5 ms-2 mb-3 fw-bold" style="font-size: clamp(1.2rem, 2vw, 3rem);">
     <i class="fa-brands fa-youtube" style="color: red;"></i> 유튜브
 </h2>
@@ -174,45 +191,25 @@
     {{/each}}
 </script>
 
-<!-- youtube api function -->
 <script>
-    // api key
-    const API_KEY = 'AIzaSyAZ7HoGxJxn9fTmgHLhhsJSy7srAxmTN6Y'
+    async function youtubeData() {
+        const response = await fetch('/users/youtube', { method: 'GET' })
+        const data = await response.json()
 
-    const getVideos = () => {
-        // api url 호출
-        $.ajax({
-            method: 'GET',
-            url: 'https://youtube.googleapis.com/youtube/v3/search',
-            data: {
-                key: API_KEY,       part: 'snippet',
-                maxResults: 3,      q: '제로웨이스트',
-                regionCode: 'kr',   order: 'viewCount',
-                type: 'video',      videoDuration: 'medium'
-            },
-            dataType: 'json',
-            success: (response) => {
-                const youtubeData = {items : response.items}
-                // youtubes handlebars 적용
-                let temp = Handlebars.compile($("#youtube-card").html())
-                $("#youtubes").html(temp(youtubeData))
-            },
-            error: (error) => {
-                console.log(error);
-            }
-        })
+        const templateY = Handlebars.compile($("#youtube-card").html());
+        $("#youtubes").html(templateY(data))
     }
-    getVideos()
+    youtubeData()
 </script>
 
 <style>
     #zoom-img { transition: transform 0.5s ease; /* 부드러운 확대 효과 */ }
     #zoom-img:hover { transform: scale(1.02); /* 커서 오버 시 10% 확대 */ }
 </style>
-<!-------------------------- 유튜브 -------------------------------->
+<!------------------------------------ 유튜브 ------------------------------------->
 
 
-<!-------------------------- 쿼리스트링 alert 표시 -------------------------------->
+<!----------------------------- 쿼리스트링 alert 표시 ----------------------------->
 <script>
     // 페이지가 로드될 때 쿼리 문자열을 확인
     window.onload = () => {
@@ -223,4 +220,4 @@
         }
     }
 </script>
-<!-------------------------- 쿼리스트링 alert 표시 -------------------------------->
+<!----------------------------- 쿼리스트링 alert 표시 ----------------------------->
