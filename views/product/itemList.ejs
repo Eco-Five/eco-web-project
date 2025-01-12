@@ -144,12 +144,12 @@
 </script>
 
 <script>
-    //가격 포맷형식
+    // 가격 포맷형식
     Handlebars.registerHelper("format", function (price) {
         return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '원';
     });
 
-    //HTML 태그제거
+    // HTML 태그제거
     Handlebars.registerHelper("clean", function (title) {
         const cleanedTitle = title.replace(/<[^>]+>/g, '');
         return cleanedTitle;
@@ -157,7 +157,7 @@
 </script>
 
 <script>
-    //모달 호출
+    // 모달 호출
     $("#card-container").on("click", ".category-card img", function () {
         let index = $(this).attr("index")
         console.log(index)

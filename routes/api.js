@@ -20,10 +20,11 @@ const bcrypt = require('bcrypt')
 // sample) const [rows, fields] = await pool.execute(sql, [params]);
 // rows는 쿼리 실행결과로 반환된 데이터의 배열입니다.
 // fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
+//개인정보 조회
 router.post('/getUserInfo', async (req, res) => {
     try {
         const { userId } = req.body;
-        const sql = 'SELECT name, email, phone, address FROM member WHERE member_id = ?';
+        const sql = 'SELECT name, email, phone, address, eco_point, image_url FROM member WHERE member_id = ?';
         const [rows] = await pool.execute(sql, [userId]);
 
         if (rows.length > 0) {
@@ -47,6 +48,7 @@ router.post('/getUserInfo', async (req, res) => {
     }
 });
 
+//개인정보 수정
 router.post('/updateUserInfo', async (req, res) => {
     try {
         const { userId, name, email, phone, address } = req.body;
@@ -76,6 +78,7 @@ router.post('/updateUserInfo', async (req, res) => {
     }
 });
 
+//개인정보 삭제
 router.post('/deleteUser', async (req, res) => {
     try {
         const { userId } = req.body;
@@ -102,6 +105,33 @@ router.post('/deleteUser', async (req, res) => {
     }
 });
 
+//게시판 조회
+router.post('/getBoardInfo', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const sql = 'SELECT board_id, title, content, board_date FROM board WHERE member_id = ?';
+        const [rows] = await pool.execute(sql, [userId]);
+
+        if (rows.length > 0) {
+            const user = rows[0];
+            res.status(200).json({
+                success: true,
+                data: user
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: '게시글을 찾을 수 없습니다.'
+            });
+        }
+    } catch (error) {
+        console.error('게시글 정보 조회 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.'
+        });
+    }
+});
 
 // 비밀번호 해시화 함수
 async function hashPwd(password) {

@@ -3,13 +3,15 @@
     margin: auto;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
 }
 
 .profile-header {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
+    border: 1px solid #e0e0e0; 
+    border-radius: 10px;
 }
 
 .profile-pic img {
@@ -22,15 +24,17 @@
     margin-left: 20px;
 }
 
-.ecobag-info, .ecobag-hist {
+.custom-card, .ecobag-card, .hist-card {
+    border: 1px solid #e0e0e0; 
+    border-radius: 10px;
+}
+
+.ecobag-info, .hist-info {
     margin-bottom: 20px;
 }
 
-.eco-item, .hist-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
+.hist-item {
     background-color: #f9f9f9;
-    border: 1px solid #ddd;
+    margin-top: 10px;
     margin-bottom: 10px;
 }
