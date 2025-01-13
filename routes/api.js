@@ -52,9 +52,9 @@ const signupUtil = async (memInfo) => {
 
 //회원가입 이메일 비교 함수
 const checkEmailExists = async (email) => {
-    const sql = 'SELECT COUNT(*) AS count FROM member WHERE email = ?'; // members는 테이블 이름
+    const sql = 'SELECT *  FROM member WHERE email = ?'; // members는 테이블 이름
     const [rows] = await pool.execute(sql, [email]); // db는 데이터베이스 연결 객체
-    return rows[0].count > 0; // 존재하면 true 반환
+    return rows.length > 0; // 존재하면 true 반환
 };
 
 // 로그인 : 유틸리티 함수
