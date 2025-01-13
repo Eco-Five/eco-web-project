@@ -819,32 +819,35 @@ router.get("/notice/:b_no", async (req, res) => {
   }
 });
 
-/************************* 공지사항글수정-PUT***************************/
-router.put("/notice/update/:b_no", async (req, res) => {
+/************************* 고객문의글수정-GET ***************************/
+router.get('/notice/update/:b_no', async (req, res) => {
   const b_no = req.params.b_no;
-  const { category, title, content } = req.body;
-
-  // Validate required fields
-  if (!category || !title || !content) {
-    console.error("Missing fields:", req.body);
-    return res.status(400).send("필수 필드를 채우세요.");
-  }
 
   try {
-    // Update notice details in the database
+    console.log("Fetching notice for b_no:", b_no);
+
     const sql = `
-      UPDATE notice
-      SET category = ?, title = ?, content = ?, notice_date = NOW()
-      WHERE notice_id = ?;
+      SELECT
+          n.notice_id,
+          n.title,
+          n.content,
+          c.type_name AS category
+      FROM
+          notice n
+      JOIN
+          content_type c
+          ON n.content_type_id = c.content_type_id
+      WHERE
+          n.notice_id = ?;
     `;
-    const values = [category, title, content, b_no];
-    const [result] = await pool.execute(sql, values);
 
-    console.log("Update result:", result);
+    const [rows] = await pool.execute(sql, [b_no]);
 
-    // Redirect or respond based on success
-    if (result.affectedRows > 0) {
-      res.redirect(`/notice/${b_no}`); // Redirect to the updated notice
+    console.log("SQL Result Rows:", rows);
+
+    if (rows.length > 0) {
+      const notice = rows[0];
+      res.render('update', { notice });
     } else {
       res.status(404).send("Notice not found.");
     }
@@ -853,5 +856,6 @@ router.put("/notice/update/:b_no", async (req, res) => {
     res.status(500).send("서버 오류가 발생했습니다.");
   }
 });
+
 
 module.exports = router;

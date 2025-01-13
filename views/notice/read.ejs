@@ -12,7 +12,7 @@
         <div class="d-flex justify-content-between mt-4">
             <a href="/notice" class="btn btn-secondary" id="btn-list">Back to List</a>
             <div>
-                <a href="/notice/<%= notice.id %>/edit" class="btn btn-warning" id="btn-update">Edit</a>
+                <a href="/update/<%= notice.id %>" class="btn btn-warning" id="btn-update">Edit</a>
                 <form method="POST" action="/notice/<%= notice.id %>?_method=DELETE" class="d-inline">
                     <button type="submit" class="btn btn-danger" id="btn-delete">Delete</button>
                 </form>

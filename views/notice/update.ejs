@@ -1,12 +1,11 @@
 <div class="container mt-5">
-  <h1 class="mb-4">Edit Notice</h1>
-  <form method="POST" action="/notice/<%= notice.id %>?_method=PUT">
+  <h1 class="mb-4">공지사항수정</h1>
+  <form method="POST" action="/notice/<%= notice_id %>?_method=PUT">
       <div class="mb-3">
           <label for="category" class="form-label">Category</label>
           <select id="category" name="category" class="form-select" required>
-              <option value="general" <%= notice.category === 'general' ? 'selected' : '' %>>General</option>
-              <option value="event" <%= notice.category === 'event' ? 'selected' : '' %>>Event</option>
-              <option value="system" <%= notice.category === 'system' ? 'selected' : '' %>>System</option>
+              <option value="서비스공지" <%= notice.category === '서비스공지' ? 'selected' : '' %>>서비스공지</option>
+              <option value="업데이트" <%= notice.category === '업데이트' ? 'selected' : '' %>>업데이트</option>
           </select>
       </div>
 

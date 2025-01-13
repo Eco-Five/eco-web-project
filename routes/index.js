@@ -162,8 +162,8 @@ router.get('/notice/:b_no', (req, res, next) => {
 
 /* 공지사항 수정 */ 
 router.put('/notice/update/:b_no', function(req, res, next) {
-  const q_no = req.params.q_no
-  res.redirect(`/api/notice/update/${q_no}`);
+  const b_no = req.params.b_no;
+  res.render(`notice/update/${b_no}`);
 });
 
 module.exports = router;
