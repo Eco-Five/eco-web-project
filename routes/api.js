@@ -1,9 +1,9 @@
 var express = require('express')
 var router = express.Router()
-var axios = require('axios');
 require('dotenv').config()
 const multer = require('multer');
 const path = require('path');
+const axios = require('axios');
 
 
 /************************************** MySQL CRUD **************************************/
@@ -68,6 +68,8 @@ const loginUtil = async (loginInfo) => {
     const match = await comparePwd(loginPwd, rows[0].pwd)
     return { match: match, userInfo: rows[0] }
 }
+
+// 세션 유저정보 전처리
 const sessionInfo = async (userInfo) => {
     return {
         member_id: userInfo.member_id,
@@ -188,6 +190,7 @@ router.put('/resetPwd', async (req, res) => {
 /********************************** 회원정보 찾기 및 수정 **********************************/
 
 
+
 /************************************* Google OAuth2 *************************************/
 // 로그인 버튼을 누르면 도착하는 목적지 라우터
 // https://accounts.google.com/o/oauth2/v2/auth
@@ -236,22 +239,20 @@ router.get('/signup/redirect', async (req, res) => {
 
         try {
             // 로그인 진행
-            const match = await loginUtil({ loginEmail: email, loginPwd: id })
-            if (match) {
-                req.session.user = {
-                    email: req.body.loginEmail,
-                    isAuthenticated: true,
-                }
-                //res.status(200).json({ message: '로그인 성공', result: match })
-                res.redirect('/')
+            const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
 
-                // 회원가입 진행
-            } else if (!match) {
-                const signupResult = await signupUtil({
-                    name: name, email: email, pwd: id, img_url: picture, member_type_id: 2,
-                })
-                //return res.status(200).json({ message: '회원가입 성공', memId: signupResult.insertId })
+            if (match) {
+                req.session.user = await sessionInfo(userInfo)
+                res.redirect('/') //res.status(200).json({ message: '로그인 성공', result: match })
+            
+            // 회원가입 진행
+            } else if(!match) {
+                const signupResult = await signupUtil({ name: name, email: email, pwd: id, img_url: picture, member_type_id: 2 })
+                const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
+
+                req.session.user = await sessionInfo(userInfo)
                 res.redirect('/')
+                //return res.status(200).json({ message: '회원가입 성공', memId: signupResult.insertId })
             }
         } catch (error) {
             console.error(error)
@@ -290,19 +291,8 @@ router.get('/logout', (req, res) => {
 /************************************** Session Mng **************************************/
 
 
-/************************************** Naver Oauth2 **************************************/
-router.get('/auth/naver', (req, res) => {
-    try {
-        const id = process.env.NAVER_LOGIN_CLIENT_ID
-        const redirect_uri = 'https://localhost:5678/api/auth/naver/callback'
-        const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${id}&redirect_uri=${redirect_uri}&state=STATE_STRING`;
-        res.redirect(naverAuthUrl);
-    } catch (error) { 
-        console.error("인증코드 받기 실패!!", error)
-    }
-})
 
-
+/************************************* Naver OAuth2 *************************************/
 /* 네이버 로그인 */
 router.get('/auth/naver/callback', async (req, res, next) => {
     console.log('네이버 코드 받기: ' + req.query.code);
@@ -334,30 +324,24 @@ router.get('/auth/naver/callback', async (req, res, next) => {
         console.log(res2.data);
         const { name, email, mobile, id, profile_image } = res2.data.response;
         console.log(name, email, mobile, id, profile_image);
+
         try {
-            const sql1 = 'SELECT * FROM member WHERE email=?';
-            const [rows] = await pool.execute(sql1, [email]);
-            // 로그인 검증
-            if (rows.length > 0) {
-                const match = await comparePwd(id, rows[0].pwd)
-                if(match) {
-                    req.session.user = {
-                        email: req.body.email,
-                        isAuthenticated: true,
-                    }
-                    return res.redirect('/');
-                }
+            // 로그인 진행
+            const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
+
+            if (match) {
+                req.session.user = await sessionInfo(userInfo)
+                return res.redirect('/') //res.status(200).json({ message: '로그인 성공', result: match })
+            
+            } else if(!match) {
+                const signupResult = await signupUtil({ name: name, email: email, pwd: id, phone: mobile, img_url: profile_image || null, member_type_id: 2 })
+                const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
+
+                req.session.user = await sessionInfo(userInfo)
+                res.redirect('/')
+                return res.status(200).json({ message: '네이버 로그인 성공', rows: naver })
             }
-            // 회원가입 진행
-            let pwdHash = await hashPwd(id)
-            const sql = 'INSERT INTO member (name, email, phone, member_type_id,subs_id, pwd, image_url, eco_point ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-            const [naver] = await pool.execute(sql, [name, email, mobile, 3, 1, pwdHash, profile_image || null, 100]);
-            req.session.user = {
-                email: req.body.email,
-                isAuthenticated: true,
-            }
-            res.redirect('/');
-            return res.status(200).json({ message: '네이버 로그인 성공', rows: naver })
+        
         } catch (error) {
             console.error(error);
         }
@@ -366,7 +350,8 @@ router.get('/auth/naver/callback', async (req, res, next) => {
         res.status(500).json({ message: "서버오류" })
     }
 });
-/************************************** Naver Oauth2 **************************************/
+/************************************* Naver OAuth2 *************************************/
+
 
 
 /******************************** 네이버 쇼핑 ********************************/

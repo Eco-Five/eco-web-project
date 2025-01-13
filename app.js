@@ -31,14 +31,15 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-/**************************************** Session ***************************************/
+/**************************************** Session & Redis ***************************************/
 const session = require('express-session')
 const { RedisStore } = require('connect-redis')
 const Redis = require('ioredis')
 
 // Redis 클라이언트 설정
 const redisClient = new Redis({
-  host: 'localhost', port: 6379
+  host: process.env.REDIS_HOST,
+  port: 6379
 })
 
 // express-session 미들웨어를 설정
@@ -51,7 +52,7 @@ app.use(session({
     // secure : https 사용 시, true로 설정
     // maxAge : 쿠키 만료 기간을 1시간으로 설정
 }))
-/**************************************** Session ***************************************/
+/**************************************** Session & Redis ***************************************/
 
 
 /****************************************** https ***************************************/

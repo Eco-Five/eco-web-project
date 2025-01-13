@@ -19,7 +19,7 @@
             <strong>네이버페이</strong>
         </div>
         <div>
-            <p class="mb-0 mt-3">결제일시</p>
+            <p class="mb-0 mt-3">결제일자</p>
             <strong><%= datetime %></strong>
             <p class="mb-0 mt-3">결제금액</p>
             <strong><%= subsPrice %>원 (1개월)</strong>
@@ -59,7 +59,11 @@
     <div style="border-top: 1px solid #ddd; margin: 20px 0;"></div>
 
     <div class="d-flex justify-content-center gap-3">
-        <a href="/"><button class="btn btn-outline-secondary">홈으로</button></a>
-        <a href="#"><button class="btn btn-success">결제취소</button></a>
+        <a href="/">
+            <button class="btn btn-outline-secondary">홈으로</button>
+        </a>
+        <a href="/users/payment/cancel?paymentId=<%= paymentId %>&subsPrice=<%= subsPrice %>">
+            <button class="btn btn-success">결제취소</button>
+        </a>
     </div>
 </div>
