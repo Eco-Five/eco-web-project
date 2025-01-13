@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const path = require('path');
-var axios = require('axios');
+
 const pool  = require('../connDB');
 require('dotenv').config()
 
