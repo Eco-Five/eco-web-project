@@ -474,7 +474,7 @@ router.post("/naverShop", async (req, res) => {
     const query = req.body.values; 
     const page = req.body.page; 
     const sort = req.body.sort;   
-    const itemsPerPage = 12; 
+    const itemsPerPage = 12;
 
     try {
         const url = `https://openapi.naver.com/v1/search/shop.json?query=${query}&display=100&sort=${sort}`;
