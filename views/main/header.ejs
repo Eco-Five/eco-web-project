@@ -14,7 +14,10 @@
                     <a class="nav-link" href="/">홈</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">추천제품</a>
+                    <a class="nav-link" href="/notice">공지사항</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/product">추천제품</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/board">커뮤니티</a>
@@ -27,8 +30,8 @@
                 </li>
             </ul>
             <form class="d-flex">
-                <a id="mypage" class="nav-link m-2 me-3" href="#" style="display: none;">마이페이지</a>
-                <a id="logout" href="#" style="display: none;">
+                <a id="mypage" class="nav-link m-2 me-3" href="/mypage" style="display: none;">마이페이지</a>
+                <a id="logout" href="/api/logout" style="display: none;">
                     <button class="btn btn-dark" type="button">로그아웃</button>
                 </a>
                 <a id="login" href="/login">
@@ -41,31 +44,27 @@
 
 
 <script>
-    // 쿠키에서 uid 확인
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-
-    // 쿠키 값을 변경하는 함수
-    function updateCookie(name, value) {
-        document.cookie = `${name}=${value}; path=/;`;
-    }
-
     // 이 코드는 DOM(Document Object Model)이 완전히 로드된 후 실행
-    $(document).ready(() => {
-        const pwd = getCookie('pwd')
-        console.log(pwd);
+    $(document).ready(async () => {
+        try {
+            const response = await fetch('/api/protected', {
+                method: 'GET',
+                credentials: 'include'  // 세션 쿠키를 포함
+            })
+            const result = await response.json()
 
-        if(pwd) {
-            $('#login, #logout, #mypage, #subs').toggle()
+            if(result.user.isAuthenticated) {
+                $('#login, #logout, #mypage, #subs').toggle()
+            }
+        } catch (error) {
+            console.error(error);
         }
     })
 
-    $('#logout').on('click', () => {
-        updateCookie('pwd', '') // uid 쿠키의 값을 변경
-        $('#login, #logout, #mypage, #subs').toggle()
+    // 로그아웃 시, sid를 삭제
+    $('#logout').on('click', async () => {
+        // // $('#login, #logout, #mypage, #subs').toggle()
+        const response = await fetch('/api/logout', { method: 'GET' })
         window.location.href = '/'
     })
 </script>

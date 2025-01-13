@@ -33,7 +33,6 @@ const option = {
 
 const server = https.createServer(option, app)
 
-
 /**
  * Listen on provided port, on all network interfaces.
  */

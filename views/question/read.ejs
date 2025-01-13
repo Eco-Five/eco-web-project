@@ -1,59 +1,155 @@
 <div class="container mt-5">
     <!-- 게시글 상세 -->
     <div class="card p-4 mb-4">
-        <h1 class="h4">고객문의</h1>
-        <small class="text-muted">김환경 · 2024.02.15 · <i class="bi bi-eye"></i> 1,234</small>
-        <p class="mt-3">
-            배송 언제 오나요?
+        <h1 class="h4"><%=question.title%></h1>
+        <small class="text-muted"><%=question.name %> · <%= formatDate(question.inquiry_date)%> </small>
+        <p class="mt-3" style="white-space: pre-line;">
+            <%=question.content%>
         </p>
         <div class="d-flex justify-content-between align-items-center mt-4">
             <span class="text-muted"></span>
             <div>
-                <button class="btn btn-outline-primary btn-sm me-2" id="btn-update"><i class="bi bi-pencil"></i> 수정</button>
-                <button class="btn btn-outline-danger btn-sm me-2" id="btn-delete"><i class="bi bi-trash"></i> 삭제</button>
-                <button class="btn btn-outline-primary btn-sm me-2" id="btn-list"><i class="bi bi-list"></i> 목록</button>
+                <% if (user && user.member_id === question.member_id) { %>
+                    <button class="btn btn-outline-primary btn-sm me-2" id="btn-update"><i class="bi bi-pencil"></i> 수정</button>
+                    <button class="btn btn-outline-danger btn-sm me-2" id="btn-delete"><i class="bi bi-trash"></i> 삭제</button>
+                    <% } %>
+                    <button class="btn btn-outline-primary btn-sm me-2" id="btn-list"><i class="bi bi-list"></i> 목록</button>
             </div>
         </div>
     </div>
-
+<!-- 댓글 데이터가 없는 상태에서 출력시 null 또는 undefined -> 오류 발생 -->
     <!-- 댓글 섹션 -->
     <div>
-        <h5>댓글</h5>
+        <h5>답변</h5>
         <!-- 댓글 작성 섹션 -->
         <div class="mb-3">
-            <textarea class="form-control" rows="3" placeholder="댓글을 작성해주세요."></textarea>
+            <% if (user && user.member_id === 50) { %>
+            <textarea class="form-control" rows="3" id="comment" placeholder="답변을 등록하세요."></textarea>
             <div class="text-end mt-2">
-                <button class="btn btn-dark">댓글 작성</button>
+                <button class="btn btn-dark" id="btn-comment">댓글 작성</button>
             </div>
+            <% } else{ %>
+            <textarea class="form-control" rows="3" id="comment" placeholder="관리자만 답변을 작성할 수 있습니다." readonly></textarea>
+            <% } %>
         </div>
         <!-- 댓글 리스트 -->
         <div class="mt-4">
+            <% if (question.comment && question.comment_date) { %>
             <div class="mb-3">
-                <strong>관리자</strong> <small class="text-muted">2024.02.15</small>
-                <p>답변내용</p>
+                <strong>관리자</strong> <small class="text-muted"><%= formatDate(question.comment_date)%></small> <button class="btn btn-outline-secondary btn-sm me-2" id="btn-comment-delete" style="margin-left: 10px;"><i class="bi bi-trash"></i></button>
+                <p style="padding-right: 50px;white-space: pre-line;"><%=question.comment%></p>
             </div>
+            <% } else { %>
+                <strong>답변 대기 중입니다.</strong>
+            <% } %>
         </div>
     </div>
 </div>
 
-<script>
-//목록으로 돌아가기
-$("#btn-list").on("click", function(){
-    location.href="/question"
-})
+<%
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');  // months are zero-indexed
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+}
+%>
 
-//게시글 삭제하기
-$("#btn-delete").on("click", function(){
-    alert("삭제 성공")
-    location.href="/question"
+<script>
+$(document).ready(() => {
+    //목록으로 돌아가기
+    $("#btn-list").on("click", ()=>{
+        location.href="/question"
     })
 
-//게시글 수정하기
-$("#btn-update").on("click", function(){
+    //게시글 수정하기
     //현재 파일에서 수정하는 것이 아니고 수정화면을 띄워서 기존 정보를 가지고
     //수정하고자하는 값을 입력 받은 후에 저장하기(기존에 있는 정보를 수정하는 것.)
     //기존에 보이던 화면 URL이 새로운 URL로 변경되는 것이다.
     //기존에 요청은 끊어지고 새로운 요청이 일어난다.
-    location.href = "/question/update"//+/id
+    $("#btn-update").on("click", ()=>{
+        location.href = `/question/update/<%=question.inquiry_id%>`
     })
+
+    //게시글 삭제하기
+    $("#btn-delete").click((event)=>{
+        const q_no = "<%= question.inquiry_id %>"  // 삭제할 게시글의 ID
+        // 서버로 AJAX 요청을 보내기
+        $.ajax({
+            url: `/api/question/${q_no}`,  // 서버의 삭제 API 경로
+            type: 'DELETE',
+            data: JSON.stringify({ q_no:q_no }),//요청 데이터 JSON으로 전달
+            contentType:'application/json',//서버에 JSON 형식으로 데이터 전송
+            success: function(response) {
+                if (response.success) {
+                    alert("삭제 완료되었습니다")
+                    location.href = "/question"  // 삭제 성공 시 목록 페이지로 이동
+                } else {
+                    alert("삭제 실패했습니다.")
+                }
+            },
+            error: function(xhr, status, error) {
+                alert("오류 발생: " + error)
+            }
+        });
+    })
+
+     // 댓글 작성
+    $("#btn-comment").click((event) => {
+        event.preventDefault();  // 폼 제출을 막고 AJAX로 처리
+    
+        const comment = $("#comment").val()  // 내용
+        const q_no = "<%= question.inquiry_id %>"  // 게시글 ID (쿼리 파라미터로 사용)
+    
+        // 서버로 AJAX 요청을 보내기
+        $.ajax({
+             url: `/api/question/${q_no}`,  // 서버의 등록 API 경로
+            type: 'POST',
+            data: {
+                comment:comment
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert("댓글이 등록되었습니다.");
+                    location.href=`/api/question/${q_no}`;
+                } else {
+                    alert("댓글 등록 실패했습니다.");
+                }
+            },
+            error: function(xhr, status, error) {
+                alert("오류 발생: " + error);
+            }
+        });
+    });   
+    
+    //댓글 삭제
+    $("#btn-comment-delete").click((event)=>{
+        const qc_no = "<%= question.inquiry_comment_id %>"  // 삭제할 댓글의 ID
+        const q_no = "<%= question.inquiry_id %>"
+        
+        // 서버로 AJAX 요청을 보내기
+        $.ajax({
+            url: `/api/question/comment/${qc_no}`,  // 서버의 삭제 API 경로
+            type: 'DELETE',
+            contentType:'application/json',//서버에 JSON 형식으로 데이터 전송
+            data: JSON.stringify({ q_no: q_no }),  // 게시글 ID를 포함하여 전송
+            success: function(response) {
+                if (response.success) {
+                    alert("답변이 삭제되었습니다.")
+                    location.reload();  // 페이지를 새로 고쳐서 삭제된 댓글이 반영되도록
+                } else {
+                    alert("답변 삭제 실패했습니다.")
+                }
+            },
+            error: function(xhr, status, error) {
+                alert("오류 발생: " + error)
+            }
+        });
+    })
+
+});
 </script>

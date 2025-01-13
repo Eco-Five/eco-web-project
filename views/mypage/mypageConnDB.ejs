@@ -1,0 +1,160 @@
+<script>
+    //개인정보 조회
+    async function getUserInfo() {
+        try {
+            const response = await fetch('/api/getUserInfo', {
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: "<%=member_id%>"
+                })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                const user = data.data;
+                document.getElementById('name').value = user.name;
+                document.getElementById('email').value = user.email;
+                document.getElementById('phone').value = user.phone;
+                document.getElementById('local').value = user.address;
+                document.getElementById('greet').innerText = `${user.name}님의 마이페이지`
+                document.getElementById('point').innerText = `포인트 : ${user.eco_point}P`;
+                const imgElements = document.querySelectorAll('img');  
+                const secondImg = imgElements[1];  
+                secondImg.setAttribute('src', user.image_url);
+
+                document.getElementById('date').innerText = user.board_date;
+            } else {
+                alert('사용자 정보를 불러오는 데 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('사용자 정보 조회 오류:', error);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        getUserInfo();
+    });
+
+    //개인정보 수정
+    async function updateUserInfo() {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        const local = document.getElementById('local').value;
+
+        try {
+            const response = await fetch('/api/updateUserInfo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: "<%= member_id %>",
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    address: local
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('정보 수정 성공.');
+                window.location.href = '/';
+            } else {
+                alert('정보 수정 실패.');
+            }
+        } catch (error) {
+            console.error('정보 수정 오류:', error);
+            alert('서버 오류.');
+        }
+    }
+    document.querySelector('#updBtn').addEventListener('click', updateUserInfo);
+
+    //개인정보 삭제
+    async function deleteUser() {
+        if (confirm('회원탈퇴하시겠습니까?')) {
+            try {
+                const response = await fetch('/api/deleteUser', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: "<%= member_id %>"
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    await logoutUser();
+                    alert('회원탈퇴 완료.');
+                    window.location.href = '/';
+
+                } else {
+                    alert('회원탈퇴 실패.');
+                }
+            } catch (error) {
+                console.error('회원탈퇴 오류:', error);
+                alert('서버 오류.');
+            }
+        }
+    }
+    document.querySelector('#delBtn').addEventListener('click', deleteUser);
+
+    //로그아웃 함수
+    async function logoutUser() {
+        try {
+            const response = await fetch('/api/logout', {
+                method: 'GET'
+            });
+            if (response.ok) {
+                localStorage.removeItem('userToken'); 
+                sessionStorage.removeItem('userToken');
+                document.cookie = "connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 GMT"; // 쿠키 삭제
+            } else {
+                console.error('로그아웃 실패');
+            }
+        } catch (error) {
+            console.error('로그아웃 오류:', error);
+        }
+    }
+
+//게시판 조회
+    async function getBoardInfo() {
+        try {
+            const response = await fetch('/api/getBoardInfo', {
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: "<%=member_id%>"
+                })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                const user = data.data;
+                const date = user.board_date;
+                const formatDate = date.slice(0,10);
+                document.getElementById('date').innerText = formatDate;
+                document.getElementById('title').innerText = user.title;
+                document.getElementById('content').innerText = user.content;
+                const titleRef = document.querySelector('#titleRef');
+                titleRef.setAttribute('href', `/api/board/${user.board_id}`);
+            } else {
+                alert('게시판 정보를 불러오는 데 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('게시판 정보 조회 오류:', error);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        getBoardInfo();
+    });
+</script>
