@@ -1,7 +1,6 @@
 <link rel="stylesheet" href="/styles/question/question.css">
-
     <div class="container mt-5">
-        <div class = "d-flex justify-content-start align-items-center mb-4">  
+        <div class = "d-flex justify-content-start align-items-center mb-4">
             <h3>고객문의</h3>
         </div>
         <div class="mb-3 d-flex justify-content-between">
@@ -64,14 +63,12 @@
                         <a class="page-link" href="#"> &lt; </a>
                     </li>
                 <% } %>
-
                 <!-- 페이지 번호 -->
                 <% for (let i = 1; i <= totalPages; i++) { %>
                     <li class="page-item <%= currentPage === i ? 'active' : '' %>">
                         <a class="page-link" href="?page=<%= i %>&category=<%= category %>"><%= i %></a>
                     </li>
                 <% } %>
-
                 <!-- 다음 페이지 -->
                 <% if (currentPage < totalPages) { %>
                     <li class="page-item">
@@ -85,16 +82,13 @@
             </ul>
         </nav>
     </div>
-
     <script>
         $('#visitor').on('click',()=>{
             alert("회원만 글쓰기가 가능합니다")
         })
-
         document.getElementById('category-select').addEventListener('change', () =>{
-        const selectedCategory = this.value;
+        const selectedCategory = event.target.value;
         const currentPage = new URLSearchParams(window.location.search).get('page') || 1; // 현재 페이지 번호를 가져옵니다.
-
         // 카테고리 값이 'all'이 아니면 URL에 카테고리 값을 추가
         let url = `/api/question?page=1`; // 기본 URL은 페이지 번호만 포함
         if (selectedCategory !== 'all') {
@@ -104,8 +98,7 @@
         window.location.href = url;
         });
     </script>
-
-    <% 
+    <%
     function formatDate(dateStr) {
         const date = new Date(dateStr);
         const year = date.getFullYear();
@@ -113,7 +106,6 @@
         const day = String(date.getDate()).padStart(2, '0');
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
-        
         return `${year}.${month}.${day} ${hours}:${minutes}`;
     }
     %>
