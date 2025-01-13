@@ -121,6 +121,7 @@
             body: JSON.stringify({ values: "친환경 인증" })
         })
         const data = await response.json()
+        console.log(data);
         const productData = { products: [data.list[10], data.list[1], data.list[2], data.list[50]] }
 
         const templateP = Handlebars.compile($("#product-card").html())
