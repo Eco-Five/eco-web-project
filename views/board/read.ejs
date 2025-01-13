@@ -46,7 +46,7 @@
     //수정하고자하는 값을 입력 받은 후에 저장하기(기존에 있는 정보를 수정하는 것.)
     //기존에 보이던 화면 URL이 새로운 URL로 변경되는 것이다.
     //기존에 요청은 끊어지고 새로운 요청이 일어난다.
-    $("#btn-update").on("click", function(){
+    $("#btn-update").on("click", ()=>{
         location.href = `/board/update/<%= board.board_id %>`;  
         })
 
@@ -74,7 +74,7 @@
     })
 
     // 좋아요 클릭 시 처리
-    $("#like").on("click", function() {
+    $("#like").on("click", ()=>{
         const b_no = "<%= board.board_id %>"; // 게시글 ID
         $.ajax({
             url: `/api/board/${b_no}/like`, // 서버의 좋아요 API 경로

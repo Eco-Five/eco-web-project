@@ -87,11 +87,11 @@
     </div>
 
     <script>
-        $('#visitor').on('click',function(){
+        $('#visitor').on('click',()=>{
             alert("회원만 글쓰기가 가능합니다")
         })
 
-        document.getElementById('category-select').addEventListener('change', function() {
+        document.getElementById('category-select').addEventListener('change', () =>{
         const selectedCategory = this.value;
         const currentPage = new URLSearchParams(window.location.search).get('page') || 1; // 현재 페이지 번호를 가져옵니다.
 
