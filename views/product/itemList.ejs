@@ -8,6 +8,16 @@
 </div>
 <hr />
 
+<div class="row mt-3 justify-content-center">
+    <div class="col-6 col-md-4 d-flex justify-content-end">
+        <select id="sort" class="form-select" style="width: 150px;">
+            <option value="sim">정확도순</option>
+            <option value="asc">낮은가격순</option>
+            <option value="dsc">높은가격순</option>
+        </select>
+    </div>
+</div>
+
 <div class="container my-4">
     <div class="row" id="card-container"></div>
 </div>
@@ -21,6 +31,7 @@
             <div class="category-card">
                 <img src="{{image}}" index="{{@index}}" class="img-fluid" style="cursor: pointer;width:40%">
                 <div class="ellipsis mt-2">{{clean title}}</div>
+                <br />
                     <b>{{format lprice}}</b>
                         <button index="{{@index}}" class="btn btn-dark btn-sm" style="min-width: 10px; font-size: 0.7vw">에코백담기</button>
                     <a href="{{link}}">
@@ -45,85 +56,100 @@
     const itemsPerPage = 12;
     let totalPages = 0;  
     let allItems = [];
+    const querySelect = document.getElementById('query');
+    const sortSelect = document.getElementById('sort');
 
-    //페이지 로드 시 기본 쿼리값
+    // 페이지 로드 시 기본 쿼리값
     document.addEventListener('DOMContentLoaded', () => {
         const defaultQuery = "친환경";  
-        productList(defaultQuery, currentPage);
+        const sort = sortSelect.value;
+        productList(defaultQuery, currentPage, sort);  
     });
 
-    //네이버API 호출 함수
-    async function productList(query, page = 1) {
+    // 네이버API 호출 함수
+    async function productList(query, page = 1, sort) {
         const response = await fetch(`/api/naverShop`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ values: query, page: page })  
+            body: JSON.stringify({ values: query, page: page, sort: sort })  
         });
         const data = await response.json();
         
         allItems = data.list;
         totalPages = data.totalPages;
 
-        //페이징 처리
+        // 페이징 처리
         const startIndex = (page - 1) * itemsPerPage;
         const paginatedItems = allItems.slice(startIndex, startIndex + itemsPerPage);
 
-        //Handlebars에 객체 할당
+        // Handlebars에 객체 할당
         let temp = Handlebars.compile($("#card-template").html());
         $("#card-container").html(temp({ list: paginatedItems }));  
 
-        //페이지 표시 업데이트
+        // 페이지 표시 업데이트
         document.getElementById('page').textContent = `${data.currentPage}/${totalPages}`;
 
-        //이전,다음 버튼 업데이트
+        // 이전, 다음 버튼 업데이트
         document.getElementById('prev').disabled = data.currentPage === 1;
         document.getElementById('next').disabled = data.currentPage === totalPages;
     }
 
-    //버튼 클릭 시 동작
+    // 검색 버튼 클릭 시
     const btnSearch = document.getElementById('btnSearch');
     btnSearch.addEventListener('click', async () => {
         currentPage = 1; 
-        const query = document.getElementById('query').value;  
-        productList(query, currentPage); 
+        const query = document.getElementById('query').value;
+        const sort = sortSelect.value;
+        productList(query, currentPage, sort); 
     });
 
-    //검색창 Enter 시 동작
-    const inputQuery = document.getElementById('query');
-    inputQuery.addEventListener('keydown', async (event) => {
+    // 검색창 Enter 시 동작
+    querySelect.addEventListener('keydown', async (event) => {
         if (event.keyCode === 13) {  
             currentPage = 1; 
-            const query = inputQuery.value; 
-            productList(query, currentPage);
+            const query = querySelect.value;
+            const sort = sortSelect.value;
+            productList(query, currentPage, sort);
         }
     });
 
-    //이전 페이지 버튼 클릭 시
+    // 이전 페이지 버튼 클릭 시
     document.getElementById('prev').addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
-            const query = document.getElementById('query').value;
-            productList(query, currentPage); 
+            const query = querySelect.value;
+            const sort = sortSelect.value;
+            productList(query, currentPage, sort); 
         }
     });
 
-    //다음 페이지 버튼 클릭 시
+    // 다음 페이지 버튼 클릭 시
     document.getElementById('next').addEventListener('click', () => {
         if (currentPage < totalPages) {
             currentPage++;
-            const query = document.getElementById('query').value;
-            productList(query, currentPage); 
+            const query = querySelect.value;
+            const sort = sortSelect.value;
+            productList(query, currentPage, sort); 
         }
     });
+
+    // 콤보박스 변경 시
+    sortSelect.addEventListener('change', () => {
+        const query = querySelect.value;
+        const sort = sortSelect.value;
+        currentPage = 1;  
+        productList(query, currentPage, sort); 
+    });
+
 </script>
 
 <script>
-    //가격 포맷형식
+    // 가격 포맷형식
     Handlebars.registerHelper("format", function (price) {
         return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '원';
     });
 
-    //HTML 태그제거
+    // HTML 태그제거
     Handlebars.registerHelper("clean", function (title) {
         const cleanedTitle = title.replace(/<[^>]+>/g, '');
         return cleanedTitle;
@@ -131,7 +157,7 @@
 </script>
 
 <script>
-    //모달 호출
+    // 모달 호출
     $("#card-container").on("click", ".category-card img", function () {
         let index = $(this).attr("index")
         console.log(index)

@@ -21,6 +21,118 @@ const { appendFileSync } = require('fs');
 // sample) const [rows, fields] = await pool.execute(sql, [params]);
 // rows는 쿼리 실행결과로 반환된 데이터의 배열입니다.
 // fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
+//개인정보 조회
+router.post('/getUserInfo', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const sql = 'SELECT name, email, phone, address, eco_point, image_url FROM member WHERE member_id = ?';
+        const [rows] = await pool.execute(sql, [userId]);
+
+        if (rows.length > 0) {
+            const user = rows[0];
+            res.status(200).json({
+                success: true,
+                data: user
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: '사용자를 찾을 수 없습니다.'
+            });
+        }
+    } catch (error) {
+        console.error('사용자 정보 조회 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.'
+        });
+    }
+});
+
+//개인정보 수정
+router.post('/updateUserInfo', async (req, res) => {
+    try {
+        const { userId, name, email, phone, address } = req.body;
+
+        const sql = `UPDATE member 
+                    SET name = ?, email = ?, phone = ?, address = ? 
+                    WHERE member_id = ?`;
+        const [result] = await pool.execute(sql, [name, email, phone, address, userId]);
+
+        if (result.affectedRows > 0) {
+            res.status(200).json({
+                success: true,
+                message: '사용자 정보가 업데이트되었습니다.'
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: '사용자 정보를 업데이트할 수 없습니다.'
+            });
+        }
+    } catch (error) {
+        console.error('사용자 정보 수정 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.'
+        });
+    }
+});
+
+//개인정보 삭제
+router.post('/deleteUser', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const sql = `DELETE FROM member WHERE member_id = ?`;
+        const [result] = await pool.execute(sql, [userId]);
+
+        if (result.affectedRows > 0) {
+            res.status(200).json({
+                success: true,
+                message: '회원 탈퇴가 완료되었습니다.'
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: '사용자를 찾을 수 없습니다.'
+            });
+        }
+    } catch (error) {
+        console.error('회원 탈퇴 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.'
+        });
+    }
+});
+
+//게시판 조회
+router.post('/getBoardInfo', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const sql = 'SELECT board_id, title, content, board_date FROM board WHERE member_id = ?';
+        const [rows] = await pool.execute(sql, [userId]);
+
+        if (rows.length > 0) {
+            const user = rows[0];
+            res.status(200).json({
+                success: true,
+                data: user
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: '게시글을 찾을 수 없습니다.'
+            });
+        }
+    } catch (error) {
+        console.error('게시글 정보 조회 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.'
+        });
+    }
+});
 
 // 비밀번호 해시화 함수
 async function hashPwd(password) {
@@ -324,14 +436,16 @@ router.get('/auth/naver/callback', async (req, res, next) => {
 
 
 /******************************** 네이버 쇼핑 ********************************/
-// 네이버쇼핑API 서버
+// 네이버쇼핑API 서버 
+// node/api/naverShop - 리액트
 router.post("/naverShop", async (req, res) => {
-    const query = req.body;
+    const query = req.body.values; 
     const page = req.body.page; 
+    const sort = req.body.sort;   
     const itemsPerPage = 12; 
 
     try {
-        const url = `https://openapi.naver.com/v1/search/shop.json?query=${query.values}&display=100`;
+        const url = `https://openapi.naver.com/v1/search/shop.json?query=${query}&display=100&sort=${sort}`;
         
         const responseNaverShop = await fetch(url, {
             method: 'GET',
@@ -357,6 +471,7 @@ router.post("/naverShop", async (req, res) => {
         res.status(500).json({ result: '서버 오류' });
     }
 });
+
 /******************************** 네이버 쇼핑 ********************************/
 
 
