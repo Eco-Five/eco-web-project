@@ -103,7 +103,7 @@
         })
 
         document.getElementById('category-select').addEventListener('change', ()=> {
-        const selectedCategory = this.value;
+            const selectedCategory = event.target.value;
         const currentPage = new URLSearchParams(window.location.search).get('page') || 1; // 현재 페이지 번호를 가져옵니다.
 
         // 카테고리 값이 'all'이 아니면 URL에 카테고리 값을 추가
