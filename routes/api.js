@@ -1198,33 +1198,51 @@ router.get('/notice/update/:b_no', async (req, res) => {
 
 /************************* 공지사항수정-PUT***************************/
 router.put('/notice/update/:b_no', async (req, res) => {
-    const b_no = req.params.b_no;
-    const { category, title, content } = req.body;
-
-/*     if (!category || !title || !content) {
-        console.error("Missing fields:", req.body);
-        return res.status(400).send("필수 필드를 채우세요.");
-    } */
-
     try {
+        console.log("Request Params:", req.params);
+        console.log("Request Body:", req.body);
+
+        const b_no = req.params.b_no;
+        const { category, title, content } = req.body;
+
+        if (!category || !title || !content) {
+            console.error("Missing fields:", req.body);
+            return res.status(400).send("필수 필드를 채우세요.");
+        }
+
+        const categoryCheckSql = `SELECT content_type_id FROM content_type WHERE type_name = ?`;
+        const [categoryResult] = await pool.execute(categoryCheckSql, [category]);
+
+        if (!categoryResult.length) {
+            console.error("Invalid category:", category);
+            return res.status(400).send({ message: "유효하지 않은 카테고리입니다." });
+        }
+
         const sql = `
             UPDATE notice
             SET
                 title = ?,
                 content = ?,
-                content_type_id = (SELECT content_type_id FROM content_type WHERE type_name = ?)
+                content_type_id = ?
             WHERE notice_id = ?;
         `;
-        const values = [title, content, category, b_no];
+        const values = [title, content, categoryResult[0].content_type_id, b_no];
         const [result] = await pool.execute(sql, values);
 
         console.log("Update result:", result);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send({ message: "해당 공지사항을 찾을 수 없습니다." });
+        }
+
         res.json({ success: true, result });
     } catch (error) {
         console.error("Database error:", error);
         res.status(500).send({ message: "글 수정 처리 중 오류가 발생했습니다." });
     }
 });
+
+
 
 
 module.exports = router;
