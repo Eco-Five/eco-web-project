@@ -12,8 +12,8 @@
         <div class="d-flex justify-content-between mt-4">
             <a href="/notice" class="btn btn-secondary" id="btn-list">Back to List</a>
             <div>
-                <a href="/update/<%= notice.id %>" class="btn btn-warning" id="btn-update">Edit</a>
-                <form method="POST" action="/notice/<%= notice.id %>?_method=DELETE" class="d-inline">
+                <a href="/notice/update/<%= notice.id %>" class="btn btn-warning" id="btn-update">Edit</a>
+                <form method="POST" action="./notice/<%= notice.id %>?_method=DELETE" class="d-inline">
                     <button type="submit" class="btn btn-danger" id="btn-delete">Delete</button>
                 </form>
             </div>
@@ -42,6 +42,6 @@
         //수정하고자하는 값을 입력 받은 후에 저장하기(기존에 있는 정보를 수정하는 것.)
         //기존에 보이던 화면 URL이 새로운 URL로 변경되는 것이다.
         //기존에 요청은 끊어지고 새로운 요청이 일어난다.
-        location.href = "/notice/update"//+/id
+        location.href = "/update"//+/id
         })
     </script>

@@ -5,6 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const dotenv = require("dotenv");
 const cors = require("cors");
+const methodOverride = require('method-override');
+
 
 dotenv.config(); // .env 파일을 로드합니다.
 
@@ -30,6 +32,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+app.use(methodOverride('_method'));
 
 
 /**************************************** Session & Redis ***************************************/

@@ -97,4 +97,29 @@ router.get('/mypage', function(req, res, next) {
   res.render('index', { title: '마이페이지', pageName: 'mypage/mypage.ejs', member_id:member_id });
 });
 
+
+/* 공지사항 목록 */
+router.get('/notice', (req, res, next) => {
+  res.redirect('/api/notice');
+});
+
+/* 공지사항 상세보기 */
+router.get('/notice/:b_no', (req, res, next) => {
+  const b_no = req.params.b_no;
+  res.redirect(`/api/notice/${b_no}`);
+});
+
+/* 공지사항 수정 - GET*/ 
+router.get('/notice/update/:id', (req, res, next) => {
+  const id = req.params.id;
+  res.redirect(`/api/notice/update/${id}`);
+});
+
+// 공지사항 수정 - PUT 
+router.put('/notice/update/:b_no', function (req, res) {
+  const b_no = req.params.b_no;
+  console.log("Redirecting to API PUT route for notice:", b_no);
+  res.redirect(`/api/notice/update/${b_no}`);
+});
+
 module.exports = router;

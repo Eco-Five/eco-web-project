@@ -7,3 +7,6 @@
 # Docker 파일 제외
 Dockerfile
 .dockerignore
+
+# VSCODE 제외
+.vscode
