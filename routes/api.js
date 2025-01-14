@@ -469,7 +469,6 @@ router.get('/auth/naver/callback', async (req, res, next) => {
 
 /******************************** 네이버 쇼핑 ********************************/
 // 네이버쇼핑API 서버 
-// node/api/naverShop - 리액트
 router.post("/naverShop", async (req, res) => {
     const query = req.body.values; 
     const page = req.body.page; 
