@@ -1141,7 +1141,6 @@ router.post("/notice/write", async (req, res) => {
     }
 });
 
-
 /************************* 공지사항 상세보기 ***************************/
 router.get("/notice/:b_no", async (req, res) => {
     const b_no = req.params.b_no;

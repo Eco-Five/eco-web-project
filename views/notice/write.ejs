@@ -13,8 +13,8 @@
             <div class="mb-3">
                 <label for="category" class="form-label">Category</label>
                 <select id="category" name="category" class="form-select">
-                    <option value="update">업데이트</option>
-                    <option value="service">서비스공지</option>
+                    <option value="업데이트">업데이트</option>
+                    <option value="서비스공지">서비스공지</option>
                 </select>
             </div>
 
@@ -38,40 +38,55 @@
         $(document).ready(() => {
             // Form submission via AJAX
             $("form").on("submit", (event) => {
-                event.preventDefault(); // Prevent the default form submission
+    event.preventDefault(); // Prevent the default form submission
 
-                const payload = {
-                    category: $("#category").val(), // Get the selected category
-                    title: $("#title").val(),       // Get the title
-                    content: $("#content").val()    // Get the content
-                };
+    const categoryMapping = {
+        "업데이트": "업데이트",
+        "서비스공지": "서비스공지"
+    };
 
-                // Send AJAX request to the server
-                $.ajax({
-                    url: "/api/notice/write", // API endpoint for creating a notice
-                    type: "POST",
-                    contentType: "application/json", // Send data as JSON
-                    data: JSON.stringify(payload),   // Convert payload to JSON string
-                    beforeSend: function () {
-                        $("button[type='submit']").prop("disabled", true); // Disable the submit button
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            alert("Notice has been successfully created.");
-                            location.href = "/notice"; // Redirect to the notices list page
-                        } else {
-                            alert("Failed to create the notice. Please try again.");
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        alert("An error occurred: " + error);
-                    },
-                    complete: function () {
-                        $("button[type='submit']").prop("disabled", false); // Re-enable the submit button
-                    }
-                });
-            });
+    const selectedCategory = $("#category").val();
+    const mappedCategory = categoryMapping[selectedCategory];
+
+    if (!mappedCategory) {
+        alert("Invalid category selected.");
+        return; // Stop further processing
+    }
+
+    const payload = {
+        category: mappedCategory, // Use the mapped category
+        title: $("#title").val(),
+        content: $("#content").val()
+    };
+
+    console.log("Payload being sent:", payload);
+
+    // Send AJAX request to the server
+    $.ajax({
+        url: "/api/notice/write", // API endpoint for creating a notice
+        type: "POST",
+        contentType: "application/json", // Send data as JSON
+        data: JSON.stringify(payload),   // Convert payload to JSON string
+        beforeSend: function () {
+            $("button[type='submit']").prop("disabled", true); // Disable the submit button
+        },
+        success: function (response) {
+            if (response.success) {
+                alert("Notice has been successfully created.");
+                location.href = "/notice"; // Redirect to the notices list page
+            } else {
+                alert("Failed to create the notice. Please try again.");
+            }
+        },
+        error: function (xhr, status, error) {
+            alert("An error occurred: " + error);
+        },
+        complete: function () {
+            $("button[type='submit']").prop("disabled", false); // Re-enable the submit button
+        }
         });
+    });
+});
     </script>
 </body>
 </html>
