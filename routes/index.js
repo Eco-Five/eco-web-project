@@ -93,8 +93,7 @@ router.get('/product', function(req, res, next) {
 });
 /* 마이 페이지 */
 router.get('/mypage', function(req, res, next) {
-  const member_id = req.session.user.member_id
-  res.render('index', { title: '마이페이지', pageName: 'mypage/mypage.ejs', member_id:member_id });
+  res.render('index', { title: '마이페이지', pageName: 'mypage/mypage.ejs' });
 });
 
 module.exports = router;

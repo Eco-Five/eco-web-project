@@ -24,7 +24,7 @@ const { appendFileSync } = require('fs');
 //개인정보 조회
 router.post('/getUserInfo', async (req, res) => {
     try {
-        const { userId } = req.body;
+        const userId = req.session.user.member_id;
         const sql = 'SELECT name, email, phone, address, eco_point, image_url FROM member WHERE member_id = ?';
         const [rows] = await pool.execute(sql, [userId]);
 
@@ -52,7 +52,8 @@ router.post('/getUserInfo', async (req, res) => {
 //개인정보 수정
 router.post('/updateUserInfo', async (req, res) => {
     try {
-        const { userId, name, email, phone, address } = req.body;
+        const userId = req.session.user.member_id;
+        const { name, email, phone, address } = req.body;
 
         const sql = `UPDATE member 
                     SET name = ?, email = ?, phone = ?, address = ? 
@@ -82,7 +83,7 @@ router.post('/updateUserInfo', async (req, res) => {
 //개인정보 삭제
 router.post('/deleteUser', async (req, res) => {
     try {
-        const { userId } = req.body;
+        const userId = req.session.user.member_id;
         const sql = `DELETE FROM member WHERE member_id = ?`;
         const [result] = await pool.execute(sql, [userId]);
 
@@ -109,7 +110,7 @@ router.post('/deleteUser', async (req, res) => {
 //게시판 조회
 router.post('/getBoardInfo', async (req, res) => {
     try {
-        const { userId } = req.body;
+        const userId = req.session.user.member_id;
         const sql = 'SELECT board_id, title, content, board_date FROM board WHERE member_id = ?';
         const [rows] = await pool.execute(sql, [userId]);
 
