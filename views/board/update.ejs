@@ -1,99 +1,73 @@
-            <div class="card-body">
-                <form>
-                    <div class="mb-3">
-                        <label for="category" class="form-label">카테고리</label>
-                        <select id="category" class="form-select">
-                            <option value="<%= board.content_type_id %>" selected><%= board.type_name %></option>
-                            <option value="1">친환경뉴스</option>
-                            <option value="2">친환경팁</option>
-                            <option value="3">자유게시판</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="title" class="form-label">제목</label>
-                        <input type="text" class="form-control" id="title" placeholder="제목을 입력하세요" value="<%= board.title %>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="content" class="form-label">내용</label>
-                        <textarea class="form-control" id="content" rows="20" placeholder="내용을 입력하세요"><%= board.content %></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="fileUpload" class="form-label">파일 첨부</label>
-                        <% if (board.image_url) { %>
-                            <div class="mb-2">
-                                <img src="<%= board.image_url %>" alt="첨부된 이미지" class="img-thumbnail" style="max-width: 200px;">
-                            </div>
-                        <% } %>
-                        <input class="form-control" type="file" id="fileUpload" accept=".png, .jpg, .gif">
-                        <small class="text-muted">PNG, JPG, GIF 최대 10MB</small>
-                        <!-- 기존이미지 URL -->
-                        <input type="hidden" id="image_url" value="<%= board.image_url %>">
-                    </div>
-                    <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-secondary me-2" id="btn-list">취소</button>
-                        <button type="submit" class="btn btn-primary" id="btn-update">수정</button>
-                    </div>
-                </form>
-            </div>
+<div class="container mt-5">
+    <h1 class="mb-4">공지사항수정</h1>
 
-            <!-- Content -->
-            <div class="mb-3">
-                <label for="content" class="form-label">내용</label>
-                <textarea name="content" id="content" rows="5" class="form-control" required><%= notice.content %></textarea>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary">수정하기</button>
-            <a href="/notice" class="btn btn-secondary">취소</a>
-        </form>
+    <div class="mb-3">
+        <label for="category" class="form-label"><strong>Category</strong></label>
+        <select id="category" name="category" class="form-select" required>
+            <option value="서비스공지" <%= notice.category === '서비스공지' ? 'selected' : '' %>>서비스공지</option>
+            <option value="업데이트" <%= notice.category === '업데이트' ? 'selected' : '' %>>업데이트</option>
+        </select>
     </div>
 
-    <script>
-        $(document).ready(() => {
-            // 취소 버튼 클릭 시 목록 페이지로 이동
-            $("#btn-list").click(() => {
-                location.href = "/board"; 
-            });
-    
-            // 수정 버튼 클릭 시 폼 데이터를 서버로 전송
-            $("#btn-update").click((event) => {
-                event.preventDefault();  // 폼 제출을 막고 AJAX로 처리
-                
-                const b_no = "<%= board.board_id %>"
+    <div class="mb-3">
+        <label for="title" class="form-label"><strong>Title</strong></label>
+        <input type="text" id="title" name="title" class="form-control" value="<%= notice.title %>" required>
+    </div>
 
-                const formData = new FormData()
-                formData.append('b_no', b_no) // b_no
-                formData.append('content_type_id',$("#category").val()) // 카테고리
-                formData.append('title', $("#title").val()); // 제목
-                formData.append('content', $("#content").val()); // 내용
-                
-                // 파일 첨부 여부에 따라 처리
-                const file = $("#fileUpload")[0].files[0];
-                if (file) {
-                    formData.append("fileUpload", file); // 새로 업로드된 파일
-                } else {
-                    formData.append("fileUpload", $("#image_url").val()); // 기존 이미지 URL
-                }
-                
-                // 서버로 AJAX 요청을 보내기
-                $.ajax({
-                    url: `/api/board/update/${b_no}`,  // 서버의 수정 API 경로
-                    type: 'PUT',
-                    data: formData,
-                    processData: false, //FormData 사용 시 설정
-                    contentType: false, //FormData 사용 시 설정
-                    success: function(response) {
-                        if (response.success) {
-                            alert("수정 완료되었습니다.");
-                            location.href = "/board";  // 수정 성공 시 목록 페이지로 이동
-                        } else {
-                            alert("수정 실패했습니다.");
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        alert("오류 발생: " + error);
+    <div class="mb-3">
+        <label for="content" class="form-label"><strong>Content</strong></label>
+        <textarea id="content" name="content" class="form-control" rows="5" required><%= notice.content %></textarea>
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <a href="/notice" class="btn btn-secondary" id="btn-list">Back to List</a>
+        <button class="btn btn-success" id="btn-update">Update</button>
+    </div>
+</div>
+
+<script>
+    $(document).ready(() => {
+        // 취소 버튼 클릭 시 목록 페이지로 이동
+        $("#btn-list").click(() => {
+            location.href = "/notice";
+        });
+
+        // 수정 버튼 클릭 시 폼 데이터를 서버로 전송
+        $("#btn-update").click((event) => {
+            event.preventDefault(); // 버튼 기본 동작 방지
+
+            const b_no = "<%= notice.notice_id %>";
+            const payload = {
+                b_no,
+                category: $("#category").val(), // 카테고리
+                title: $("#title").val(),       // 제목
+                content: $("#content").val(),   // 내용
+            };
+
+            // 서버로 AJAX 요청
+            $.ajax({
+                url: `/api/notice/update/${b_no}`, // 서버의 수정 API 경로
+                type: "PUT",
+                contentType: "application/json", // JSON 데이터로 설정
+                data: JSON.stringify(payload),   // JSON 형식으로 데이터 전송
+                beforeSend: function () {
+                    $("#btn-update").prop("disabled", true); // 버튼 비활성화
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert("수정 완료되었습니다.");
+                        location.href = "/notice"; // 수정 성공 시 목록 페이지로 이동
+                    } else {
+                        alert("수정 실패했습니다.");
                     }
-                });
+                },
+                error: function (xhr, status, error) {
+                    alert("오류 발생: " + error);
+                },
+                complete: function () {
+                    $("#btn-update").prop("disabled", false); // 버튼 활성화
+                },
             });
         });
-    </script>
+    });
+</script>

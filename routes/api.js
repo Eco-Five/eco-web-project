@@ -1230,4 +1230,5 @@ router.put('/notice/update/:b_no', async (req, res) => {
 
 
 
+
 module.exports = router;
