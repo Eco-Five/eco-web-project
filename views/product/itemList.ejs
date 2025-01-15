@@ -3,11 +3,11 @@
 <div class="row mt-5 justify-content-center">
     <div class="col-6 col-md-4">
         <div class="search-pic">
-            <img id="recImg" src="../images/anyone/rec.png" alt="프로필사진">
         </div>
         <div class="input-group">
             <input type="text" id="query" class="form-control" placeholder="제품 검색" />
-            <button id="btnSearch" class="btn btn-dark">검색</button>
+            <img id="searchImg" src="../images/product/ser.png" alt="검색아이콘">
+            <img id="recImg" src="../images/product/rec.png" alt="기록아이콘">
         </div>
 
     </div>
@@ -101,8 +101,8 @@
     }
 
     // 검색 버튼 클릭 시
-    const btnSearch = document.getElementById('btnSearch');
-    btnSearch.addEventListener('click', async () => {
+    const imgSearch = document.getElementById('searchImg');
+    imgSearch.addEventListener('click', async () => {
         currentPage = 1; 
         const query = document.getElementById('query').value;
         const sort = sortSelect.value;
