@@ -2,10 +2,14 @@
 
 <div class="row mt-5 justify-content-center">
     <div class="col-6 col-md-4">
+        <div class="search-pic">
+            <img id="recImg" src="../images/anyone/eco-mascot.png" alt="프로필사진">
+        </div>
         <div class="input-group">
             <input type="text" id="query" class="form-control" placeholder="제품 검색" />
             <button id="btnSearch" class="btn btn-dark">검색</button>
         </div>
+
     </div>
 </div>
 <hr />
@@ -171,7 +175,6 @@
     // 상품 이미지 클릭 시 최근 본 상품에 추가
     $("#card-container").on("click", ".category-card img", function () {
         let image = $(this).attr("src");
-        let title = $(this).siblings(".ellipsis").text();
         let link = $(this).parent().find("a").attr("href");
 
         // 서버에 최근 본 상품 정보 전송
@@ -180,7 +183,7 @@
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ image, title, link })
+            body: JSON.stringify({ image, link })
         }).then(response => response.json())
             .then(data => {
                 console.log(data.message);
@@ -189,30 +192,40 @@
     });
 
     // 페이지 로드 시 최근 본 상품 불러오기
-    document.addEventListener('DOMContentLoaded', () => {
-        fetch('/api/recentViewed')
-            .then(response => response.json())
-            .then(data => {
-                const recentViewed = data.recentViewed;
-                if (recentViewed && recentViewed.length > 0) {
-                    // 최근 본 상품 렌더링
-                    let recentHtml = '<h5><b>최근 본 상품<b></h5><div>';
-                    recentViewed.forEach(item => {
-                        recentHtml += `
-                            <div>
-                                <div class="category-card">
-                                    <a href="${item.link}">
-                                        <img src="${item.image}" class="img-fluid" >
-                                    </a>
+    const recImg = document.getElementById("recImg");
+    let isRendered = false; 
+    recImg.addEventListener('click', () => {
+        const recentContainer = document.getElementById('recent-viewed-container');
+
+        if (isRendered) {
+            recentContainer.innerHTML = '';  
+            isRendered = false; 
+        } else {
+            fetch('/api/recentViewed')
+                .then(response => response.json())
+                .then(data => {
+                    const recentViewed = data.recentViewed;
+                    if (recentViewed && recentViewed.length > 0) {
+                        // 최근 본 상품 렌더링
+                        let recentHtml = '<h6><b>최근 본 상품</b></h6><div>';
+                        recentViewed.forEach(item => {
+                            recentHtml += `
+                                <div>
+                                    <div class="category-card">
+                                        <a href="${item.link}">
+                                            <img src="${item.image}" class="img-fluid">
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
-                        `;
-                    });
-                    recentHtml += '</div>';
-                    document.getElementById('recent-viewed-container').innerHTML = recentHtml;
-                }
-            })
-            .catch(error => console.error('Error:', error));
+                            `;
+                        });
+                        recentHtml += '</div>';
+                        recentContainer.innerHTML = recentHtml;
+                        isRendered = true;  
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
     });
 </script>
 

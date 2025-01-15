@@ -1,64 +1,15 @@
-/* 최근 본 상품 컨테이너 스타일 */
 #recent-viewed-container {
-    position: fixed;  /* 페이지 오른쪽에 고정 */
-    top: 50%;  /* 화면 세로 중간 */
+    position: fixed;  
+    top: 50%; 
     right: 0;
-    transform: translateY(-50%);  /* 정확히 가운데 정렬 */
-    width: 250px;  /* 너비 설정 */
-    height: 80%;  /* 화면 높이에 맞게 크기 설정 */
-    overflow-y: auto;  /* 세로로 스크롤 가능 */
-    background-color: rgba(255, 255, 255, 0.9);  /* 배경색 설정 */
-    border-left: 2px solid #ddd;  /* 왼쪽 경계선 */
+    transform: translateY(-60%); 
+    width: 150px; 
+    height: 50%;  
+    overflow-y: auto;
+    background-color: rgba(255, 255, 255, 0.9);  
     padding: 10px;
-    box-shadow: -3px 0 5px rgba(0, 0, 0, 0.1);  /* 오른쪽 그림자 효과 */
 }
-
-/* 최근 본 상품 카드 스타일 */
-.recent-item {
-    display: flex;
-    flex-direction: column;  /* 이미지와 버튼을 세로로 배치 */
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    justify-content: space-between;
-    align-items: center;
-    text-align: center;
-}
-
-/* 이미지 크기 설정 및 정렬 */
-.recent-item img {
-    width: 100px;  /* 이미지 크기 조정 */
-    height: 100px;
-    object-fit: cover;
-    margin-bottom: 10px;  /* 이미지 아래 간격 */
-}
-
-/* 카드 내용 텍스트 스타일 */
-.recent-item .content {
-    flex-grow: 1;
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
-
-/* 버튼 텍스트 크기 조정 */
-.recent-item button {
-    font-size: 0.7vw;
-}
-
-/* 카드 내 버튼 가로로 배치 */
-.recent-item .buttons {
-    display: flex;
-    gap: 5px;  /* 버튼 간격 설정 */
-    justify-content: center;  /* 버튼을 가로로 정렬 */
-}
-
-/* 최근 본 상품 카드를 5개씩 세로로 배치 */
-#recent-viewed-container .row {
-    display: grid;
-    grid-template-columns: 1fr;  /* 한 열로 세로 배치 */
-    gap: 10px;
-    grid-template-rows: repeat(5, auto);  /* 5행 1열로 카드 배치 */
-    overflow-y: auto;  /* 세로 스크롤 */
-    height: 100%;  /* 세로로 5개 카드 표시 */
+.search-pic img {
+    width: 40px;
+    height: 40px;
 }

@@ -54,18 +54,16 @@ app.use(session({
     // maxAge : 쿠키 만료 기간을 1시간으로 설정
 }))
 /**************************************** Session & Redis ***************************************/
-
-// 상품 이미지 클릭 시 최근 본 상품 세션에 저장
+// 최근 본 상품 세션에 저장
 app.post('/api/recentViewed', (req, res) => {
   const { image, link } = req.body;
+
+  // 최근 본 상품 초기화
   if (!req.session.recentViewed) {
       req.session.recentViewed = [];
   }
-
-  // 이미 저장된 상품이 있다면 최근 본 상품 목록에 추가
   const recentViewed = req.session.recentViewed;
 
-  // 상품이 이미 배열에 없으면 추가하고, 배열의 길이가 5 이상이면 가장 오래된 항목 삭제
   if (!recentViewed.some(item => item.link === link)) {
       recentViewed.unshift({ image, link });
       if (recentViewed.length > 5) {
@@ -73,6 +71,7 @@ app.post('/api/recentViewed', (req, res) => {
       }
   }
 
+  // 최근 본 상품 최신화
   req.session.recentViewed = recentViewed;
 
   res.status(200).json({ message: '최근 본 상품 저장 완료' });
