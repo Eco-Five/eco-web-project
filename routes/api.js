@@ -1196,15 +1196,17 @@ router.get('/notice/update/:b_no', async (req, res) => {
     }
 });
 
-/************************* 공지사항수정-PUT***************************/
+/************************* 공지사항글수정-PUT ***************************/
 router.put('/notice/update/:b_no', async (req, res) => {
     const b_no = req.params.b_no;
     const { category, title, content } = req.body;
 
-/*     if (!category || !title || !content) {
-        console.error("Missing fields:", req.body);
-        return res.status(400).send("필수 필드를 채우세요.");
-    } */
+    console.log('PUT Request Received:', { b_no, body: req.body }); // Debug log
+
+    if (!category || !title || !content) {
+        console.error("Validation Error: Missing fields:", req.body);
+        return res.status(400).json({ success: false, message: "필수 필드를 채우세요." });
+    }
 
     try {
         const sql = `
@@ -1218,13 +1220,14 @@ router.put('/notice/update/:b_no', async (req, res) => {
         const values = [title, content, category, b_no];
         const [result] = await pool.execute(sql, values);
 
-        console.log("Update result:", result);
-        res.json({ success: true, result });
+        console.log("Update Result:", result);
+        res.json({ success: true, message: "수정 완료되었습니다.", result });
     } catch (error) {
-        console.error("Database error:", error);
-        res.status(500).send({ message: "글 수정 처리 중 오류가 발생했습니다." });
+        console.error("Database Error:", error);
+        res.status(500).json({ success: false, message: "글 수정 처리 중 오류가 발생했습니다.", error });
     }
 });
+
 
 
 module.exports = router;

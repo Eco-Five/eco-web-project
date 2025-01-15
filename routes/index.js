@@ -115,11 +115,13 @@ router.get('/notice/update/:id', (req, res, next) => {
   res.redirect(`/api/notice/update/${id}`);
 });
 
-// 공지사항 수정 - PUT 
+/* // 공지사항 수정 - PUT 
 router.put('/notice/update/:b_no', function (req, res) {
   const b_no = req.params.b_no;
   console.log("Redirecting to API PUT route for notice:", b_no);
   res.redirect(`/api/notice/update/${b_no}`);
-});
+}); */
+
+
 
 module.exports = router;

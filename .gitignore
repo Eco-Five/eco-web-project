@@ -10,3 +10,4 @@ Dockerfile
 
 # VSCODE 제외
 .vscode
+/vscode
