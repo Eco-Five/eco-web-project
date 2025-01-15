@@ -1112,9 +1112,44 @@ router.get("/notice", async (req, res) => {
     }
 });
 
+/************************* 공지사항 글작성 ***************************/
+router.post("/notice/write", async (req, res) => {
+    try {
+        const { category, title, content } = req.body;
+
+        // Validate input
+        if (!category || !title || !content) {
+            return res.status(400).json({ success: false, message: "All fields are required." });
+        }
+
+        // Insert into database
+        const sql = `
+            INSERT INTO notice (content_type_id, title, content, notice_date, member_id)
+            VALUES ((SELECT content_type_id FROM content_type WHERE type_name = ?), ?, ?, NOW(), 1);
+        `;
+
+        const [result] = await pool.execute(sql, [category, title, content]);
+
+        if (result.affectedRows === 1) {
+            return res.status(200).json({ success: true, message: "Notice successfully created." });
+        } else {
+            return res.status(500).json({ success: false, message: "Failed to create the notice." });
+        }
+    } catch (error) {
+        console.error("Error creating notice:", error);
+        res.status(500).json({ success: false, message: "An unexpected error occurred." });
+    }
+});
+
+
 /************************* 공지사항 상세보기 ***************************/
 router.get("/notice/:b_no", async (req, res) => {
     const b_no = req.params.b_no;
+
+    // Validate that `b_no` is numeric
+    if (isNaN(b_no)) {
+        return res.status(400).json({ message: "Invalid notice ID." });
+    }
 
     if (!b_no) {
         return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
@@ -1227,8 +1262,5 @@ router.put('/notice/update/:b_no', async (req, res) => {
         res.status(500).json({ success: false, message: "글 수정 처리 중 오류가 발생했습니다.", error });
     }
 });
-
-
-
 
 module.exports = router;

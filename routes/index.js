@@ -97,10 +97,18 @@ router.get('/mypage', function(req, res, next) {
   res.render('index', { title: '마이페이지', pageName: 'mypage/mypage.ejs', member_id:member_id });
 });
 
-
 /* 공지사항 목록 */
 router.get('/notice', (req, res, next) => {
   res.redirect('/api/notice');
+});
+
+/* 공지사항 글쓰기 */
+// Static route for writing a notice
+router.get("/notice/write", (req, res) => {
+  res.render("index", {
+      title: "공지사항 글작성",
+      pageName: "notice/write.ejs",
+  });
 });
 
 /* 공지사항 상세보기 */
@@ -121,7 +129,6 @@ router.put('/notice/update/:b_no', function (req, res) {
   console.log("Redirecting to API PUT route for notice:", b_no);
   res.redirect(`/api/notice/update/${b_no}`);
 }); */
-
 
 
 module.exports = router;
