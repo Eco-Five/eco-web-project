@@ -9,7 +9,6 @@
             <img id="searchImg" src="../images/product/ser.png" alt="검색아이콘">
             <img id="recImg" src="../images/product/rec.png" alt="기록아이콘">
         </div>
-
     </div>
 </div>
 <hr />
@@ -178,7 +177,7 @@
         let link = $(this).parent().find("a").attr("href");
 
         // 서버에 최근 본 상품 정보 전송
-        fetch('/api/recentViewed', {
+        fetch('/recentViewed', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -201,7 +200,7 @@
             recentContainer.innerHTML = '';  
             isRendered = false; 
         } else {
-            fetch('/api/recentViewed')
+            fetch('/recentViewed')
                 .then(response => response.json())
                 .then(data => {
                     const recentViewed = data.recentViewed;

@@ -55,7 +55,7 @@ app.use(session({
 }))
 /**************************************** Session & Redis ***************************************/
 // 최근 본 상품 세션에 저장
-app.post('/api/recentViewed', (req, res) => {
+app.post('/recentViewed', (req, res) => {
   const { image, link } = req.body;
 
   // 최근 본 상품 초기화
@@ -78,7 +78,7 @@ app.post('/api/recentViewed', (req, res) => {
 });
 
 // 최근 본 상품 불러오기
-app.get('/api/recentViewed', (req, res) => {
+app.get('/recentViewed', (req, res) => {
   res.status(200).json({ recentViewed: req.session.recentViewed || [] });
 });
 
