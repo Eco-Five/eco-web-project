@@ -1,5 +1,33 @@
 <script>
-    //개인정보 조회
+    // 프로필 사진 업로드
+    document.getElementById('fileUpload').addEventListener('change', async (event) => {
+        const file = event.target.files[0]; 
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('fileUpload', file);  
+
+        try {
+            const response = await fetch('/api/uploadProfilePic', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                const imgElement = document.querySelector('.profile-pic img');
+                imgElement.src = data.imageUrl;
+            } else {
+                alert('파일 업로드에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('파일 업로드 중 오류:', error);
+        }
+    });
+</script>
+
+<script>
+    // 개인정보 조회
     async function getUserInfo() {
         try {
             const response = await fetch('/api/getUserInfo', {
@@ -17,8 +45,6 @@
                 document.getElementById('email').value = user.email;
                 document.getElementById('phone').value = user.phone;
                 document.getElementById('local').value = user.address;
-                document.getElementById('greet').innerText = `${user.name}님의 마이페이지`
-                document.getElementById('point').innerText = `포인트 : ${user.eco_point}P`;
                 const imgElements = document.querySelectorAll('img');  
                 const secondImg = imgElements[1];  
                 secondImg.setAttribute('src', user.image_url);
@@ -35,7 +61,7 @@
         getUserInfo();
     });
 
-    //개인정보 수정
+    // 개인정보 수정
     async function updateUserInfo() {
         const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
@@ -71,7 +97,7 @@
     }
     document.querySelector('#updBtn').addEventListener('click', updateUserInfo);
 
-    //개인정보 삭제
+    // 개인정보 삭제
     async function deleteUser() {
         if (confirm('회원탈퇴하시겠습니까?')) {
             try {
@@ -101,7 +127,7 @@
     }
     document.querySelector('#delBtn').addEventListener('click', deleteUser);
 
-    //로그아웃 함수
+    // 로그아웃 함수
     async function logoutUser() {
         try {
             const response = await fetch('/api/logout', {
@@ -119,7 +145,7 @@
         }
     }
 
-//게시판 조회
+    // 게시판 조회
     async function getBoardInfo() {
         try {
             const response = await fetch('/api/getBoardInfo', {

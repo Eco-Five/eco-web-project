@@ -21,6 +21,8 @@ const { appendFileSync } = require('fs');
 // sample) const [rows, fields] = await pool.execute(sql, [params]);
 // rows는 쿼리 실행결과로 반환된 데이터의 배열입니다.
 // fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
+
+/************************* 마이페이지 CRUD ***************************/
 //개인정보 조회
 router.post('/getUserInfo', async (req, res) => {
     try {
@@ -134,6 +136,7 @@ router.post('/getBoardInfo', async (req, res) => {
         });
     }
 });
+/************************* 마이페이지 CRUD ***************************/
 
 // 비밀번호 해시화 함수
 async function hashPwd(password) {
@@ -561,6 +564,29 @@ const upload = multer({
     storage: storage, // 저장 설정
     limits: { fileSize: 10 * 1024 * 1024 }, // 파일 크기 제한 (10MB)
     fileFilter: fileFilter // 파일 필터링 설정
+});
+
+// 프로필 사진 업로드
+router.post('/uploadProfilePic', upload.single('fileUpload'), async (req, res) => {
+    try {
+        const userId = req.session.user.member_id; 
+        const imageUrl = `/uploads/${req.file.filename}`;
+
+        const sql = 'UPDATE member SET image_url = ? WHERE member_id = ?';
+        await pool.execute(sql, [imageUrl, userId]);
+
+        res.status(200).json({
+            success: true,
+            message: '프로필 이미지가 성공적으로 업데이트되었습니다.',
+            imageUrl: imageUrl
+        });
+    } catch (error) {
+        console.error('파일 업로드 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.'
+        });
+    }
 });
 
 /************************* 커뮤니티글목록 ***************************/
