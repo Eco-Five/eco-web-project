@@ -1,47 +1,55 @@
-    <div class="container mt-5">
-        <h1 class="mb-4"><%= notice.title %></h1>
+<div class="container mt-5">
+    <h1 class="mb-4"><%= notice.title %></h1>
 
-        <p><strong>Category:</strong> <span class="badge bg-info"><%= notice.category %></span></p>
-        <p><strong>Date:</strong> <%= notice.date %></p>
-        <p><strong>Views:</strong> <%= notice.views %></p>
+    <p><strong>분류:</strong> <span class="badge bg-info"><%= notice.category %></span></p>
+    <p><strong>게시일:</strong> <%= notice.date %></p>
+    <p><strong>조회수:</strong> <%= notice.views %></p>
+    <p><strong>작성자:</strong> <%= notice.member_name %></p>
 
-        <hr>
+    <hr>
 
-        <p><%= notice.content %></p>
+    <p><%= notice.content %></p>
 
-        <div class="d-flex justify-content-between mt-4">
-            <a href="/notice" class="btn btn-secondary" id="btn-list">Back to List</a>
-            <div>
-                <a href="/notice/update/<%= notice.id %>" class="btn btn-warning" id="btn-update">Edit</a>
-                <form method="POST" action="./notice/<%= notice.id %>?_method=DELETE" class="d-inline">
-                    <button type="submit" class="btn btn-danger" id="btn-delete">Delete</button>
-                </form>
-            </div>
+    <div class="d-flex justify-content-between mt-4">
+        <a href="/notice" class="btn btn-secondary" id="btn-list">목록</a>
+        <div>
+            <a href="/notice/update/<%= notice.id %>" class="btn btn-warning" id="btn-update">수정</a>
+            <form method="POST" action="/api/notice/<%= notice.id %>?_method=DELETE" class="d-inline">
+                <button type="submit" class="btn btn-danger" id="btn-delete">삭제</button>
+            </form>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
 
 <script>
-    //목록으로 돌아가기
-    $("#btn-list").on("click", function(){
-        location.href="/notice"
-    })
+    $(document).ready(() => {
+        // 목록으로 돌아가기
+        $("#btn-list").on("click", function () {
+            location.href = "/notice";
+        });
 
-    //게시글 삭제하기
-    $("#btn-delete").on("click", function(){
-        alert("삭제 성공")
-        location.href="/notice"
-        })
-    
-    //게시글 수정하기
-    $("#btn-update").on("click", function(){
-        //현재 파일에서 수정하는 것이 아니고 수정화면을 띄워서 기존 정보를 가지고
-        //수정하고자하는 값을 입력 받은 후에 저장하기(기존에 있는 정보를 수정하는 것.)
-        //기존에 보이던 화면 URL이 새로운 URL로 변경되는 것이다.
-        //기존에 요청은 끊어지고 새로운 요청이 일어난다.
-        location.href = "/update"//+/id
-        })
-    </script>
+        // 게시글 삭제하기
+        $("#btn-delete").on("click", function (event) {
+            event.preventDefault();
+
+            const id = "<%= notice.id %>";
+            if (confirm("정말 삭제하시겠습니까?")) {
+                $.ajax({
+                    url: `/api/notice/${id}`,
+                    type: "DELETE",
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.href = "/notice";
+                        } else {
+                            alert("삭제 실패: " + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert("서버 오류: " + error);
+                    }
+                });
+            }
+        });
+    });
+</script>

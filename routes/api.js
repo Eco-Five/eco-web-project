@@ -1262,4 +1262,25 @@ router.put('/notice/update/:b_no', async (req, res) => {
     }
 });
 
+// 공지사항 삭제 - DELETE
+router.delete('/notice/:id', async (req, res) => {
+    const id = req.params.id;
+
+    try {
+        const sql = `DELETE FROM notice WHERE notice_id = ?`;
+        const [result] = await pool.execute(sql, [id]);
+
+        if (result.affectedRows > 0) {
+            console.log(`Notice ${id} deleted successfully.`);
+            res.json({ success: true, message: "삭제 완료되었습니다." });
+        } else {
+            res.status(404).json({ success: false, message: "해당 공지사항을 찾을 수 없습니다." });
+        }
+    } catch (error) {
+        console.error("Database error:", error);
+        res.status(500).json({ success: false, message: "서버 오류가 발생했습니다." });
+    }
+});
+
+
 module.exports = router;
