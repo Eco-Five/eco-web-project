@@ -251,7 +251,7 @@ router.post('/memberLogin', async (req, res) => {
             req.session.user = await sessionInfo(userInfo)
             res.status(200).json({ message: '로그인 성공', result: match })
         } else {
-            res.status(401).json({ message: '계정이 일치하지 않습니다.', result: match })
+            res.status(200).json({ message: '계정이 일치하지 않습니다.', result: match })
         }
     } catch (error) {
         console.error("memberLogin 오류: ", error);
@@ -388,9 +388,9 @@ router.get('/signup/redirect', async (req, res) => {
 /************************************** Session Mng **************************************/
 router.get('/protected', (req, res) => {
     if (req.session?.user?.isAuthenticated) {
-        res.status(200).json({ message: '인증된 사용자 입니다.', user: req.session.user });
+        res.status(200).json({ message: '인증된 사용자 입니다.', auth: true });
     } else {
-        res.status(401).json({ message: '로그인이 필요합니다.' }); // 인증되지 않은 경우 401 상태 코드 반환
+        res.status(401).json({ message: '로그인이 필요합니다.', auth: false });
     }
 })
 
@@ -477,7 +477,7 @@ router.post("/naverShop", async (req, res) => {
     const query = req.body.values; 
     const page = req.body.page; 
     const sort = req.body.sort;   
-    const itemsPerPage = 12; 
+    const itemsPerPage = 12;
 
     try {
         const url = `https://openapi.naver.com/v1/search/shop.json?query=${query}&display=100&sort=${sort}`;
