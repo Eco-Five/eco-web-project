@@ -271,7 +271,7 @@ router.get('/signup/redirect', async (req, res) => {
 /************************************** Session Mng **************************************/
 router.get('/protected', (req, res) => {
     if (req.session?.user?.isAuthenticated) {
-        res.status(200).json({ message: '인증된 사용자 입니다.', user: req.session.user });
+        res.status(200).json({ message: '인증된 사용자 입니다.', auth: true });
     } else {
         res.status(401).json({ message: '로그인이 필요합니다.' }); // 인증되지 않은 경우 401 상태 코드 반환
     }
