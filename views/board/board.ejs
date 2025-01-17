@@ -2,22 +2,27 @@
     <div class="container mt-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">커뮤니티</h1>
-            
         </div>
-
         <div class="row">
             <div class="col-lg-8">
+                <!-- 카테고리 선택-->
                 <div class="mb-3 d-flex justify-content-between">
-                    <select class="form-select w-auto">
-                        <option selected>전체</option>
-                        <option value="1">친환경뉴스</option>
-                        <option value="2">친환경팁</option>
-                        <option value="3">자유게시판</option>
+                    <select class="form-select w-auto" id="category-select">
+                        <option value="all" <% if(category ==='all'){ %> selected <% } %>>전체</option>
+                        <option value="1" <% if(category === '1'){ %> selected <% } %>>친환경뉴스</option>
+                        <option value="2" <% if(category ==='2'){ %> selected <% } %>>친환경팁</option>
+                        <option value="3" <% if(category ==='3'){ %> selected <% } %>>자유게시판</option>
                     </select>
-                    <a href="/board/write"><button class="btn btn-dark">글쓰기</button></a>
+                    <% if (user && user.isAuthenticated) { %>
+                        <!-- <% console.log(user); %> -->
+                        <!-- 로그인 상태 -->
+                        <a href="/board/write"><button class="btn btn-dark">글쓰기</button></a>
+                    <% } else { %>
+                        <!-- 비로그인 상태 -->
+                        <a href="#"><button class="btn btn-dark" id="visitor">글쓰기</button></a>
+                    <% } %>
                 </div>
                 <!-- 카테고리 선택-->
-
                 <!-- 커뮤니티 글 목록 -->
                 <div class="list-group">
                     <% boards.forEach(board => { %>
@@ -34,39 +39,37 @@
                                     <% } %>
                                     <%= board.title %>
                                 </h5>
-                                <p class="mb-1 text-truncate"><%= board.content %></p>
-                                <small class="text-muted"><%= board.name %> · <%= formatDate(board.board_date) %> · <i class="bi bi-eye"></i> 165 · <i class="bi bi-suit-heart"></i> 28</small>
+                                <p class="mb-1 text-truncate" id="rcontent"><%= board.content %></p>
+                                <small class="text-muted"><%= board.name %> · <%= formatDate(board.board_date) %> · <i class="bi bi-eye"></i> <%= board.view_count %> · <i class="bi bi-suit-heart"></i> <%= board.totalhearts %>
+                                </small>
                             </div>
                         </a>
                     <% }) %>
                 </div>
                 <!-- 커뮤니티 글 목록 -->
-
                 <!-- 페이징 처리 -->
                 <nav class="mt-4">
                     <ul class="pagination justify-content-center">
                         <!-- 이전 페이지 -->
                         <% if (currentPage > 1) { %>
                             <li class="page-item">
-                                <a class="page-link" href="?page=<%= currentPage - 1 %>">&lt;</a>
+                                <a class="page-link" href="?page=<%= currentPage - 1 %>&category=<%= category %>">&lt;</a>
                             </li>
                         <% } else { %>
                             <li class="page-item disabled">
                                 <a class="page-link" href="#"> &lt; </a>
                             </li>
                         <% } %>
-
                         <!-- 페이지 번호 -->
                         <% for (let i = 1; i <= totalPages; i++) { %>
                             <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                                <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                                <a class="page-link" href="?page=<%= i %>&category=<%= category %>"><%= i %></a>
                             </li>
                         <% } %>
-
                         <!-- 다음 페이지 -->
                         <% if (currentPage < totalPages) { %>
                             <li class="page-item">
-                                <a class="page-link" href="?page=<%= currentPage + 1 %>">&gt;</a>
+                                <a class="page-link" href="?page=<%= currentPage + 1 %>&category=<%= category %>">&gt;</a>
                             </li>
                         <% } else { %>
                             <li class="page-item disabled">
@@ -76,35 +79,40 @@
                     </ul>
                 </nav>
             </div>
-
             <!-- 사이드바(인기게시글) -->
             <div class="col-lg-4">
                 <h5>인기 게시글</h5>
                     <ul class="list-group">
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
-                            <div class="ms-2 me-auto">
-                                <div>1. 이달의 환경을 위한 팁</div>
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
-                            <div class="ms-2 me-auto">
-                                <div>2. 플라스틱 줄이기 실천 방법</div>
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
-                            <div class="ms-2 me-auto">
-                                <div>3. 바자회 후기</div>
-                            </div>
-                        </li>
+                        <% populars.forEach((popular, index) => { %>
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <a href="/api/board/<%= popular.board_id %>" class="popularlink"><%= index + 1 %>. <%= popular.title %> </a>
+                                </div>
+                            </li>
+                        <% }) %>
                     </ul>
                 </div>
             </div>
             <!-- 인기게시글 -->
         </div>
     </div>
-
-
-<% 
+    <script>
+        $('#visitor').on('click',function(){
+            alert("회원만 글쓰기가 가능합니다")
+        })
+        document.getElementById('category-select').addEventListener('change', ()=> {
+            const selectedCategory = event.target.value;
+        const currentPage = new URLSearchParams(window.location.search).get('page') || 1; // 현재 페이지 번호를 가져옵니다.
+        // 카테고리 값이 'all'이 아니면 URL에 카테고리 값을 추가
+        let url = `/api/board?page=1`; // 기본 URL은 페이지 번호만 포함
+        if (selectedCategory !== 'all') {
+        url += `&category=${selectedCategory}`; // 카테고리 정보도 URL에 포함
+        }
+        // 새로운 URL로 리다이렉트
+        window.location.href = url;
+        });
+    </script>
+<%
 function formatDate(dateStr) {
     const date = new Date(dateStr);
     const year = date.getFullYear();
@@ -112,10 +120,6 @@ function formatDate(dateStr) {
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    
     return `${year}.${month}.${day} ${hours}:${minutes}`;
 }
 %>
-
-
-

@@ -19,6 +19,11 @@
                         </select>
                     </div>
                     <div class="mb-3">
+                        <label for="title" class="form-label">작성자</label>
+                        <input type="text" class="form-control" id="member_id" value="<%= user ? user.member_id : '' %>" hidden>
+                        <input type="text" class="form-control" value="<%= user ? user.name : '' %>" readonly>
+                    </div>
+                    <div class="mb-3">
                         <label for="title" class="form-label">제목</label>
                         <input type="text" class="form-control" id="title" placeholder="제목을 입력하세요" >
                     </div>
@@ -52,6 +57,7 @@
                 event.preventDefault();  // 폼 제출을 막고 AJAX로 처리
                 
                 const formData = new FormData()
+                formData.append('member_id',$("#member_id").val())//세션값 전송 확인
                 formData.append('content_type_id',$("#category").val()) // 카테고리
                 formData.append('title', $("#title").val()); // 제목
                 formData.append('content', $("#content").val()); // 내용
