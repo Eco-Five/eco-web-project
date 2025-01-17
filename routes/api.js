@@ -1064,9 +1064,9 @@ router.delete('/question/comment/:qc_no', async (req, res) => {
 /************************* 공지사항 글목록 ***************************/
 router.get("/notice", async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const perPage = 5;
-        const offset = (page - 1) * perPage;
+        const page = parseInt(req.query.page) || 1; // Current page
+        const perPage = 10; // Number of notices per page
+        const offset = (page - 1) * perPage; // Calculate the offset
         console.log("Pagination values:", { page, perPage, offset });
 
         let rows = [];
@@ -1080,9 +1080,9 @@ router.get("/notice", async (req, res) => {
             LEFT JOIN member m ON b.member_id = m.member_id
             LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
             ORDER BY b.notice_id DESC
-            LIMIT 10 OFFSET 0;
+            LIMIT ${perPage} OFFSET ${offset};
             `;
-            const [result] = await pool.execute(sql, [perPage, offset]);
+            const [result] = await pool.execute(sql); // Execute the query
             rows = result;
         } catch (queryError) {
             console.error("Error fetching notices:", queryError);
@@ -1092,13 +1092,14 @@ router.get("/notice", async (req, res) => {
         try {
             const totalSql = `SELECT COUNT(*) AS total FROM notice`;
             const [totalResult] = await pool.execute(totalSql);
-            totalNotices = totalResult[0]?.total || 0;
+            totalNotices = totalResult[0]?.total || 0; // Get total number of notices
         } catch (countError) {
             console.error("Error fetching total count:", countError);
         }
 
-        const totalPages = Math.ceil(totalNotices / perPage);
+        const totalPages = Math.ceil(totalNotices / perPage); // Calculate total pages
 
+        // Render the notice page with data
         res.render("index", {
             title: "공지사항목록",
             pageName: "notice/notice.ejs",
@@ -1112,23 +1113,24 @@ router.get("/notice", async (req, res) => {
     }
 });
 
+
 /************************* 공지사항 글작성 ***************************/
 router.post("/notice/write", async (req, res) => {
     try {
-        const { category, title, content } = req.body;
+        const { category, title, content, member_id } = req.body;
 
         // Validate input
-        if (!category || !title || !content) {
+        if (!category || !title || !content || !member_id ) {
             return res.status(400).json({ success: false, message: "All fields are required." });
         }
 
         // Insert into database
         const sql = `
             INSERT INTO notice (content_type_id, title, content, notice_date, member_id)
-            VALUES ((SELECT content_type_id FROM content_type WHERE type_name = ?), ?, ?, NOW(), 1);
+            VALUES ((SELECT content_type_id FROM content_type WHERE type_name = ?), ?, ?, NOW(), ?);
         `;
 
-        const [result] = await pool.execute(sql, [category, title, content]);
+        const [result] = await pool.execute(sql, [category, title, content, member_id]);
 
         if (result.affectedRows === 1) {
             return res.status(200).json({ success: true, message: "Notice successfully created." });

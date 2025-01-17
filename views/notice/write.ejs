@@ -24,12 +24,17 @@
             </div>
 
             <div class="mb-3">
+                <label for="writer" class="form-label">작성자</label>
+                <input type="text" id="member_id" name="member_id" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
                 <label for="content" class="form-label">내용</label>
                 <textarea id="content" name="content" class="form-control" rows="5" required></textarea>
             </div>
 
             <button type="submit" class="btn btn-primary">작성</button>
-            <a href="/notice" class="btn btn-secondary" id="btn-list" button type="submit" class="btn btn-secondary">목록</button></a>
+            <a href="/notice" class="btn btn-secondary" id="btn-list">목록</a>
         </form>
     </div>
 
@@ -39,55 +44,56 @@
         $(document).ready(() => {
             // Form submission via AJAX
             $("form").on("submit", (event) => {
-    event.preventDefault(); // Prevent the default form submission
+                event.preventDefault(); // Prevent the default form submission
 
-    const categoryMapping = {
-        "업데이트": "업데이트",
-        "서비스공지": "서비스공지"
-    };
+                const categoryMapping = {
+                    "업데이트": "업데이트",
+                    "서비스공지": "서비스공지"
+                };
 
-    const selectedCategory = $("#category").val();
-    const mappedCategory = categoryMapping[selectedCategory];
+                const selectedCategory = $("#category").val();
+                const mappedCategory = categoryMapping[selectedCategory];
 
-    if (!mappedCategory) {
-        alert("Invalid category selected.");
-        return; // Stop further processing
-    }
+                if (!mappedCategory) {
+                    alert("Invalid category selected.");
+                    return; // Stop further processing
+                }
 
-    const payload = {
-        category: mappedCategory, // Use the mapped category
-        title: $("#title").val(),
-        content: $("#content").val()
-    };
+                const payload = {
+                    category: mappedCategory, // Use the mapped category
+                    title: $("#title").val(),
+                    content: $("#content").val(),
+                    member_id: $("#member_id").val() // Include the writer's name
+                };
 
-    console.log("Payload being sent:", payload);
+                console.log("Payload being sent:", payload);
 
-    // Send AJAX request to the server
-    $.ajax({
-        url: "/api/notice/write", // API endpoint for creating a notice
-        type: "POST",
-        contentType: "application/json", // Send data as JSON
-        data: JSON.stringify(payload),   // Convert payload to JSON string
-        beforeSend: function () {
-            $("button[type='submit']").prop("disabled", true); // Disable the submit button
-        },
-        success: function (response) {
-            if (response.success) {
-                alert("Notice has been successfully created.");
-                location.href = "/notice"; // Redirect to the notices list page
-            } else {
-                alert("Failed to create the notice. Please try again.");
-            }
-        },
-        error: function (xhr, status, error) {
-            alert("An error occurred: " + error);
-        },
-        complete: function () {
-            $("button[type='submit']").prop("disabled", false); // Re-enable the submit button
-        }
+                // Send AJAX request to the server
+                $.ajax({
+                    url: "/api/notice/write", // API endpoint for creating a notice
+                    type: "POST",
+                    contentType: "application/json", // Send data as JSON
+                    data: JSON.stringify(payload),   // Convert payload to JSON string
+                    beforeSend: function () {
+                        $("button[type='submit']").prop("disabled", true); // Disable the submit button
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert("작성 완료되었습니다.");
+                            location.href = "/notice"; // Redirect to the notices list page
+                        } else {
+                            alert("글작성 실패하였습니다. 다시 시도해주세요.");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert("An error occurred: " + error);
+                    },
+                    complete: function () {
+                        $("button[type='submit']").prop("disabled", false); // Re-enable the submit button
+                    }
+                });
+            });
         });
-    });
-});
     </script>
 </body>
 </html>
