@@ -407,6 +407,18 @@ router.get('/logout', (req, res) => {
 
 /************************************* Naver OAuth2 *************************************/
 /* 네이버 로그인 */
+router.get('/auth/naver', (req, res) => {
+    try {
+        const id = process.env.NAVER_LOGIN_CLIENT_ID
+        const redirect_uri = 'https://localhost:5678/api/auth/naver/callback'
+        const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${id}&redirect_uri=${redirect_uri}&state=STATE_STRING`;
+        res.redirect(naverAuthUrl);
+    } catch (error) {
+        console.error("인증코드 받기 실패!!", error)
+    }
+})
+
+
 router.get('/auth/naver/callback', async (req, res, next) => {
     console.log('네이버 코드 받기: ' + req.query.code);
     console.log('네이버 상태 받기: ' + req.query.state);
