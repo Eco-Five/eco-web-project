@@ -99,9 +99,9 @@ router.get('/payment/resultPay', async function(req, res, next) {
 /************************** Naver Pay Cancel **************************/
 router.get('/payment/cancel', async (req, res) => {
   const authResult = instanceLogic.sessionAuth(req, res)
-
+    
   try {
-    const { paymentId, subsPrice } = req.query
+    const { paymentId, subsPrice, server } = req.query
     url = 'https://dev-pub.apis.naver.com/naverpay-partner/naverpay/payments/v1/cancel'
     
     console.log(paymentId, subsPrice);
@@ -117,7 +117,7 @@ router.get('/payment/cancel', async (req, res) => {
       "cancelReason": 'testCancel',
       "cancelRequester": 2
     })
-    
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -131,26 +131,26 @@ router.get('/payment/cancel', async (req, res) => {
       signal: controller.signal  // AbortController signal 추가
     })
     clearTimeout(timeoutId); // 요청 완료 후 타임아웃 제거
-    
-    if (!response.ok) {
-      throw new Error('네이버페이 API 요청 실패');
-    }
 
-    try {
-      const sql = "update payment set subs_status_id = 3 where payment_token = ?"
-      const [result] = await pool.execute(sql, [paymentId])
+    const sql = "update payment set subs_status_id = 3 where payment_token = ?"
+    const [result] = await pool.execute(sql, [paymentId])
 
-      if(result.affectedRows === 1) {
-        res.redirect('/users/payment?message=결제가 취소되었습니다.')
-      } else {
-        res.redirect('/users/payment?message=요청하신 결제정보가 없습니다.')
-      }
-    } catch {
-      res.redirect('/users/payment?message=관리자에게 문의해주세요.')
+    // 클라이언트에 결과 메세지 전달하기
+    if(result.affectedRows === 1) {
+      (server === "node") 
+        ? res.redirect('/users/payment?message=결제가 취소되었습니다.') 
+        : res.redirect('/payment?message=결제가 취소되었습니다.')
+    } else {
+      (server === "node") 
+        ? res.redirect('/users/payment?message=요청하신 결제정보가 없습니다.')
+        : res.redirect('/payment?message=요청하신 결제정보가 없습니다.')
     }
 
   } catch (error) {
-      res.status(500).json({message: error})
+    console.log("Naver Pay Cancel 오류 : ", error)
+    (server === "node") 
+      ? res.redirect('/users/payment?message=관리자에게 문의해주세요.')
+      : res.redirect('/payment/result?message=관리자에게 문의해주세요.')
   }
 })
 /************************** Naver Pay Cancel **************************/
