@@ -1140,10 +1140,18 @@ router.get("/notice", async (req, res) => {
 /************************* 공지사항 글작성 ***************************/
 router.post("/notice/write", async (req, res) => {
     try {
-        const { category, title, content, member_id } = req.body;
+        // Retrieve user info from session
+        const user = req.session.user;
+
+        if (!user || !user.isAuthenticated) {
+            return res.status(401).json({ success: false, message: "User is not logged in." });
+        }
+
+        const member_id = user.member_id; // Get the logged-in member ID
+        const { category, title, content } = req.body;
 
         // Validate input
-        if (!category || !title || !content || !member_id ) {
+        if (!category || !title || !content) {
             return res.status(400).json({ success: false, message: "All fields are required." });
         }
 
@@ -1165,6 +1173,7 @@ router.post("/notice/write", async (req, res) => {
         res.status(500).json({ success: false, message: "An unexpected error occurred." });
     }
 });
+
 
 /************************* 공지사항 상세보기 ***************************/
 router.get("/notice/:b_no", async (req, res) => {

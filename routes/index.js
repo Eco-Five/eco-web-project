@@ -105,9 +105,15 @@ router.get('/notice', (req, res, next) => {
 /* 공지사항 글쓰기 */
 // Static route for writing a notice
 router.get("/notice/write", (req, res) => {
+  const user = req.session.user || null; // Check if the user session exists
+  if (!user || !user.isAuthenticated) {
+      console.log("User not authenticated. Redirecting to login.");
+      return res.redirect("/login"); // Redirect to login if not authenticated
+  }
   res.render("index", {
       title: "공지사항 글작성",
       pageName: "notice/write.ejs",
+      user: user, // Pass the user data to the EJS template
   });
 });
 
