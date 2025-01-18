@@ -682,6 +682,8 @@ router.get('/board/:b_no', async (req, res) => {
     }
 })
 
+
+
 /************************* 좋아요 ***************************/
 router.post('/board/:b_no/like', async (req, res) => {
     const b_no = req.params.b_no;
@@ -828,6 +830,7 @@ router.delete('/board/:b_no', async (req, res) => {
         return res.status(500).send({ message: '글 삭제 처리 중 오류가 발생했습니다.' })
     }
 })
+
 
 
 /************************* 고객문의글목록 ***************************/
