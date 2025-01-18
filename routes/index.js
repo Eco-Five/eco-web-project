@@ -61,11 +61,10 @@ router.put('/board/update/:b_no', function(req, res, next) {
 /* 고객문의 */
 // 목록
 router.get('/question', function(req, res, next) {
-  const category = req.query.category || 'all';  // 카테고리 기본값 설정
-  const page = req.query.page || 1;  // 페이지 기본값 설정
-
-  // category와 page 정보를 포함하여 /api/question으로 리디렉션
-  res.redirect(`/api/question?page=${page}&category=${category}`);
+  const user = req.session.user;  
+  const category = req.query.category || 'all';  
+  const page = req.query.page || 1;  
+  res.render('index', { title: '고객문의목록', pageName: 'question/question.ejs', user: user, category: category, page: page});
 });
 // 글 상세보기 
 router.get('/question/read', function(req, res, next) {

@@ -1,0 +1,111 @@
+<link rel="stylesheet" href="/styles/question/question.css">
+    <div class="container mt-5">
+        <div class = "d-flex justify-content-start align-items-center mb-4">
+            <h3>고객문의</h3>
+        </div>
+        <div class="mb-3 d-flex justify-content-between">
+            <select class="form-select w-auto" id="category-select">
+                <option value="all" <% if(category ==='all'){ %> selected <% } %>>전체</option>
+                <option value="4" <% if(category === '4'){ %> selected <% } %>>배송</option>
+                <option value="5" <% if(category === '5'){ %> selected <% } %>>상품</option>
+                <option value="6" <% if(category === '6'){ %> selected <% } %>>교환/반품</option>
+            </select>
+            <% if (user && user.isAuthenticated) { %>
+                <!-- 로그인 상태 -->
+                <a href="/question/write"><button class="btn btn-dark">문의하기</button></a>
+            <% } else { %>
+                <!-- 비로그인 상태 -->
+                <a href="#"><button class="btn btn-dark" id="visitor">문의하기</button></a>
+            <% } %>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">문의유형</th>
+                        <th scope="col">제목</th>
+                        <th scope="col">작성자</th>
+                        <th scope="col">작성일</th>
+                        <th scope="col">상태</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% questions.forEach(question => { %>
+                    <tr>
+                        <td><%=question.inquiry_id%></td>
+                        <td><%=question.type_name%></td>
+                        <td><a href="question/<%= question.inquiry_id %>"><%= question.title %></a></td>
+                        <td><%=question.name%></td>
+                        <td><%=formatDate(question.inquiry_date)%></td>
+                        <td>
+                            <% if (question.status === '답변대기') { %>
+                                <span class="badge bg-warning"><%= question.status %></span>
+                            <% } else if (question.status === '답변완료') { %>
+                                <span class="badge bg-success"><%= question.status %></span>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+        <!-- 페이징 처리 -->
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                <!-- 이전 페이지 -->
+                <% if (currentPage > 1) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage - 1 %>&category=<%= category %>">&lt;</a>
+                    </li>
+                <% } else { %>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#"> &lt; </a>
+                    </li>
+                <% } %>
+                <!-- 페이지 번호 -->
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>&category=<%= category %>"><%= i %></a>
+                    </li>
+                <% } %>
+                <!-- 다음 페이지 -->
+                <% if (currentPage < totalPages) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %>&category=<%= category %>">&gt;</a>
+                    </li>
+                <% } else { %>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#"> &gt; </a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    </div>
+    <script>
+        $('#visitor').on('click',()=>{
+            alert("회원만 글쓰기가 가능합니다")
+        })
+        document.getElementById('category-select').addEventListener('change', () =>{
+        const selectedCategory = event.target.value;
+        const currentPage = new URLSearchParams(window.location.search).get('page') || 1; // 현재 페이지 번호를 가져옵니다.
+        // 카테고리 값이 'all'이 아니면 URL에 카테고리 값을 추가
+        let url = `/api/question?page=1`; // 기본 URL은 페이지 번호만 포함
+        if (selectedCategory !== 'all') {
+        url += `&category=${selectedCategory}`; // 카테고리 정보도 URL에 포함
+        }
+        // 새로운 URL로 리다이렉트
+        window.location.href = url;
+        });
+    </script>
+    <%
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');  // months are zero-indexed
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}.${month}.${day} ${hours}:${minutes}`;
+    }
+    %>
