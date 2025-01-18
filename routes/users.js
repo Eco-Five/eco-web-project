@@ -22,7 +22,7 @@ router.get('/payment', function(req, res, next) {
 /****************************** Naver Pay ******************************/
 router.post('/naverPay', async (req, res) => {
   const authResult = instanceLogic.sessionAuth(req, res)
-  const { subsPlan, subsPrice } = req.body
+  const { subsPlan, subsPrice, server } = req.body
 
   const payInfo = {
       "merchantPayKey": "mpaykey",
@@ -31,7 +31,7 @@ router.post('/naverPay', async (req, res) => {
       "totalPayAmount": parseInt(subsPrice),
       "taxScopeAmount": parseInt(subsPrice),
       "taxExScopeAmount": 0,
-      "returnUrl": `https://localhost:5678/users/payment/resultPay?subsPlan=${subsPlan}&subsPrice=${subsPrice}`
+      "returnUrl": `https://localhost:5678/users/payment/resultPay?server=${server}&subsPlan=${subsPlan}&subsPrice=${subsPrice}` 
   }
 
   url = 'https://dev-pub.apis.naver.com/naverpay-partner/naverpay/payments/v2/reserve'
@@ -62,9 +62,10 @@ router.post('/naverPay', async (req, res) => {
 router.get('/payment/resultPay', async function(req, res, next) {
   try {
     const { resultCode } = req.query
+    const queryString = new URLSearchParams(req.query).toString();
 
     if(resultCode === 'Success') {
-      const { subsPlan, subsPrice, paymentId } = req.query
+      const { server, subsPlan, subsPrice, paymentId } = req.query
       const currentDate = new Date()
       const datetime = currentDate.toISOString().split('T')[0]
 
@@ -74,9 +75,13 @@ router.get('/payment/resultPay', async function(req, res, next) {
       const values = [paymentId, req.session.user.member_id, instanceLogic.subsInfo[subsPlan]]
       const [result] = await pool.execute(sql, values);
 
-      res.render('index', { title: '결제결과창', pageName:'payment/resultPay.ejs',
-        subsPlan, subsPrice, resultCode, paymentId, datetime
-      });
+      if(server === "node") {
+        res.render('index', { title: '결제결과창', pageName:'payment/resultPay.ejs',
+          subsPlan, subsPrice, resultCode, paymentId, datetime
+        });
+      } else if(server === "react") {
+        res.redirect(`http://localhost:3456/payment/result?${queryString}`)
+      }
 
     } else {
       const { resultMessage, reserveId } = req.query
