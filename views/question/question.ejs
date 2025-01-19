@@ -15,7 +15,7 @@
             <a href="/question/write"><button class="btn btn-dark">문의하기</button></a>
         <% } else { %>
             <!-- 비로그인 상태 -->
-            <a href="#"><button class="btn btn-dark" id="visitor">문의하기</button></a>
+            <button class="btn btn-dark" id="visitor">문의하기</button>
         <% } %>
     </div>
     <div class="table-responsive" id="question-table">
@@ -28,6 +28,10 @@
 </div>
 
 <script>
+    $('#visitor').on('click',function(){
+        alert("회원만 글쓰기가 가능합니다")
+    })
+
     // 카테고리 변경 시 데이터를 다시 로드
     document.getElementById('category-select').addEventListener('change', (event) => {
         const selectedCategory = event.target.value;

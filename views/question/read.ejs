@@ -23,7 +23,7 @@
         <h5>답변</h5>
         <!-- 댓글 작성 섹션 -->
         <div class="mb-3">
-            <% if (user && user.member_id === 50) { %>
+            <% if (user && user.name === "김지영") { %>
             <textarea class="form-control" rows="3" id="comment" placeholder="답변을 등록하세요."></textarea>
             <div class="text-end mt-2">
                 <button class="btn btn-dark" id="btn-comment">댓글 작성</button>
@@ -67,10 +67,6 @@ $(document).ready(() => {
     })
 
     //게시글 수정하기
-    //현재 파일에서 수정하는 것이 아니고 수정화면을 띄워서 기존 정보를 가지고
-    //수정하고자하는 값을 입력 받은 후에 저장하기(기존에 있는 정보를 수정하는 것.)
-    //기존에 보이던 화면 URL이 새로운 URL로 변경되는 것이다.
-    //기존에 요청은 끊어지고 새로운 요청이 일어난다.
     $("#btn-update").on("click", ()=>{
         location.href = `/question/update/<%=question.inquiry_id%>`
     })
