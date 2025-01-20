@@ -1,93 +1,133 @@
 <div class="container mt-5">
     <!-- 게시글 상세 -->
     <div class="card p-4 mb-4">
-        <h1 class="h4"> <%= board.title %></h1>
-        <small class="text-muted"><%= board.name %> · <%= formatDate(board.board_date)%> · <i class="bi bi-eye"></i> <%= board.view_count %></small>
-        <p class="mt-3" style="white-space: pre-line;">
-            <%= board.content %>
-        </p>
+        <h1 class="h4" id="board-title"></h1>
+        <small class="text-muted" id="board-meta"></small>
+        <p class="mt-3" style="white-space: pre-line;" id="board-content"></p>
         <div class="d-flex justify-content-between align-items-center mt-4">
-                <!-- 좋아요 버튼 -->
+            <!-- 좋아요 버튼 -->
             <button id="like" class="btn btn-outline-primary">
-                <i class="bi <%= board.heart === 1 ? 'bi-suit-heart-fill' : 'bi-suit-heart' %>"></i>  <span id="heart-count"><%= totalhearts %></span>
+                <i class="bi" id="like-icon"></i>  
+                <span id="heart-count"></span>
             </button>
             <div>
-                <% if (user && user.member_id === board.member_id) { %>
-                    <button class="btn btn-outline-primary btn-sm me-2" id="btn-update"><i class="bi bi-pencil"></i> 수정</button>
-                    <button class="btn btn-outline-danger btn-sm me-2" id="btn-delete"><i class="bi bi-trash"></i> 삭제</button>
-                    <% } %>
-                    <button class="btn btn-outline-primary btn-sm me-2" id="btn-list"><i class="bi bi-list"></i> 목록</button>
+                <button class="btn btn-outline-primary btn-sm me-2" id="btn-update"><i class="bi bi-pencil"></i> 수정</button>
+                <button class="btn btn-outline-primary btn-sm me-2" id="btn-list"><i class="bi bi-list"></i> 목록</button>
+                <button class="btn btn-outline-danger btn-sm me-2" id="btn-delete"><i class="bi bi-trash"></i> 삭제</button>
             </div>
         </div>
-        </div>
     </div>
+</div>
 
-    <% 
-    function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');  // months are zero-indexed
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        
-        return `${year}.${month}.${day} ${hours}:${minutes}`;
-    }
-    %>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 서버에서 전달된 게시글 번호 및 로그인한 사용자 이름
+        const b_no = "<%= b_no %>";
+        const loggedInUser = "<%= user ? user.name : '' %>";  // 로그인한 사용자 이름
 
-    <script>
-    //목록으로 돌아가기
-    $("#btn-list").on("click", ()=>{
-        location.href="/board"
-        })
-    
-    //게시글 수정하기
-    $("#btn-update").on("click", ()=>{
-        location.href = `/board/update/<%= board.board_id%>`;  
-        })
+        // 게시글 데이터 로드
+        const renderBoardData = async () => {
+            try {
+                const response = await fetch(`/api/board/${b_no}`);
+                const result = await response.json();
 
-    //게시글 삭제하기
-    $("#btn-delete").click((event)=>{
-        const b_no = "<%= board.board_id %>"  // 삭제할 게시글의 ID
-        // 서버로 AJAX 요청을 보내기
-        $.ajax({
-            url: `/api/board/${b_no}`,  // 서버의 삭제 API 경로
-            type: 'DELETE',
-            data: JSON.stringify({ b_no:b_no }),//요청 데이터 JSON으로 전달
-            contentType:'application/json',//서버에 JSON 형식으로 데이터 전송
-            success: function(response) {
-                if (response.success) {
-                    alert("삭제 완료되었습니다.");
-                    location.href = "/board";  // 삭제 성공 시 목록 페이지로 이동
+                if (result.success) {
+                    const board = result.board;
+
+                    document.getElementById('board-title').textContent = board.title;
+                    document.getElementById('board-meta').textContent = 
+                        `${board.name} · ${formatDate(board.board_date)} · 조회수 ${board.view_count}`;
+                    document.getElementById('board-content').textContent = board.content;
+                    document.getElementById('heart-count').textContent = board.totalhearts;
+
+                    // 좋아요 아이콘 설정
+                    const likeIcon = document.getElementById('like-icon');
+                    likeIcon.className = board.heart === 1 ? 'bi-suit-heart-fill' : 'bi-suit-heart';
+
+                    // 작성자와 로그인한 사용자가 다르면 수정/삭제 버튼 숨김
+                    if (loggedInUser !== board.name) {
+                        document.getElementById('btn-update').style.display = 'none';
+                        document.getElementById('btn-delete').style.display = 'none';
+                    }
                 } else {
-                    alert("삭제 실패했습니다.");
+                    alert('게시글을 불러오는 데 실패했습니다.');
                 }
-            },
-            error: function(xhr, status, error) {
-                alert("오류 발생: " + error);
+            } catch (error) {
+                console.error('오류 발생:', error);
+                alert('게시글을 불러오는 중 오류가 발생했습니다.');
+            }
+        };
+
+        // 목록으로 이동
+        document.querySelector("#btn-list").addEventListener("click", () => {
+            location.href = "/board";
+        });
+
+        // 게시글 수정 페이지 이동
+        document.querySelector("#btn-update").addEventListener("click", () => {
+            location.href = `/board/update/${b_no}`;
+        });
+
+        // 게시글 삭제
+        document.querySelector("#btn-delete").addEventListener("click", async () => {
+            if (confirm("정말 삭제하시겠습니까?")) {
+                try {
+                    const response = await fetch(`/api/board/${b_no}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ b_no: b_no })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        alert("삭제 완료되었습니다.");
+                        location.href = "/board";
+                    } else {
+                        alert("삭제 실패했습니다.");
+                    }
+                } catch (error) {
+                    console.error("오류 발생: ", error);
+                    alert("오류가 발생했습니다.");
+                }
             }
         });
-    })
 
-    // 좋아요 클릭 시 처리
-    $("#like").on("click", ()=>{
-        const b_no = "<%= board.board_id %>"; // 게시글 ID
-        $.ajax({
-            url: `/api/board/${b_no}/like`, // 서버의 좋아요 API 경로
-            type: 'POST',
-            success: function(response) {
-                if (response.totalHearts !== undefined) {
-                    // 좋아요 수가 정상적으로 응답되면 UI 업데이트
-                    $("#heart-count").text(response.totalHearts);
-                    const newIconClass = response.totalHearts > 0 ? 'bi-suit-heart-fill' : 'bi-suit-heart';
-                    $("#like i").attr('class', 'bi ' + newIconClass);
+        // 좋아요 버튼 클릭 시 처리
+        document.querySelector("#like").addEventListener("click", async () => {
+            try {
+                const response = await fetch(`/api/board/${b_no}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                if (data.totalHearts !== undefined) {
+                    document.querySelector("#heart-count").textContent = data.totalHearts;
+                    const newIconClass = data.totalHearts > 0 ? 'bi-suit-heart-fill' : 'bi-suit-heart';
+                    document.querySelector("#like i").className = 'bi ' + newIconClass;
                 }
-            },
-            error: function(xhr, status, error) {
-                // 에러가 발생했을 때 콘솔에 출력
-                console.error("오류 발생: " + error);
+            } catch (error) {
+                console.error("오류 발생: ", error);
                 alert("로그인이 필요합니다.");
             }
         });
+
+        // 데이터 렌더링 실행
+        renderBoardData();
     });
-    </script>
+
+    // 날짜 포맷팅 함수
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}.${month}.${day} ${hours}:${minutes}`;
+    };
+</script>

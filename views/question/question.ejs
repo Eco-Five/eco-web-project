@@ -3,20 +3,14 @@
     <div class="d-flex justify-content-start align-items-center mb-4">
         <h3>고객문의</h3>
     </div>
-    <div class="mb-3 d-flex justify-content-between">
+    <div class="mb-3 d-fleax justify-content-between">
         <select class="form-select w-auto" id="category-select">
             <option value="all" <% if(category === 'all'){ %> selected <% } %>>전체</option>
             <option value="4" <% if(category === '4'){ %> selected <% } %>>배송</option>
             <option value="5" <% if(category === '5'){ %> selected <% } %>>상품</option>
             <option value="6" <% if(category === '6'){ %> selected <% } %>>교환/반품</option>
         </select>
-        <% if (user && user.isAuthenticated) { %>
-            <!-- 로그인 상태 -->
-            <a href="/question/write"><button class="btn btn-dark">문의하기</button></a>
-        <% } else { %>
-            <!-- 비로그인 상태 -->
-            <button class="btn btn-dark" id="visitor">문의하기</button>
-        <% } %>
+        <a href="/board/write"><button class="btn btn-dark" >문의하기</button></a>
     </div>
     <div class="table-responsive" id="question-table">
         <!-- 질문 목록 -->
@@ -28,10 +22,6 @@
 </div>
 
 <script>
-    $('#visitor').on('click',function(){
-        alert("회원만 글쓰기가 가능합니다")
-    })
-
     // 카테고리 변경 시 데이터를 다시 로드
     document.getElementById('category-select').addEventListener('change', (event) => {
         const selectedCategory = event.target.value;
@@ -80,7 +70,7 @@
                         <tr>
                             <td>${question.inquiry_id}</td>
                             <td>${question.type_name}</td>
-                            <td><a href="/api/question/${question.inquiry_id}">${question.title}</a></td>
+                            <td><a href="/question/${question.inquiry_id}">${question.title}</a></td>
                             <td>${question.name}</td>
                             <td>${formatDate(question.inquiry_date)}</td>
                             <td>

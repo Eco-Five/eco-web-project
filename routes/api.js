@@ -590,6 +590,7 @@ const upload = multer({
 //http://localhost:5678/board
 router.get('/board', async (req, res) => {
     try {
+        const user = req.session.user || null;
         const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
         const perPage = 5; // 한 페이지당 5개 글
         const offset = (page - 1) * perPage;
@@ -630,12 +631,45 @@ router.get('/board', async (req, res) => {
             totalPages: totalPages,
             category: category,
             populars: popularRows,
+            user:user
         });
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
         res.status(500).json({ message: "서버 오류" });
     }
 });
+
+/************************* 커뮤니티글작성-GET ***************************/
+router.get('/board/write', (req, res) => {
+    const user = req.session.user || null; 
+    if (!user || !user.isAuthenticated) {
+        return res.redirect('/login'); // 비로그인 사용자는 로그인 페이지로 리다이렉트
+    }
+
+    res.json({ success: true, user:user})
+});
+
+/************************* 커뮤니티글작성-POST ***************************/
+//http://localhost:5678/board/write
+router.post('/board/write', upload.single('fileUpload'), async (req, res) => {
+    //사용자가 화면에서 입력한 값 담기
+    const user = req.session.user
+    const {content_type_id, title, content} = req.body
+    const filePath = req.file ? `/uploads/${req.file.filename} `: null;
+    try{
+        const sql = `insert into board(content_type_id, title, content, board_date, image_url, member_id)
+                        values (?,?,?,now(),?,?)`
+        const values = [content_type_id,title,content,filePath,user.member_id]
+        const [result] = await pool.execute(sql,values)
+        //조회 결과가 없는 경우 처리
+        console.log(result)//1이면 입력 성공. 0이면 입력 실패
+        //성공시 응답하기
+        res.json({ success: true, result: result })
+    } catch (error) {
+        console.error('Database error:', error)
+        return res.status(500).send({ message: '글 쓰기 처리 중 오류가 발생했습니다.' })
+    }
+})
 
 /************************* 커뮤니티글상세보기 ***************************/
 //http://localhost:5678/api/board/2
@@ -665,14 +699,10 @@ router.get('/board/:b_no', async (req, res) => {
         if (rows.length === 0) {
             return res.status(404).send({ message: '해당 글이 없습니다.' })
         }
+        const board = rows[0]
         //성공시 응답
-        res.render('index',{
-            title:'커뮤니티상세보기', 
-            pageName: 'board/read.ejs',
-            board: rows[0],
-            user: user, // 세션 정보 전달
-            totalhearts: rows[0].totalhearts
-            })
+        res.json({ success: true, board: board, user: user});
+        //,totalhearts:rows[0].totalhearts});
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error)
         res.status(500).json({ message: "서버 오류" })
@@ -711,42 +741,6 @@ router.post('/board/:b_no/like', async (req, res) => {
         res.status(500).json({ message: "서버 오류" });
     }
 });
-
-/************************* 커뮤니티글작성-GET ***************************/
-router.get('/board/write', (req, res) => {
-    const user = req.session.user || null; 
-    if (!user || !user.isAuthenticated) {
-        return res.redirect('/login'); // 비로그인 사용자는 로그인 페이지로 리다이렉트
-    }
-
-    res.render('index', { 
-        title: '커뮤니티작성', 
-        pageName: 'board/write.ejs', 
-        user: user // EJS 템플릿에 user 정보 전달
-    });
-});
-
-/************************* 커뮤니티글작성-POST ***************************/
-//http://localhost:5678/board/write
-router.post('/board/write', upload.single('fileUpload'), async (req, res) => {
-    //사용자가 화면에서 입력한 값 담기
-    const user = req.session.user
-    const {content_type_id, title, content} = req.body
-    const filePath = req.file ? `/uploads/${req.file.filename} `: null;
-    try{
-        const sql = `insert into board(content_type_id, title, content, board_date, image_url, member_id)
-                        values (?,?,?,now(),?,?)`
-        const values = [content_type_id,title,content,filePath,user.member_id]
-        const [result] = await pool.execute(sql,values)
-        //조회 결과가 없는 경우 처리
-        console.log(result)//1이면 입력 성공. 0이면 입력 실패
-        //성공시 응답하기
-        res.json({ success: true, result: result })
-    } catch (error) {
-        console.error('Database error:', error)
-        return res.status(500).send({ message: '글 쓰기 처리 중 오류가 발생했습니다.' })
-    }
-})
 
 /************************* 커뮤니티글수정-GET ***************************/
 router.get('/board/update/:b_no', async (req, res, next) => {
@@ -862,38 +856,38 @@ router.get('/question', async (req, res) => {
     }
 });
 
-/************************* 고객문의글상세보기 ***************************/
-//http://localhost:5678/api/question/2
+// 고객문의 글 상세보기
 router.get('/question/:q_no', async (req, res) => {
-    const q_no = req.params.q_no
-    const user = req.session.user || null; // 로그인한 사용자가 없으면 null로 설정
+    const q_no = req.params.q_no;
+    const user = req.session.user || null;
+
     if (!q_no) {
         return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
     }
+
     try {
+        // SQL 쿼리로 해당 질문 정보와 댓글 정보를 가져옴
         const sql = `SELECT i.*, m.name AS name, ic.comment AS comment, ic.comment_date AS comment_date, ic.inquiry_comment_id AS inquiry_comment_id
                     FROM inquiry i
                     INNER JOIN member m ON i.member_id = m.member_id
                     LEFT JOIN inquiry_comment ic ON i.inquiry_id = ic.inquiry_id
-                    WHERE i.inquiry_id=?`
-        const [rows] = await pool.execute(sql, [q_no])
-        //조회 결과가 없는 경우 처리
+                    WHERE i.inquiry_id=?`;
+        const [rows] = await pool.execute(sql, [q_no]);
+
         if (rows.length === 0) {
-            return res.status(404).send({ message: '해당 글이 없습니다.' })
-        }
-        //성공시 응답
-        //res.json(rows) // 결과값을 JSON로 변환하여 전달
-        res.render('index', {
-            title: '고객문의상세보기',
-            pageName: 'question/read.ejs',
-            question: rows[0],
-            user:user
-            })
-    } catch (error) {
-        console.error("커넥션 혹은 SQL쿼리 오류: ", error);
-        res.status(500).json({ message: "서버 오류" })
+        return res.status(404).send({ message: '해당 글이 없습니다.' });
     }
-})
+
+    const question = rows[0]
+
+    // 성공적으로 데이터를 응답
+    res.json({ success: true, question :question, user: user });
+
+    } catch (error) {
+    console.error("커넥션 혹은 SQL쿼리 오류: ", error);
+    res.status(500).json({ message: "서버 오류" });
+    }
+});
 
 /************************* 고객문의글작성-GET ***************************/
 router.get('/question/write', (req, res) => {
