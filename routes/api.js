@@ -410,7 +410,30 @@ router.get('/logout', (req, res) => {
 
 
 /************************************* Naver OAuth2 *************************************/
+router.get('/auth/naver', (req, res) => {
+    try {
+        const id = process.env.NAVER_LOGIN_CLIENT_ID
+        const redirect_uri = 'https://localhost:5678/api/auth/naver/callback'
+        const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${id}&redirect_uri=${redirect_uri}&state=STATE_STRING`;
+        res.redirect(naverAuthUrl);
+    } catch (error) { 
+        console.error("인증코드 받기 실패!!", error)
+    }
+})
+
 /* 네이버 로그인 */
+router.get('/auth/naver', (req, res) => {
+    try {
+        const id = process.env.NAVER_LOGIN_CLIENT_ID
+        const redirect_uri = 'https://localhost:5678/api/auth/naver/callback'
+        const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${id}&redirect_uri=${redirect_uri}&state=STATE_STRING`;
+        res.redirect(naverAuthUrl);
+    } catch (error) {
+        console.error("인증코드 받기 실패!!", error)
+    }
+})
+
+
 router.get('/auth/naver/callback', async (req, res, next) => {
     console.log('네이버 코드 받기: ' + req.query.code);
     console.log('네이버 상태 받기: ' + req.query.state);
@@ -477,7 +500,7 @@ router.post("/naverShop", async (req, res) => {
     const query = req.body.values; 
     const page = req.body.page; 
     const sort = req.body.sort;   
-    const itemsPerPage = 12;
+    const itemsPerPage = 8;
 
     try {
         const url = `https://openapi.naver.com/v1/search/shop.json?query=${query}&display=100&sort=${sort}`;
@@ -685,6 +708,8 @@ router.get('/board/:b_no', async (req, res) => {
     }
 })
 
+
+
 /************************* 좋아요 ***************************/
 router.post('/board/:b_no/like', async (req, res) => {
     const b_no = req.params.b_no;
@@ -831,6 +856,7 @@ router.delete('/board/:b_no', async (req, res) => {
         return res.status(500).send({ message: '글 삭제 처리 중 오류가 발생했습니다.' })
     }
 })
+
 
 
 /************************* 고객문의글목록 ***************************/
