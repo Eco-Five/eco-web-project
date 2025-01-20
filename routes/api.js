@@ -22,7 +22,7 @@ const { appendFileSync } = require('fs');
 // rows는 쿼리 실행결과로 반환된 데이터의 배열입니다.
 // fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
 
-/************************* 마이페이지 CRUD ***************************/
+/*************************************** 마이페이지 CRUD *****************************************/
 //개인정보 조회
 router.post('/getUserInfo', async (req, res) => {
     try {
@@ -86,10 +86,19 @@ router.post('/updateUserInfo', async (req, res) => {
 router.post('/deleteUser', async (req, res) => {
     try {
         const userId = req.session.user.member_id;
-        const sql = `DELETE FROM member WHERE member_id = ?`;
-        const [result] = await pool.execute(sql, [userId]);
+        // board 테이블에서 해당 member_id와 관련된 데이터 삭제
+        const deleteBoardsSql = `
+            DELETE b
+            FROM board b
+            INNER JOIN member m ON b.member_id = m.member_id
+            WHERE m.member_id = ?;
+        `;
+        const [deleteBoardsResult] = await pool.execute(deleteBoardsSql, [userId]);
+        // member 테이블에서 해당 데이터 삭제
+        const deleteMemberSql = `DELETE FROM member WHERE member_id = ?`;
+        const [deleteMemberResult] = await pool.execute(deleteMemberSql, [userId]);
 
-        if (result.affectedRows > 0) {
+        if (deleteBoardsResult.affectedRows > 0 && deleteMemberResult.affectedRows > 0) {
             res.status(200).json({
                 success: true,
                 message: '회원 탈퇴가 완료되었습니다.'
@@ -136,7 +145,7 @@ router.post('/getBoardInfo', async (req, res) => {
         });
     }
 });
-/************************* 마이페이지 CRUD ***************************/
+/*************************************** 마이페이지 CRUD *****************************************/
 
 // 비밀번호 해시화 함수
 async function hashPwd(password) {
