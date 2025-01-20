@@ -657,7 +657,7 @@ router.get('/board/:b_no', async (req, res) => {
                         IFNULL(bh.heart, 0) AS heart,
                         IFNULL((SELECT COUNT (*) FROM board_heart WHERE board_id = b.board_id AND heart = 1), 0) AS totalhearts
                         FROM board b
-                        JOIN member m ON b.member_id = m.member_id
+                        INNER JOIN member m ON b.member_id = m.member_id
                         LEFT JOIN board_heart bh ON b.board_id = bh.board_id AND bh.member_id = ?
                         WHERE b.board_id = ?`;
                         const [rows] = await pool.execute(sql2, [user ? user.member_id : null, b_no]);
@@ -811,8 +811,6 @@ router.delete('/board/:b_no', async (req, res) => {
     }
 })
 
-
-
 /************************* 고객문의글목록 ***************************/
 //http://localhost:5678/question
 router.get('/question', async (req, res) => {
@@ -825,9 +823,9 @@ router.get('/question', async (req, res) => {
 
         let sql = `SELECT i.*, m.name AS name, s.status_name AS status, c.type_name AS type_name
                     FROM inquiry i
-                    LEFT JOIN member m ON i.member_id = m.member_id
-                    LEFT JOIN inquiry_status s ON i.inquiry_status_id = s.inquiry_status_id
-                    LEFT JOIN content_type c ON i.content_type_id = c.content_type_id
+                    INNER JOIN member m ON i.member_id = m.member_id
+                    INNER JOIN inquiry_status s ON i.inquiry_status_id = s.inquiry_status_id
+                    INNER JOIN content_type c ON i.content_type_id = c.content_type_id
                     WHERE 1 = 1`;
 
         // 카테고리 값이 있으면 SQL 쿼리에 추가
@@ -875,7 +873,7 @@ router.get('/question/:q_no', async (req, res) => {
     try {
         const sql = `SELECT i.*, m.name AS name, ic.comment AS comment, ic.comment_date AS comment_date, ic.inquiry_comment_id AS inquiry_comment_id
                     FROM inquiry i
-                    LEFT JOIN member m ON i.member_id = m.member_id
+                    INNER JOIN member m ON i.member_id = m.member_id
                     LEFT JOIN inquiry_comment ic ON i.inquiry_id = ic.inquiry_id
                     WHERE i.inquiry_id=?`
         const [rows] = await pool.execute(sql, [q_no])
