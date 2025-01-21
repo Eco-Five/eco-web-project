@@ -23,7 +23,7 @@ const { appendFileSync } = require('fs');
 // fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
 
 /*************************************** 마이페이지 CRUD *****************************************/
-//개인정보 조회
+// 개인정보 조회
 router.post('/getUserInfo', async (req, res) => {
     try {
         const userId = req.session.user.member_id;
@@ -51,7 +51,7 @@ router.post('/getUserInfo', async (req, res) => {
     }
 });
 
-//개인정보 수정
+// 개인정보 수정
 router.post('/updateUserInfo', async (req, res) => {
     try {
         const userId = req.session.user.member_id;
@@ -82,11 +82,19 @@ router.post('/updateUserInfo', async (req, res) => {
     }
 });
 
-//개인정보 삭제
+// 개인정보 삭제
 router.post('/deleteUser', async (req, res) => {
     try {
-        const userId = req.session.user.member_id;
-        // board 테이블에서 해당 member_id와 관련된 데이터 삭제
+        const userId = req.session.user?.member_id;
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: '로그인 정보가 없습니다.'
+            });
+        }
+        const deleteBoardHeartsSql = `DELETE FROM board_heart WHERE member_id = ?`;
+        const [deleteBoardHeartsResult] = await pool.execute(deleteBoardHeartsSql, [userId]);
+
         const deleteBoardsSql = `
             DELETE b
             FROM board b
@@ -94,11 +102,11 @@ router.post('/deleteUser', async (req, res) => {
             WHERE m.member_id = ?;
         `;
         const [deleteBoardsResult] = await pool.execute(deleteBoardsSql, [userId]);
-        // member 테이블에서 해당 데이터 삭제
+
         const deleteMemberSql = `DELETE FROM member WHERE member_id = ?`;
         const [deleteMemberResult] = await pool.execute(deleteMemberSql, [userId]);
 
-        if (deleteBoardsResult.affectedRows > 0 && deleteMemberResult.affectedRows > 0) {
+        if (deleteBoardHeartsResult.affectedRows > 0 && deleteBoardsResult.affectedRows > 0 && deleteMemberResult.affectedRows > 0) {
             res.status(200).json({
                 success: true,
                 message: '회원 탈퇴가 완료되었습니다.'
@@ -118,7 +126,7 @@ router.post('/deleteUser', async (req, res) => {
     }
 });
 
-//게시판 조회
+// 게시판 조회
 router.post('/getBoardInfo', async (req, res) => {
     try {
         const userId = req.session.user.member_id;
