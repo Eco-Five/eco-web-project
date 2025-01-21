@@ -23,6 +23,81 @@ const { appendFileSync } = require('fs');
 // fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
 
 /*************************************** 마이페이지 CRUD *****************************************/
+// 장바구니 추가
+router.post('/insertCart', async (req, res) => {
+    try {
+        const { title, lprice, image } = req.body;  
+        const userId = req.session.user.member_id;  
+
+        if (!title || !lprice || !image) {
+            return res.status(400).json({ success: false, message: '필수값이 누락되었습니다.' });
+        }
+
+        const checkSql = `SELECT * FROM cart WHERE member_id = ? AND image_url = ?`;
+        const [existingItem] = await pool.execute(checkSql, [userId, image]);
+
+        if (existingItem.length > 0) {
+            return res.status(400).json({ success: false, message: '장바구니 중복 상품입니다.' });
+        }
+
+        const sql = `INSERT INTO cart (member_id, title, price, image_url) VALUES (?, ?, ?, ?)`;
+        const [rows] = await pool.execute(sql, [userId, title, lprice, image]);
+
+        if (rows.affectedRows > 0) {
+            res.status(200).json({
+                success: true,
+                message: '장바구니에 추가되었습니다.'
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                message: '장바구니 추가에 실패했습니다.'
+            });
+        }
+    } catch (error) {
+        console.error('장바구니 추가 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.'
+        });
+    }
+});
+
+// 장바구니 조회
+router.post('/getCart', async (req, res) => {
+    try {
+        const userId = req.session.user.member_id;
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: '로그인되어 있지 않습니다.',
+            });
+        }
+
+        const sql = `SELECT * FROM cart WHERE member_id = ?`;
+        const [rows] = await pool.execute(sql, [userId]);
+
+        if (rows.length > 0) {
+            res.status(200).json({
+                success: true,
+                data: rows,
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: '장바구니에 항목이 없습니다.',
+            });
+        }
+    } catch (error) {
+        console.error('장바구니 조회 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.',
+        });
+    }
+});
+
+
 // 개인정보 조회
 router.post('/getUserInfo', async (req, res) => {
     try {
