@@ -27,7 +27,6 @@ router.get('/about', function(req, res, next) {
   res.render('index', { title: 'about', pageName: 'main/about.ejs' });
 });
 
-
 /* 커뮤니티 */
 //목록
 router.get('/board', function(req, res, next) {

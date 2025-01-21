@@ -702,10 +702,10 @@ router.get('/board/:b_no', async (req, res) => {
         const board = rows[0]
         //성공시 응답
         res.json({ success: true, board: board, user: user});
-        //,totalhearts:rows[0].totalhearts});
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error)
         res.status(500).json({ message: "서버 오류" })
+        console.error("API 호출 오류:", error);
     }
 })
 
