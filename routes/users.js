@@ -4,8 +4,8 @@ require('dotenv').config()
 
 const { v4: uuidv4 } = require('uuid');
 const pool = require('../connDB.js')
-const modelLogic = require('./modelLogic.js'); // 이 줄을 위로 이동합니다.
-const instanceLogic = new modelLogic(); // 인스턴스 생성
+const authFunc = require('./authFunc.js'); // 이 줄을 위로 이동합니다.
+const instanceLogic = new authFunc(); // 인스턴스 생성
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {

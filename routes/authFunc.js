@@ -1,4 +1,4 @@
-class modelFunc {
+class authFunc {
     /*********************************  구독상품종류  *************************************/
     subsInfo = {
         "기본형" : 2,
@@ -18,4 +18,4 @@ class modelFunc {
     /*********************************  SessionAuth  *************************************/
 }
 
-module.exports = modelFunc
+module.exports = authFunc
