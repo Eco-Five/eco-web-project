@@ -687,9 +687,9 @@ router.get('/board/:b_no', async (req, res) => {
                     WHERE board_id = ?`
         await pool.execute(sql1, [b_no])
         // 상세보기 렌더링 (+ 좋아요 상태)
-        const sql2 = `SELECT b.*, m.name AS name,
+        const sql2 = `SELECT b.*, m.name AS name, m.member_id AS member_id,
                         IFNULL(bh.heart, 0) AS heart,
-                        IFNULL((SELECT COUNT (*) FROM board_heart WHERE board_id = b.board_id AND heart = 1), 0) AS totalhearts
+                        IFNULL((SELECT COUNT(*) FROM board_heart WHERE board_id = b.board_id AND heart = 1), 0) AS totalhearts
                         FROM board b
                         INNER JOIN member m ON b.member_id = m.member_id
                         LEFT JOIN board_heart bh ON b.board_id = bh.board_id AND bh.member_id = ?
@@ -856,39 +856,6 @@ router.get('/question', async (req, res) => {
     }
 });
 
-// 고객문의 글 상세보기
-router.get('/question/:q_no', async (req, res) => {
-    const q_no = req.params.q_no;
-    const user = req.session.user || null;
-
-    if (!q_no) {
-        return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
-    }
-
-    try {
-        // SQL 쿼리로 해당 질문 정보와 댓글 정보를 가져옴
-        const sql = `SELECT i.*, m.name AS name, ic.comment AS comment, ic.comment_date AS comment_date, ic.inquiry_comment_id AS inquiry_comment_id
-                    FROM inquiry i
-                    INNER JOIN member m ON i.member_id = m.member_id
-                    LEFT JOIN inquiry_comment ic ON i.inquiry_id = ic.inquiry_id
-                    WHERE i.inquiry_id=?`;
-        const [rows] = await pool.execute(sql, [q_no]);
-
-        if (rows.length === 0) {
-        return res.status(404).send({ message: '해당 글이 없습니다.' });
-    }
-
-    const question = rows[0]
-
-    // 성공적으로 데이터를 응답
-    res.json({ success: true, question :question, user: user });
-
-    } catch (error) {
-    console.error("커넥션 혹은 SQL쿼리 오류: ", error);
-    res.status(500).json({ message: "서버 오류" });
-    }
-});
-
 /************************* 고객문의글작성-GET ***************************/
 router.get('/question/write', (req, res) => {
     const user = req.session.user || null; // 세션에서 user 정보 가져오기
@@ -925,6 +892,40 @@ router.post('/question/write', async(req,res)=>{
         return res.status(500).send({message:'글 쓰기 처리 중 오류가 발생했습니다.'})
     }
     })
+
+/************************* 고객문의상세보기 ***************************/
+router.get('/question/:q_no', async (req, res) => {
+    const q_no = req.params.q_no;
+    const user = req.session.user || null;
+
+    if (!q_no) {
+        return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
+    }
+
+    try {
+        // SQL 쿼리로 해당 질문 정보와 댓글 정보를 가져옴
+        const sql = `SELECT i.*, m.name AS name, m.member_id AS member_id,
+                    ic.comment AS comment, ic.comment_date AS comment_date, ic.inquiry_comment_id AS inquiry_comment_id
+                    FROM inquiry i
+                    INNER JOIN member m ON i.member_id = m.member_id
+                    LEFT JOIN inquiry_comment ic ON i.inquiry_id = ic.inquiry_id
+                    WHERE i.inquiry_id=?`;
+        const [rows] = await pool.execute(sql, [q_no]);
+
+        if (rows.length === 0) {
+        return res.status(404).send({ message: '해당 글이 없습니다.' });
+    }
+
+    const question = rows[0]
+
+    // 성공적으로 데이터를 응답
+    res.json({ success: true, question :question, user: user });
+
+    } catch (error) {
+    console.error("커넥션 혹은 SQL쿼리 오류: ", error);
+    res.status(500).json({ message: "서버 오류" });
+    }
+});
 
 /************************* 고객문의글수정-GET ***************************/
 router.get('/question/update/:q_no', async (req, res, next) => {

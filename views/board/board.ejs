@@ -1,5 +1,4 @@
-<board.ejs>
-    <link rel="stylesheet" href="/styles/board/board.css">
+<link rel="stylesheet" href="/styles/board/board.css">
     <div class="container mt-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">커뮤니티</h1>
@@ -14,7 +13,7 @@
                         <option value="2" <% if(category ==='2'){ %> selected <% } %>>친환경팁</option>
                         <option value="3" <% if(category ==='3'){ %> selected <% } %>>자유게시판</option>
                     </select>
-                        <a href="/board/write"><button class="btn btn-dark" >글쓰기</button></a>
+                        <button class="btn btn-dark" id="btn-write" >글쓰기</button>
                 </div>
                 <!-- 카테고리 선택-->
                 <!-- 커뮤니티 글 목록 -->
@@ -34,6 +33,17 @@
     </div>
     
     <script>
+    console.log("Logged-in User:", "<%= user ? user.member_id : 'No User' %>");
+    // 로그인/비로그인 상태에 따른 글쓰기 버튼 처리
+    document.querySelector("#btn-write")?.addEventListener("click", () => {
+    const loggedInUser = "<%= user ? user.member_id : 'No User' %>";
+    if (loggedInUser === 'No User') {
+        alert('로그인이 필요합니다.');
+    } else {
+        location.href = '/board/write';
+    }
+});
+
         const categorySelect = document.getElementById('category-select');
         const boardList = document.getElementById('board-list');
         const pagination = document.getElementById('pagination');

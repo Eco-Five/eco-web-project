@@ -68,9 +68,9 @@ router.get('/question/write', function(req, res, next) {
 });
 //상세보기
 router.get('/question/:q_no', function(req, res, next) {
-  const q_no = req.params.q_no;
   const user = req.session.user || null;
-  res.render('index', {title: '고객문의상세보기', pageName: 'question/read.ejs', q_no: q_no, user: user});
+  const q_no = req.params.q_no;
+  res.render('index', {title: '고객문의상세보기', pageName: 'question/read.ejs', user: user, q_no: q_no});
 });
 // 글 수정 
 router.get('/question/update/:q_no', function(req, res, next) {

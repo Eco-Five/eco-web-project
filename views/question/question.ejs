@@ -3,14 +3,14 @@
     <div class="d-flex justify-content-start align-items-center mb-4">
         <h3>고객문의</h3>
     </div>
-    <div class="mb-3 d-fleax justify-content-between">
+    <div class="mb-3 d-flex justify-content-between">
         <select class="form-select w-auto" id="category-select">
             <option value="all" <% if(category === 'all'){ %> selected <% } %>>전체</option>
             <option value="4" <% if(category === '4'){ %> selected <% } %>>배송</option>
             <option value="5" <% if(category === '5'){ %> selected <% } %>>상품</option>
             <option value="6" <% if(category === '6'){ %> selected <% } %>>교환/반품</option>
         </select>
-        <a href="/board/write"><button class="btn btn-dark" >문의하기</button></a>
+        <button class="btn btn-dark" id="btn-write">문의하기</button>
     </div>
     <div class="table-responsive" id="question-table">
         <!-- 질문 목록 -->
@@ -22,6 +22,17 @@
 </div>
 
 <script>
+    console.log("Logged-in User:", "<%= user ? user.member_id : 'No User' %>");
+    // 로그인/비로그인 상태에 따른 글쓰기 버튼 처리
+    document.querySelector("#btn-write")?.addEventListener("click", () => {
+    const loggedInUser = "<%= user ? user.member_id : 'No User' %>";
+    if (loggedInUser === 'No User') {
+        alert('로그인이 필요합니다.');
+    } else {
+        location.href = '/question/write';
+    }
+});
+
     // 카테고리 변경 시 데이터를 다시 로드
     document.getElementById('category-select').addEventListener('change', (event) => {
         const selectedCategory = event.target.value;

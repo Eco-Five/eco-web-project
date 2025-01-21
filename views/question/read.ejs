@@ -38,8 +38,10 @@
 </div>
 
 <script>
+console.log("Logged-in User:", "<%= user ? user.member_id : 'No User' %>");
 document.addEventListener("DOMContentLoaded", async () => {
     const q_no = "<%= q_no %>"; // 전달된 q_no 사용
+    const loggedInUser = "<%= user ? user.member_id : '' %>" // 로그인한 사용자 member_id
 
     // API 호출하여 question 데이터 가져오기
     try {
@@ -53,6 +55,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById('question-title').textContent = question.title;
             document.getElementById('question-author').textContent = `${question.name} · ${formatDate(question.inquiry_date)}`;
             document.getElementById('question-content').textContent = question.content;
+
+            // 작성자와 로그인한 사용자가 다르면 수정/삭제 버튼 숨김
+            if (String(loggedInUser).trim() !== String(question.member_id).trim()) {
+                        document.getElementById('btn-update').style.display = 'none';
+                        document.getElementById('btn-delete').style.display = 'none';
+                    }
 
             // 댓글 처리
             const commentSection = document.getElementById('comment-section');
