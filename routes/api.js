@@ -589,6 +589,7 @@ const upload = multer({
 /************************* 커뮤니티글목록 ***************************/
 router.get('/board', async (req, res) => {
     try {
+        console.log("세션에 저장된 사용자 정보:", req.session.user); // 세션 값 확인용 로그
         const user = req.session.user || null;
         const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
         const perPage = 5; // 한 페이지당 5개 글
