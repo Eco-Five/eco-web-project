@@ -23,6 +23,40 @@ const { appendFileSync } = require('fs');
 // fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
 
 /*************************************** 마이페이지 CRUD *****************************************/
+// 장바구니 조회
+router.post('/getCart', async (req, res) => {
+    try {
+        const userId = req.session.user.member_id;
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: '로그인되어 있지 않습니다.',
+            });
+        }
+
+        const sql = `SELECT * FROM cart WHERE member_id = ?`;
+        const [rows] = await pool.execute(sql, [userId]);
+
+        if (rows.length > 0) {
+            res.status(200).json({
+                success: true,
+                data: rows,
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: '장바구니에 항목이 없습니다.',
+            });
+        }
+    } catch (error) {
+        console.error('장바구니 조회 중 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류.',
+        });
+    }
+});
+
 // 장바구니 추가
 router.post('/insertCart', async (req, res) => {
     try {
@@ -63,8 +97,7 @@ router.post('/insertCart', async (req, res) => {
     }
 });
 
-// 장바구니 조회
-router.post('/getCart', async (req, res) => {
+router.post('/deleteCart', async (req, res) => {
     try {
         const userId = req.session.user.member_id;
         if (!userId) {
@@ -74,22 +107,33 @@ router.post('/getCart', async (req, res) => {
             });
         }
 
-        const sql = `SELECT * FROM cart WHERE member_id = ?`;
-        const [rows] = await pool.execute(sql, [userId]);
+        const { cart_id } = req.body; // 클라이언트에서 넘겨준 cart_id
 
-        if (rows.length > 0) {
-            res.status(200).json({
-                success: true,
-                data: rows,
-            });
-        } else {
-            res.status(404).json({
+        if (!cart_id) {
+            return res.status(400).json({
                 success: false,
-                message: '장바구니에 항목이 없습니다.',
+                message: '삭제할 cart_id가 필요합니다.',
             });
         }
+
+        // 해당 cart_id와 userId로 장바구니 항목을 삭제하는 쿼리
+        const sql = `DELETE FROM cart WHERE cart_id = ? AND member_id = ?`;
+        const [result] = await pool.execute(sql, [cart_id, userId]);
+
+        if (result.affectedRows > 0) {
+            return res.status(200).json({
+                success: true,
+                message: '장바구니 항목이 삭제되었습니다.',
+            });
+        } else {
+            return res.status(404).json({
+                success: false,
+                message: '장바구니에서 항목을 찾을 수 없습니다.',
+            });
+        }
+
     } catch (error) {
-        console.error('장바구니 조회 중 오류:', error);
+        console.error('장바구니 항목 삭제 중 오류:', error);
         res.status(500).json({
             success: false,
             message: '서버 오류.',
@@ -156,7 +200,6 @@ router.post('/updateUserInfo', async (req, res) => {
         });
     }
 });
-
 // 개인정보 삭제
 router.post('/deleteUser', async (req, res) => {
     try {
@@ -167,34 +210,54 @@ router.post('/deleteUser', async (req, res) => {
                 message: '로그인 정보가 없습니다.'
             });
         }
-        const deleteBoardHeartsSql = `DELETE FROM board_heart WHERE member_id = ?`;
+        // 1. board_heart 테이블 데이터 삭제
+        const deleteBoardHeartsSql = `
+            DELETE bh
+            FROM board_heart bh
+            INNER JOIN board b ON bh.board_id = b.board_id
+            WHERE b.member_id = ?;
+        `;
         const [deleteBoardHeartsResult] = await pool.execute(deleteBoardHeartsSql, [userId]);
 
+        // 2. board 테이블 데이터 삭제
         const deleteBoardsSql = `
             DELETE b
             FROM board b
-            INNER JOIN member m ON b.member_id = m.member_id
-            WHERE m.member_id = ?;
+            WHERE b.member_id = ?;
         `;
         const [deleteBoardsResult] = await pool.execute(deleteBoardsSql, [userId]);
 
-        const deleteMemberSql = `DELETE FROM member WHERE member_id = ?`;
+        // 3. cart 테이블 데이터 삭제
+        const deleteCartSql = `
+            DELETE c
+            FROM cart c
+            INNER JOIN member m ON c.member_id = m.member_id
+            WHERE m.member_id = ?;
+        `;
+        const [deleteCartResult] = await pool.execute(deleteCartSql, [userId]);
+
+        // 4. member 테이블 데이터 삭제
+        const deleteMemberSql = `
+            DELETE m
+            FROM member m
+            WHERE m.member_id = ?;
+        `;
         const [deleteMemberResult] = await pool.execute(deleteMemberSql, [userId]);
 
-        if (deleteBoardHeartsResult.affectedRows > 0 && deleteBoardsResult.affectedRows > 0 && deleteMemberResult.affectedRows > 0) {
-            res.status(200).json({
+        if (deleteMemberResult.affectedRows > 0) {
+            return res.status(200).json({
                 success: true,
                 message: '회원 탈퇴가 완료되었습니다.'
             });
         } else {
-            res.status(404).json({
+            return res.status(404).json({
                 success: false,
                 message: '사용자를 찾을 수 없습니다.'
             });
         }
     } catch (error) {
         console.error('회원 탈퇴 중 오류:', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: '서버 오류.'
         });
@@ -209,10 +272,9 @@ router.post('/getBoardInfo', async (req, res) => {
         const [rows] = await pool.execute(sql, [userId]);
 
         if (rows.length > 0) {
-            const user = rows[0];
             res.status(200).json({
                 success: true,
-                data: user
+                data: rows
             });
         } else {
             res.status(404).json({
@@ -228,6 +290,7 @@ router.post('/getBoardInfo', async (req, res) => {
         });
     }
 });
+
 /*************************************** 마이페이지 CRUD *****************************************/
 
 // 비밀번호 해시화 함수
