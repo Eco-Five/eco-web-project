@@ -1,0 +1,55 @@
+<div class="container mt-5">
+    <h1 class="mb-4"><%= notice.title %></h1>
+
+    <p><strong>분류:</strong> <span class="badge bg-info"><%= notice.category %></span></p>
+    <p><strong>게시일:</strong> <%= notice.date %></p>
+    <p><strong>조회수:</strong> <%= notice.views %></p>
+    <p><strong>작성자:</strong> <%= notice.member_name %></p>
+
+    <hr>
+
+    <p><%= notice.content %></p>
+
+    <div class="d-flex justify-content-between mt-4">
+        <a href="/notice" class="btn btn-secondary" id="btn-list">목록</a>
+        <div>
+            <a href="/notice/update/<%= notice.id %>" class="btn btn-warning" id="btn-update">수정</a>
+            <form method="POST" action="/api/notice/<%= notice.id %>?_method=DELETE" class="d-inline">
+                <button type="submit" class="btn btn-danger" id="btn-delete">삭제</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(() => {
+        // 목록으로 돌아가기
+        $("#btn-list").on("click", function () {
+            location.href = "/notice";
+        });
+
+        // 게시글 삭제하기
+        $("#btn-delete").on("click", function (event) {
+            event.preventDefault();
+
+            const id = "<%= notice.id %>";
+            if (confirm("정말 삭제하시겠습니까?")) {
+                $.ajax({
+                    url: `/api/notice/${id}`,
+                    type: "DELETE",
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.href = "/notice";
+                        } else {
+                            alert("삭제 실패: " + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert("서버 오류: " + error);
+                    }
+                });
+            }
+        });
+    });
+</script>
