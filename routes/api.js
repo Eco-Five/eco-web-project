@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const axios = require('axios');
 
-const loginFunc = require('./service/loginFunc.js'); // 이 줄을 위로 이동합니다.
+const loginFunc = require('./service/loginFunc.js'); 
 const loginAuth = new loginFunc()
 require('dotenv').config()
 const bcrypt = require('bcrypt');
