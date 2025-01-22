@@ -37,16 +37,6 @@ class loginFunc {
     /*******************************  Password hashing  **********************************/
 
     /******************************** Login & Register ***********************************/
-    // sql쿼리 요청 방법은 2가지가 있습니다.
-    // pool.query(sql, params)   : 매번 새 SQL 파싱하므로 비교적 느림
-    // pool.execute(sql, params) : Prepared Statement 재사용으로 비교적 빠름(추천)
-    // execute 함수는 아래와 같이 구성되어 있으며, rows와 fields를 반환합니다.
-
-    // sample) const [rows, fields] = await pool.execute(sql, [params]);
-    // rows는 쿼리 실행결과로 반환된 데이터의 배열입니다.
-    // fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
-    
-
     // 회원가입 : 유틸리티 함수
     signupUtil = async (memInfo) => {
         // 클라이언트로부터 받은 데이터
@@ -76,7 +66,7 @@ class loginFunc {
         return { match: match, userInfo: rows[0] }
     }
 
-    
+
     // 세션 유저정보 전처리
     sessionInfo = async (userInfo) => {
         return {
