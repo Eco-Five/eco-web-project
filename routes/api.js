@@ -97,6 +97,7 @@ router.post('/insertCart', async (req, res) => {
     }
 });
 
+// 장바구니 삭제
 router.post('/deleteCart', async (req, res) => {
     try {
         const userId = req.session.user.member_id;
@@ -107,7 +108,7 @@ router.post('/deleteCart', async (req, res) => {
             });
         }
 
-        const { cart_id } = req.body; // 클라이언트에서 넘겨준 cart_id
+        const { cart_id } = req.body;
 
         if (!cart_id) {
             return res.status(400).json({
@@ -116,7 +117,6 @@ router.post('/deleteCart', async (req, res) => {
             });
         }
 
-        // 해당 cart_id와 userId로 장바구니 항목을 삭제하는 쿼리
         const sql = `DELETE FROM cart WHERE cart_id = ? AND member_id = ?`;
         const [result] = await pool.execute(sql, [cart_id, userId]);
 
@@ -140,7 +140,6 @@ router.post('/deleteCart', async (req, res) => {
         });
     }
 });
-
 
 // 개인정보 조회
 router.post('/getUserInfo', async (req, res) => {
