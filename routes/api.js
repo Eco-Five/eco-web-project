@@ -1,89 +1,20 @@
 var express = require('express')
 var router = express.Router()
-require('dotenv').config()
 const multer = require('multer');
 const path = require('path');
 const axios = require('axios');
 
-
-/************************************** MySQL CRUD **************************************/
+const loginFunc = require('./service/loginFunc.js'); // 이 줄을 위로 이동합니다.
+const loginAuth = new loginFunc()
 const pool = require('../connDB.js')
-const bcrypt = require('bcrypt')
-//  GET(조회), POST(입력), PUT(수정), DELETE(삭제)
+require('dotenv').config()
 
-// sql쿼리 요청 방법은 2가지가 있습니다.
-// pool.query(sql, params)   : 매번 새 SQL 파싱하므로 비교적 느림
-// pool.execute(sql, params) : Prepared Statement 재사용으로 비교적 빠름(추천)
-
-// execute 함수는 아래와 같이 구성되어 있으며, rows와 fields를 반환합니다.
-
-// sample) const [rows, fields] = await pool.execute(sql, [params]);
-// rows는 쿼리 실행결과로 반환된 데이터의 배열입니다.
-// fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
-
-// 비밀번호 해시화 함수
-async function hashPwd(password) {
-    const saltRounds = 10; // 해시 반복 횟수
-    const hashedPwd = await bcrypt.hash(password, saltRounds);
-    return hashedPwd;
-}
-
-// 비밀번호 비교 함수
-async function comparePwd(inputPwd, storedHashedPwd) {
-    const match = await bcrypt.compare(inputPwd, storedHashedPwd);
-    return match; // true 또는 false 반환
-}
 
 /******************************** 일반 회원가입 및 로그인 ********************************/
-// 회원가입 : 유틸리티 함수
-const signupUtil = async (memInfo) => {
-    // 클라이언트로부터 받은 데이터
-    const { name, email, pwd, phone, img_url, member_type_id, address } = memInfo;
-
-    // 비동기 처리된 함수 선언 시, await을 붙이는 이유는
-    // promise가 해결된 후의 값을 반환받기 위해서 입니다.
-    let pwdHash = await hashPwd(pwd)
-    const sql = `insert into member (name, email, pwd, phone, eco_point, image_url, member_type_id, subs_id, address)
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-
-    const values = [name, email, pwdHash, phone || null, 100, img_url, member_type_id, 1, address || null]
-    const [result] = await pool.execute(sql, values)
-    return result
-}
-
-// 로그인 : 유틸리티 함수
-const loginUtil = async (loginInfo) => {
-    const { loginEmail, loginPwd } = loginInfo
-    const sql = 'select * from member where email = ?'
-    
-    const [rows] = await pool.execute(sql, [loginEmail])
-    if (rows.length === 0) {
-        return false; // 사용자 없음
-    }
-    const match = await comparePwd(loginPwd, rows[0].pwd)
-    return { match: match, userInfo: rows[0] }
-}
-
-// 세션 유저정보 전처리
-const sessionInfo = async (userInfo) => {
-    return {
-        member_id: userInfo.member_id,
-        name: userInfo.name,
-        email: userInfo.email,
-        phone: userInfo.phone,
-        eco_point: userInfo.eco_point,
-        image_url : userInfo.image_url,
-        member_type_id: userInfo.member_type_id,
-        subs_id: userInfo.subs_id,
-        address: userInfo.address,
-        isAuthenticated: true,
-    }
-}
-/******************************** 일반 회원가입 및 로그인 ********************************/
-// 회원가입 : member data DB에 추가 + 비밀번호 해시
+// 회원가입
 router.post('/memberInsert', async (req, res) => {
     try {
-        const result = await signupUtil(req.body)
+        const result = await loginAuth.signupUtil(req.body)
         res.status(201).json({ message: '회원가입 성공', memId: result.insertId })
     } catch (error) {
         console.error("signupHandler 오류: ", error)
@@ -94,9 +25,10 @@ router.post('/memberInsert', async (req, res) => {
 // 로그인 : 회원 이메일 및 비밀번호 해시값 비교
 router.post('/memberLogin', async (req, res) => {
     try {
-        const {match, userInfo} = await loginUtil(req.body)
+        const {match, userInfo} = await loginAuth.loginUtil(req.body)
+        console.log(match, userInfo)
         if (match) {
-            req.session.user = await sessionInfo(userInfo)
+            req.session.user = await loginAuth.sessionInfo(userInfo)
             res.status(200).json({ message: '로그인 성공', result: match })
         } else {
             res.status(401).json({ message: '계정이 일치하지 않습니다.', result: match })
@@ -161,14 +93,9 @@ router.put('/resetPwd', async (req, res) => {
 let redirectHome = ''
 // 로그인 버튼을 누르면 도착하는 목적지 라우터
 // https://accounts.google.com/o/oauth2/v2/auth
-router.get('/signup/google', (req, res) => {
+router.get('/signup/google', (req, res, next) => {
     const { server } = req.query
-    if (server === "react") {
-        redirectHome = 'http://localhost:3456'
-    } else {
-        redirectHome = '/'
-    }
-    console.log('server: ', req.query)
+    redirectHome = (server === "react") ? 'http://localhost:3456' : '/'
 
     const url = new URL('https://accounts.google.com/o/oauth2/v2/auth')
     url.searchParams.append('client_id', process.env.GOOGLE_CLIENT_ID)
@@ -217,26 +144,24 @@ router.get('/signup/redirect', async (req, res) => {
         //////////////// Step 3: Login or Signup Info /////////////////
         try {
             // 로그인 진행
-            const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
+            const {match, userInfo} = await loginAuth.loginUtil({ loginEmail: email, loginPwd: id })
 
-            if (match) {
-                req.session.user = await sessionInfo(userInfo)
-                res.redirect(redirectHome) //res.status(200).json({ message: '로그인 성공', result: match })
-            
-            // 회원가입 진행
-            } else if(!match) {
-                const signupResult = await signupUtil({ name: name, email: email, pwd: id, img_url: picture, member_type_id: 2 })
-                const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
-
-                req.session.user = await sessionInfo(userInfo)
-                res.redirect(redirectHome)
-                //return res.status(200).json({ message: '회원가입 성공', memId: signupResult.insertId })
+            if(!match) {
+                // 회원가입 진행 (로그인 실패 시)
+                const signupResult = await loginAuth.signupUtil({ name: name, email: email, pwd: id, img_url: picture, member_type_id: 2 })
+                const {match, userInfo} = await loginAuth.loginUtil({ loginEmail: email, loginPwd: id })
             }
+
+            // 세션 진행
+            req.session.user = await loginAuth.sessionInfo(userInfo)
+            res.redirect(redirectHome) //res.status(200).json({ message: '로그인 성공', result: match })
+
         } catch (error) {
             console.error(error)
             return res.status(500).json({ message: '로그인 또는 회원가입 오류' })
         }
         //////////////// Step 3: Login or Signup Info /////////////////
+
     } catch (error) {
         console.error("구글 요청 오류: ", error)
         res.status(500).json({ message: "서버 오류" })
@@ -250,7 +175,7 @@ router.get('/protected', (req, res) => {
     if(req.session?.user?.isAuthenticated) {
         res.status(200).json({ message: '인증된 사용자 입니다.', auth: true });
     } else {
-        res.status(401).json({ message: '로그인이 필요합니다.' }); // 인증되지 않은 경우 401 상태 코드 반환
+        res.status(401).json({ message: '로그인이 필요합니다.', auth: false }); // 인증되지 않은 경우 401 상태 코드 반환
     }
 })
 
@@ -273,12 +198,7 @@ router.get('/logout', (req, res) => {
 /* 네이버 로그인 */
 router.get('/auth/naver', (req, res) => {
     const { server } = req.query
-    if (server === "react") {
-        redirectHome = 'http://localhost:3456'
-    } else {
-        redirectHome = '/'
-    }
-    console.log('server: ', req.query)
+    redirectHome = (server === "react") ? 'http://localhost:3456' : '/'
 
     try {
         const id = process.env.NAVER_LOGIN_CLIENT_ID
@@ -323,17 +243,17 @@ router.get('/auth/naver/callback', async (req, res, next) => {
 
         try {
             // 로그인 진행
-            const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
+            const {match, userInfo} = await loginAuth.loginUtil({ loginEmail: email, loginPwd: id })
 
             if (match) {
-                req.session.user = await sessionInfo(userInfo)
+                req.session.user = await loginAuth.sessionInfo(userInfo)
                 return res.redirect(redirectHome) //res.status(200).json({ message: '로그인 성공', result: match })
             
             } else if(!match) {
-                const signupResult = await signupUtil({ name: name, email: email, pwd: id, phone: mobile, img_url: profile_image || null, member_type_id: 2 })
-                const {match, userInfo} = await loginUtil({ loginEmail: email, loginPwd: id })
+                const signupResult = await loginAuth.signupUtil({ name: name, email: email, pwd: id, phone: mobile, img_url: profile_image || null, member_type_id: 2 })
+                const {match, userInfo} = await loginAuth.loginUtil({ loginEmail: email, loginPwd: id })
 
-                req.session.user = await sessionInfo(userInfo)
+                req.session.user = await loginAuth.sessionInfo(userInfo)
                 res.redirect(redirectHome)
                 return res.status(200).json({ message: '네이버 로그인 성공', rows: naver })
             }
