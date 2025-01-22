@@ -6,9 +6,18 @@ const axios = require('axios');
 
 const loginFunc = require('./service/loginFunc.js'); // 이 줄을 위로 이동합니다.
 const loginAuth = new loginFunc()
-const pool = require('../connDB.js')
 require('dotenv').config()
 
+/******************************** MySQL DB연동 ********************************/
+const pool = require('../connDB.js')
+// sql쿼리 요청 방법은 2가지가 있습니다.
+// pool.query(sql, params)   : 매번 새 SQL 파싱하므로 비교적 느림
+// pool.execute(sql, params) : Prepared Statement 재사용으로 비교적 빠름(추천)
+// execute 함수는 아래와 같이 구성되어 있으며, rows와 fields를 반환합니다.
+
+// sample) const [rows, fields] = await pool.execute(sql, [params]);
+// rows는 쿼리 실행결과로 반환된 데이터의 배열입니다.
+// fields는 실행결과에 대한 메타데이터를 포함하는 배열입니다.
 
 /******************************** 일반 회원가입 및 로그인 ********************************/
 // 회원가입
@@ -23,15 +32,14 @@ router.post('/memberInsert', async (req, res) => {
 })
 
 
-
 // 로그인 : 회원 이메일 및 비밀번호 해시값 비교
 router.post('/memberLogin', async (req, res) => {
     try {
         const {match, userInfo} = await loginAuth.loginUtil(req.body)
-        console.log(match, userInfo)
+
         if (match) {
             req.session.user = await loginAuth.sessionInfo(userInfo)
-            res.status(200).json({ message: '로그인 성공', result: match })
+            res.status(200).json({ message: '로그인 성공', result: match, userInfo: userInfo })
         } else {
             res.status(200).json({ message: '계정이 일치하지 않습니다.', result: match })
         }
@@ -41,7 +49,6 @@ router.post('/memberLogin', async (req, res) => {
     }
 })
 /******************************** 일반 회원가입 및 로그인 ********************************/
-
 
 
 /********************************** 회원정보 찾기 및 수정 **********************************/
