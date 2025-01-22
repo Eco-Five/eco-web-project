@@ -769,10 +769,10 @@ router.post('/uploadProfilePic', upload.single('fileUpload'), async (req, res) =
 /************************* 커뮤니티글목록 ***************************/
 router.get('/board', async (req, res) => {
     try {
-        console.log("세션에 저장된 사용자 정보:", req.session.user); // 세션 값 확인용 로그
+        console.log("세션에 저장된 사용자 정보:", req.session.user); 
         const user = req.session.user || null;
-        const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
-        const perPage = 5; // 한 페이지당 5개 글
+        const page = parseInt(req.query.page) || 1; 
+        const perPage = 5; 
         const offset = (page - 1) * perPage;
         const category = req.query.category || 'all'; // category 값 받기
         let sql = `SELECT b.*, m.name AS name, c.type_name AS type_name, 
@@ -818,7 +818,6 @@ router.get('/board/write', (req, res) => {
 
 /************************* 커뮤니티글작성-POST ***************************/
 router.post('/board/write', upload.single('fileUpload'), async (req, res) => {
-    //사용자가 화면에서 입력한 값 담기
     const user = req.session.user
     const {content_type_id, title, content} = req.body
     const filePath = req.file ? `/uploads/${req.file.filename} `: null;
