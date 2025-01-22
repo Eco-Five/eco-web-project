@@ -105,7 +105,7 @@
         <div class="d-flex justify-content-between p-2 mb-2" style="height: 12%;">
             <p class="fw-bold" style="font-size: clamp(0.6rem, 2vw, 1.2rem);">{{formatPrice lprice}}원</p> <!-- 텍스트 크기 키움 -->
             <a href="{{link}}">
-                <button index="{{@index}}" class="btn btn-success btn-sm" style="min-width: 10px; font-size: 1.2vw;">네이버쇼핑</button> <!-- 버튼 크기 조정 -->
+                <button index="{{@index}}" class="btn btn-success btn-sm" style="min-width: 10px; font-size: 1.0vw;">네이버쇼핑</button> <!-- 버튼 크기 조정 -->
             </a>
         </div>
     </div>
@@ -118,10 +118,11 @@
         const response = await fetch('/api/naverShop', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ values: "친환경 인증" })
+            body: JSON.stringify({ values: "친환경 인증", page: 1, sort: "sim" })
         })
         const data = await response.json()
-        const productData = { products: [data.list[10], data.list[1], data.list[2], data.list[50]] }
+        console.log(data);
+        const productData = { products: [data.list[2], data.list[3], data.list[5], data.list[7]] }
 
         const templateP = Handlebars.compile($("#product-card").html())
         $("#products").html(templateP(productData))

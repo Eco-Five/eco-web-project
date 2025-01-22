@@ -132,7 +132,7 @@ router.get('/payment/cancel', async (req, res) => {
     }
 
     try {
-      const sql = "delete from payment where payment_token = ?"
+      const sql = "update payment set subs_status_id = 3 where payment_token = ?"
       const [result] = await pool.execute(sql, [paymentId])
 
       if(result.affectedRows === 1) {

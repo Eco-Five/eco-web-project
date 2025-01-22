@@ -22,6 +22,8 @@ router.post('/memberInsert', async (req, res) => {
     }
 })
 
+
+
 // 로그인 : 회원 이메일 및 비밀번호 해시값 비교
 router.post('/memberLogin', async (req, res) => {
     try {
@@ -31,9 +33,8 @@ router.post('/memberLogin', async (req, res) => {
             req.session.user = await loginAuth.sessionInfo(userInfo)
             res.status(200).json({ message: '로그인 성공', result: match })
         } else {
-            res.status(401).json({ message: '계정이 일치하지 않습니다.', result: match })
+            res.status(200).json({ message: '계정이 일치하지 않습니다.', result: match })
         }
-
     } catch (error) {
         console.error("memberLogin 오류: ", error);
         res.status(500).json({ message: "서버오류" })
@@ -47,7 +48,6 @@ router.post('/memberLogin', async (req, res) => {
 // 이메일 찾기
 router.post('/findEmail', async (req, res) => {
     const { name, phone } = req.body
-
     try {
         sql = "select email from member where name = ? and phone = ?"
         const [rows] = await pool.execute(sql, [name, phone])
@@ -181,7 +181,7 @@ router.get('/protected', (req, res) => {
 
 router.get('/logout', (req, res) => {
     req.session.destroy((err) => {
-        if(err) {
+        if (err) {
             console.error('session delete error: ', err)
             return res.status(500).json({ message: '로그아웃 실패' })
         }
@@ -195,6 +195,17 @@ router.get('/logout', (req, res) => {
 
 
 /************************************* Naver OAuth2 *************************************/
+router.get('/auth/naver', (req, res) => {
+    try {
+        const id = process.env.NAVER_LOGIN_CLIENT_ID
+        const redirect_uri = 'https://localhost:5678/api/auth/naver/callback'
+        const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${id}&redirect_uri=${redirect_uri}&state=STATE_STRING`;
+        res.redirect(naverAuthUrl);
+    } catch (error) { 
+        console.error("인증코드 받기 실패!!", error)
+    }
+})
+
 /* 네이버 로그인 */
 router.get('/auth/naver', (req, res) => {
     const { server } = req.query
@@ -271,14 +282,16 @@ router.get('/auth/naver/callback', async (req, res, next) => {
 
 
 /******************************** 네이버 쇼핑 ********************************/
-// 네이버쇼핑API 서버
+// 네이버쇼핑API 서버 
+// node/api/naverShop - 리액트
 router.post("/naverShop", async (req, res) => {
-    const query = req.body;
+    const query = req.body.values; 
     const page = req.body.page; 
-    const itemsPerPage = 12; 
+    const sort = req.body.sort;   
+    const itemsPerPage = 12;
 
     try {
-        const url = `https://openapi.naver.com/v1/search/shop.json?query=${query.values}&display=100`;
+        const url = `https://openapi.naver.com/v1/search/shop.json?query=${query}&display=100&sort=${sort}`;
         
         const responseNaverShop = await fetch(url, {
             method: 'GET',
@@ -295,15 +308,16 @@ router.post("/naverShop", async (req, res) => {
 
         res.status(200).json({
             result: '정상 작동',
-            list: items,          
-            totalPages: totalPages,  
-            currentPage: page     
+            list: items,
+            totalPages: totalPages,
+            currentPage: page
         });
 
     } catch (error) {
         res.status(500).json({ result: '서버 오류' });
     }
 });
+
 /******************************** 네이버 쇼핑 ********************************/
 
 
@@ -364,30 +378,49 @@ const upload = multer({
 });
 
 /************************* 커뮤니티글목록 ***************************/
+//http://localhost:5678/board
 router.get('/board', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
         const perPage = 5; // 한 페이지당 5개 글
         const offset = (page - 1) * perPage;
-        // LIMIT과 OFFSET 값을 쿼리 인자에 맞게 전달
-        const sql = `SELECT b.*, m.name AS name, c.type_name AS type_name
+        const category = req.query.category || 'all'; // category 값 받기
+        let sql = `SELECT b.*, m.name AS name, c.type_name AS type_name,
+                    IFNULL((SELECT COUNT (*) FROM board_heart WHERE board_id = b.board_id AND heart = 1), 0) AS totalhearts
                     FROM board b
                     LEFT JOIN member m ON b.member_id = m.member_id
                     LEFT JOIN content_type c ON b.content_type_id = c.content_type_id
-                    ORDER BY b.board_id DESC
-                    LIMIT ${perPage} OFFSET ${offset}`;  // 쿼리 내에 직접 숫자 값을 삽입
-        const [rows] = await pool.execute(sql);
-        // 총 글 수를 구해서 페이지 수 계산
-        const totalSql = `SELECT COUNT(*) AS total FROM board`;
-        const [totalRows] = await pool.execute(totalSql);
+                    WHERE 1 = 1`;
+        // 카테고리 값이 있으면 SQL 쿼리에 추가
+        if (category !== 'all') {
+            sql += ` AND c.content_type_id = ?`; // 카테고리로 필터링
+        }
+        sql += ` ORDER BY b.board_id DESC LIMIT ${perPage} OFFSET ${offset}`;
+
+        // 쿼리 파라미터 전달 (category가 'all'이 아니면 그 값 전달)
+        const params = category !== 'all' ? [category] : [];
+        const [rows] = await pool.execute(sql, params); // 쿼리 실행
+
+        // 총 게시물 수를 구하는 쿼리
+        const totalSql = `SELECT COUNT(*) AS total FROM board ${category !== 'all' ? 'WHERE content_type_id = ?' : ''}`;
+        const [totalRows] = await pool.execute(totalSql, category !== 'all' ? [category] : []);
         const totalBoards = totalRows[0].total;
         const totalPages = Math.ceil(totalBoards / perPage);
-        res.render('index', {
-            title: '커뮤니티목록',
-            pageName: 'board/board.ejs',
+
+        // 인기게시물
+        const popularSql = `SELECT board_id, title, view_count
+                            FROM board 
+                            ORDER BY view_count DESC
+                            LIMIT 3`
+        const [popularRows] = await pool.execute(popularSql)
+
+        // JSON 형태로 응답
+        res.json({
             boards: rows,
             currentPage: page,
-            totalPages: totalPages
+            totalPages: totalPages,
+            category: category,
+            populars: popularRows,
         });
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
@@ -400,57 +433,113 @@ router.get('/board', async (req, res) => {
 router.get('/board/:b_no', async (req, res) => {
     // 쿼리 스트링을 통해 member_id 정보 가져오기
     const b_no = req.params.b_no
+    const user = req.session.user || null; // 로그인한 사용자가 없으면 null로 설정
     if (!b_no) {
         return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
     }
     try {
-        const sql = `select b.*, m.name AS name
-                    from board b
-                    JOIN member m ON b.member_id = m.member_id
-                    where board_id = ?`
-        const [rows] = await pool.execute(sql, [b_no])
+        // 조회수 증가 (모든 사용자 대상)
+        const sql1 = `UPDATE board
+                    SET view_count = view_count + 1
+                    WHERE board_id = ?`
+        await pool.execute(sql1, [b_no])
+        // 상세보기 렌더링 (+ 좋아요 상태)
+        const sql2 = `SELECT b.*, m.name AS name,
+                        IFNULL(bh.heart, 0) AS heart,
+                        IFNULL((SELECT COUNT (*) FROM board_heart WHERE board_id = b.board_id AND heart = 1), 0) AS totalhearts
+                        FROM board b
+                        INNER JOIN member m ON b.member_id = m.member_id
+                        LEFT JOIN board_heart bh ON b.board_id = bh.board_id AND bh.member_id = ?
+                        WHERE b.board_id = ?`;
+                        const [rows] = await pool.execute(sql2, [user ? user.member_id : null, b_no]);
         //조회 결과가 없는 경우 처리
-        if(rows.length===0){
-            return res.status(404).send({message:'해당 글이 없습니다.'})
+        if (rows.length === 0) {
+            return res.status(404).send({ message: '해당 글이 없습니다.' })
         }
         //성공시 응답
-        //res.json(rows) // 결과값을 JSON로 변환하여 전달
         res.render('index',{
             title:'커뮤니티상세보기', 
             pageName: 'board/read.ejs',
-            board: rows[0]
+            board: rows[0],
+            user: user, // 세션 정보 전달
+            totalhearts: rows[0].totalhearts
             })
     } catch (error) {
-        console.error("커넥션 혹은 SQL쿼리 오류: ", error);
+        console.error("커넥션 혹은 SQL쿼리 오류: ", error)
         res.status(500).json({ message: "서버 오류" })
     }
 })
 
-/************************* 커뮤니티글작성 ***************************/
-//http://localhost:5678/api/board/write
-router.post('/board/write', upload.single('fileUpload'), async(req,res)=>{
+/************************* 좋아요 ***************************/
+router.post('/board/:b_no/like', async (req, res) => {
+    const b_no = req.params.b_no;
+    const user = req.session.user; // 로그인한 사용자
+
+    if (!user) {
+        return res.status(401).send({ message: "로그인이 필요합니다." });
+    }
+
+    const userId = user.member_id;
+
+    try {
+        // 좋아요 상태 체크 및 추가/삭제
+        const checkSql = `SELECT COUNT(*) AS count FROM board_heart WHERE board_id = ? AND member_id = ?`;
+        const [check] = await pool.execute(checkSql, [b_no, userId]);
+
+        if (check[0].count > 0) {
+            // 좋아요가 이미 눌러졌다면 취소
+            await pool.execute(`DELETE FROM board_heart WHERE board_id = ? AND member_id = ?`, [b_no, userId]);
+        } else {
+            // 좋아요가 눌러지지 않았다면 추가
+            await pool.execute(`INSERT INTO board_heart (board_id, member_id, heart) VALUES (?, ?, 1)`, [b_no, userId]);
+        }
+
+        // 새로운 좋아요 수를 반환
+        const [countResult] = await pool.execute(`SELECT COUNT(*) AS totalhearts FROM board_heart WHERE board_id = ? AND heart = 1`, [b_no]);
+        res.json({ totalHearts: countResult[0].totalhearts });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "서버 오류" });
+    }
+});
+
+/************************* 커뮤니티글작성-GET ***************************/
+router.get('/board/write', (req, res) => {
+    const user = req.session.user || null; 
+    if (!user || !user.isAuthenticated) {
+        return res.redirect('/login'); // 비로그인 사용자는 로그인 페이지로 리다이렉트
+    }
+
+    res.render('index', { 
+        title: '커뮤니티작성', 
+        pageName: 'board/write.ejs', 
+        user: user // EJS 템플릿에 user 정보 전달
+    });
+});
+
+/************************* 커뮤니티글작성-POST ***************************/
+//http://localhost:5678/board/write
+router.post('/board/write', upload.single('fileUpload'), async (req, res) => {
     //사용자가 화면에서 입력한 값 담기
+    const user = req.session.user
     const {content_type_id, title, content} = req.body
     const filePath = req.file ? `/uploads/${req.file.filename} `: null;
     try{
         const sql = `insert into board(content_type_id, title, content, board_date, image_url, member_id)
                         values (?,?,?,now(),?,?)`
-        const values = [content_type_id,title,content,filePath,1]
+        const values = [content_type_id,title,content,filePath,user.member_id]
         const [result] = await pool.execute(sql,values)
         //조회 결과가 없는 경우 처리
         console.log(result)//1이면 입력 성공. 0이면 입력 실패
         //성공시 응답하기
-        res.json({success:true, result:result})
-    }catch(error){
+        res.json({ success: true, result: result })
+    } catch (error) {
         console.error('Database error:', error)
-        return res.status(500).send({message:'글 쓰기 처리 중 오류가 발생했습니다.'})
+        return res.status(500).send({ message: '글 쓰기 처리 중 오류가 발생했습니다.' })
     }
-    })
+})
 
 /************************* 커뮤니티글수정-GET ***************************/
-// 1. /board/update URL로의 요청이 /api/board/update로 리디렉션됨
-// 2. api.js에서 해당 경로를 처리할 수 있도록 GET 요청을 추가하여 수정 페이지를 렌더링
-// 3. 수정된 URL 경로를 통해 수정 기능을 정상적으로 작동시킬 수 있다.
 router.get('/board/update/:b_no', async (req, res, next) => {
     const b_no = req.params.b_no
     try {
@@ -459,17 +548,11 @@ router.get('/board/update/:b_no', async (req, res, next) => {
                     JOIN content_type c ON b.content_type_id = c.content_type_id
                     WHERE board_id = ?`
         const [rows] = await pool.execute(sql, [b_no])
-        //조회 결과가 없는 경우 처리
-        if(rows.length===0){
-            return res.status(404).send({message:'해당 글이 없습니다.'})
+        
+        if (rows.length === 0) {
+            return res.status(404).send({ message: '해당 글이 없습니다.' })
         }
-        //성공시 응답 - 수정 폼 렌더링
-        //res.json(rows) // 결과값을 JSON로 변환하여 전달
-        res.render('index',{
-            title:'커뮤니티 수정', 
-            pageName: 'board/update.ejs',
-            board: rows[0]
-            })
+        res.json({ success: true, board: rows[0]})
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
         res.status(500).json({ message: "서버 오류" })
@@ -477,34 +560,35 @@ router.get('/board/update/:b_no', async (req, res, next) => {
 })
 
 /************************* 커뮤니티글수정-PUT***************************/
-//http://localhost:5678/api/board/update?b_no=2
+//http://localhost:5678/board/update/2
 router.put('/board/update/:b_no', upload.single('fileUpload'), async(req,res)=>{
     //사용자가 화면에서 수정한 값 담기
     const b_no = req.params.b_no
-    const {content_type_id, title, content} = req.body
-    const filePath = req.file ? `/uploads/${req.file.filename} `: req.body.fileUpload;
-    try{
+    const { content_type_id, title, content } = req.body
+    const filePath = req.file ? `/uploads/${req.file.filename} ` : req.body.fileUpload;
+    try {
         //데이터베이스 쿼리 실행 하기
         const sql = `UPDATE board
                     SET content_type_id = ?, title = ?, content = ?, board_date = now(), image_url = ?
                     WHERE board_id = ?`;
-        const values = [content_type_id,title,content,filePath,b_no]
-        const [result] = await pool.execute(sql,values)
-        console.log(result)//1이면 수정 성공. 0이면 수정 실패
-        //성공시 응답하기
-        res.json({success:true, result:result})
-    }catch(error){
-        return res.status(500).send({message:'글 수정 처리 중 오류가 발생했습니다.'})
+        const values = [content_type_id, title, content, filePath, b_no]
+        const [rows] = await pool.execute(sql, values)
+        res.json({ success: true })
+    } catch (error) {
+        return res.status(500).send({ message: '글 수정 처리 중 오류가 발생했습니다.' })
     }
-    })
+})
 
 /************************* 커뮤니티글삭제 ***************************/
-router.delete('/board/:b_no', async(req, res)=>{
+router.delete('/board/:b_no', async (req, res) => {
     const b_no = req.params.b_no
     console.log(b_no)
-    const sql = "DELETE FROM board WHERE board_id=?"
+    //외래키 제약 조건 : board_heart 참조 데이터 먼저 삭제
+    const sql1 = "DELETE FROM board_heart WHERE board_id=?"
+    const sql2 = "DELETE FROM board WHERE board_id=?"
     try{
-        const [result] = await pool.execute(sql,[b_no])
+        await pool.execute(sql1,[b_no])
+        const [result] = await pool.execute(sql2,[b_no])
         console.log(result)//1이면 삭제 성공. 0이면 삭제 실패
         //성공시 응답하기
         if (result.affectedRows > 0) {
@@ -512,43 +596,57 @@ router.delete('/board/:b_no', async(req, res)=>{
         } else {
             res.json({ success: false, message: '삭제 실패했습니다.' })
         }
-    }catch(error){
+    } catch (error) {
         console.error('Database error:', error)
-        return res.status(500).send({message:'글 삭제 처리 중 오류가 발생했습니다.'})
-        }
-    })
-
+        return res.status(500).send({ message: '글 삭제 처리 중 오류가 발생했습니다.' })
+    }
+})
 
 /************************* 고객문의글목록 ***************************/
+//http://localhost:5678/question
 router.get('/question', async (req, res) => {
     try {
+        
         const page = parseInt(req.query.page) || 1; // 기본 페이지는 1
-        const perPage = 5; // 한 페이지당 5개 글
+        const perPage = 10; // 한 페이지당 글 개수
         const offset = (page - 1) * perPage;
+        const category = req.query.category || 'all'; // category 값 받기
 
-        // LIMIT과 OFFSET 값을 쿼리 인자에 맞게 전달
-        const sql = `SELECT i.*, m.name AS name, s.status_name AS status
-                    from inquiry i
-                    LEFT JOIN member m ON i.member_id = m.member_id
-                    LEFT JOIN inquiry_status s ON i.inquiry_status_id = s.inquiry_status_id
-                    ORDER BY i.inquiry_id DESC
-                    LIMIT ${perPage} OFFSET ${offset}`;  // 쿼리 내에 직접 숫자 값을 삽입
+        let sql = `SELECT i.*, m.name AS name, s.status_name AS status, c.type_name AS type_name
+                    FROM inquiry i
+                    INNER JOIN member m ON i.member_id = m.member_id
+                    INNER JOIN inquiry_status s ON i.inquiry_status_id = s.inquiry_status_id
+                    INNER JOIN content_type c ON i.content_type_id = c.content_type_id
+                    WHERE 1 = 1`;
 
-        const [rows] = await pool.execute(sql);
+        // 카테고리 값이 있으면 SQL 쿼리에 추가
+        if (category !== 'all') {
+            sql += ` AND c.content_type_id = ?`; // 카테고리로 필터링
+        }
+        // LIMIT과 OFFSET을 쿼리에 직접 삽입
+        sql += ` ORDER BY i.inquiry_id DESC LIMIT ${perPage} OFFSET ${offset}`; 
 
-        // 총 글 수를 구해서 페이지 수 계산
-        const totalSql = `SELECT COUNT(*) AS total FROM inquiry`;
-        const [totalRows] = await pool.execute(totalSql);
+        // 쿼리 파라미터 설정
+        const params = category !== 'all' ? [category] : [];
+        const [rows] = await pool.execute(sql, params);
+
+        // 총 게시물 수를 구하는 쿼리
+        const totalSql = `SELECT COUNT(*) AS total FROM inquiry ${category !== 'all' ? 'WHERE content_type_id = ?' : ''}`;
+        const [totalRows] = await pool.execute(totalSql, category !== 'all' ? [category] : []);
         const totalBoards = totalRows[0].total;
         const totalPages = Math.ceil(totalBoards / perPage);
 
-        res.render('index', {
-            title: '고객문의목록',
-            pageName: 'question/question.ejs',
+        const user = req.session.user || null;
+
+        // JSON으로 반환
+        res.status(200).json({
             questions: rows,
+            totalPages: totalPages,
             currentPage: page,
-            totalPages: totalPages
-        });
+            category : category,  // 카테고리 기본값 설정
+            page : page,  // 페이지 기본값 설정
+            user: user
+        })
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
         res.status(500).json({ message: "서버 오류" });
@@ -556,29 +654,31 @@ router.get('/question', async (req, res) => {
 });
 
 /************************* 고객문의글상세보기 ***************************/
-//http://localhost:5678/api/question/read?q_no=2
+//http://localhost:5678/api/question/2
 router.get('/question/:q_no', async (req, res) => {
     const q_no = req.params.q_no
+    const user = req.session.user || null; // 로그인한 사용자가 없으면 null로 설정
     if (!q_no) {
         return res.status(400).send({ message: "게시글 번호가 누락되었습니다." });
     }
     try {
-        const sql = `SELECT i.*, m.name AS name, ic.comment AS comment, ic.comment_date AS comment_date
+        const sql = `SELECT i.*, m.name AS name, ic.comment AS comment, ic.comment_date AS comment_date, ic.inquiry_comment_id AS inquiry_comment_id
                     FROM inquiry i
-                    LEFT JOIN member m ON i.member_id = m.member_id
+                    INNER JOIN member m ON i.member_id = m.member_id
                     LEFT JOIN inquiry_comment ic ON i.inquiry_id = ic.inquiry_id
                     WHERE i.inquiry_id=?`
         const [rows] = await pool.execute(sql, [q_no])
         //조회 결과가 없는 경우 처리
-        if(rows.length===0){
-            return res.status(404).send({message:'해당 글이 없습니다.'})
+        if (rows.length === 0) {
+            return res.status(404).send({ message: '해당 글이 없습니다.' })
         }
         //성공시 응답
         //res.json(rows) // 결과값을 JSON로 변환하여 전달
-        res.render('index',{
-            title:'고객문의상세보기', 
+        res.render('index', {
+            title: '고객문의상세보기',
             pageName: 'question/read.ejs',
-            question: rows[0]
+            question: rows[0],
+            user:user
             })
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
@@ -586,54 +686,46 @@ router.get('/question/:q_no', async (req, res) => {
     }
 })
 
-/************************* 고객문의글작성 ***************************/
+/************************* 고객문의글작성-GET ***************************/
+router.get('/question/write', (req, res) => {
+    const user = req.session.user || null; // 세션에서 user 정보 가져오기
+    if (!user || !user.isAuthenticated) {
+        console.log('User not authenticated. Redirecting to login.');
+        return res.redirect('/login'); // 비로그인 사용자는 로그인 페이지로 리다이렉트
+    }
+
+    res.render('index', { 
+        title: '고객문의작성', 
+        pageName: 'question/write.ejs', 
+        user: user 
+    });
+});
+
+/************************* 고객문의글작성-POST ***************************/
+//http://localhost:5678/api/question/write
 router.post('/question/write', async(req,res)=>{
     //사용자가 화면에서 입력한 값 담기
+    const user = req.session.user
     const {content_type_id, title, content} = req.body
     try{
         //데이터베이스 쿼리 실행 하기
         const sql = `insert into inquiry(content_type_id, title, content, inquiry_date, member_id, inquiry_status_id)
                         values (?,?,?,now(),?,?)`
-        const values = [content_type_id,title,content,1,1]
+        const values = [content_type_id,title,content,user.member_id,1]
         const [result] = await pool.execute(sql,values)
         //조회 결과가 없는 경우 처리
         console.log(result)//1이면 입력 성공. 0이면 입력 실패
         //성공시 응답하기
-        res.json({success:true, result:result})
-    }catch(error){
+        res.json({ success: true, result: result })
+    } catch (error) {
         console.error('Database error:', error)
         return res.status(500).send({message:'글 쓰기 처리 중 오류가 발생했습니다.'})
     }
     })
 
-// /************************* 고객문의댓글작성 ***************************/
-// router.post('/question/comment', async(req,res)=>{
-//     //사용자가 화면에서 입력한 값 담기
-//     const { inquiry_id, comment } = req.body;
-//     if (!inquiry_id || !comment) {
-//         return res.status(400).json({ success: false, message: "필수 값이 누락되었습니다." });
-//     }
-//     try{
-//         //데이터베이스 쿼리 실행 하기
-//         const sql = `insert into inquiry_comment(inquiry_id, comment, comment_date)
-//                         values (?, ?, now())`
-//         const [result] = await pool.execute(sql, [inquiry_id, comment])
-//         if (result.affectedRows > 0) {
-//             res.json({ success: true });
-//         } else {
-//             res.status(500).json({ success: false, message: "댓글 작성에 실패했습니다." });
-//         }
-//     } catch (error) {
-//         console.error("댓글 작성 중 오류: ", error);
-//         res.status(500).json({ success: false, message: "서버 오류가 발생했습니다." });
-//     }
-// })
-
-
 /************************* 고객문의글수정-GET ***************************/
 router.get('/question/update/:q_no', async (req, res, next) => {
     const q_no = req.params.q_no
-
     try {
         const sql = `SELECT i.*, c.type_name AS type_name
                     FROM inquiry i
@@ -642,56 +734,48 @@ router.get('/question/update/:q_no', async (req, res, next) => {
         const [rows] = await pool.execute(sql, [q_no])
 
         //조회 결과가 없는 경우 처리
-        if(rows.length===0){
-            return res.status(404).send({message:'해당 글이 없습니다.'})
+        if (rows.length === 0) {
+            return res.status(404).send({ message: '해당 글이 없습니다.' })
         }
-        //성공시 응답 - 수정 폼 렌더링
-        //res.json(rows) // 결과값을 JSON로 변환하여 전달
-        res.render('index',{
-            title:'고객문의 수정', 
-            pageName: 'question/update.ejs',
-            inquiry: rows[0]
-            })
+        res.json({ success: true, data: rows[0]})
     } catch (error) {
         console.error("커넥션 혹은 SQL쿼리 오류: ", error);
         res.status(500).json({ message: "서버 오류" })
     }
 })
+/************************* 고객문의글수정-PUT ***************************/
+// http://localhost:5678/api/question/update/:q_no
+router.put('/question/update/:q_no', async (req, res) => {
+    const q_no = req.params.q_no;
+    const { content_type_id, title, content } = req.body;
 
-/************************* 고객문의글수정-PUT***************************/
-router.put('/question/update/:q_no', async(req,res)=>{
-    const q_no = req.params.q_no
-    //사용자가 화면에서 수정한 값 담기
-    const {content_type_id, title, content} = req.body
-    //필수 필드 확인
-    if(!content_type_id || !title||!content){
-    console.error("Missing fields : ", req.body)
-    return res.status(400).send("필수 필드를 채우세요.")
+    // 필수 필드 확인
+    if (!content_type_id || !title || !content) {
+        console.error("Missing fields:", req.body);
+        return res.status(400).send("필수 필드를 채우세요.");
     }
-    try{
-        //데이터베이스 쿼리 실행 하기
+
+    try {
         const sql = `UPDATE inquiry
                     SET content_type_id = ?, title = ?, content = ?, inquiry_date = now()
                     WHERE inquiry_id = ?`;
-        const values = [content_type_id,title,content,q_no]
-        const [result] = await pool.execute(sql,values)
-        //조회 결과가 없는 경우 처리
-        console.log(result)//1이면 수정 성공. 0이면 수정 실패
-        //성공시 응답하기
-        res.json({success:true, result:result})
-    }catch(error){
-        console.error('Database error:', error)
-        return res.status(500).send({message:'글 수정 처리 중 오류가 발생했습니다.'})
+        const values = [content_type_id, title, content, q_no];
+        const [rows] = await pool.execute(sql, values);
+      // 성공 시 응답
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Database error:', error);
+        return res.status(500).send({ message: '글 수정 처리 중 오류가 발생했습니다.' });
     }
-    })
+});
 
 /************************* 고객문의글삭제 ***************************/
-router.delete('/question/:q_no', async(req, res)=>{
+router.delete('/question/:q_no', async (req, res) => {
     //DELETE 요청 시, 데이터를 본문으로 보내고 있기 때문에, 서버에서는 req.body.b_no로 받아야 함
     const q_no = req.body.q_no
     //외래키 제약 조건 : inquiry_comment 참조 데이터 먼저 삭제
-    const sql1 = "DELETE FROM inquiry_comment WHERE inquiry_id=?"
-    const sql2 = "DELETE FROM inquiry WHERE inquiry_id=?"
+    const sql1 = `DELETE FROM inquiry_comment WHERE inquiry_id=?`
+    const sql2 = `DELETE FROM inquiry WHERE inquiry_id=?`
     try{
         await pool.execute(sql1,[q_no])
         const [result] = await pool.execute(sql2,[q_no])
@@ -708,5 +792,52 @@ router.delete('/question/:q_no', async(req, res)=>{
         return res.status(500).send({message:'글 삭제 처리 중 오류가 발생했습니다.'})
         }
     })
+
+
+/************************* 고객문의댓글작성+문의상태수정 ***************************/
+router.post('/question/:q_no', async (req, res) => {
+    const q_no = req.params.q_no;
+    const { comment } = req.body;
+
+    try {
+        // 댓글 작성 쿼리
+        const sql1 = `INSERT INTO inquiry_comment (comment, comment_date, inquiry_id) VALUES (?, NOW(), ?)`;
+        // 상태 수정 쿼리 (inquiry_status_id = 2로 변경)
+        const sql2 = `UPDATE inquiry SET inquiry_status_id = ? WHERE inquiry_id = ?`;
+
+        await pool.execute(sql1, [comment, q_no]);
+        const [result] = await pool.execute(sql2, [2, q_no]);
+
+        res.json({ success: true, result: result });
+        } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).send({ message: '댓글 쓰기 처리 중 오류가 발생했습니다.' });
+        }
+    })
+    
+/************************* 고객문의댓글삭제+문의상태수정***************************/
+router.delete('/question/comment/:qc_no', async (req, res) => {
+    const qc_no = req.params.qc_no;
+    const q_no = req.body.q_no;
+
+    try {
+    // 댓글 삭제 쿼리
+    const sql1 = `DELETE FROM inquiry_comment WHERE inquiry_comment_id = ?`;
+    // 상태 수정 쿼리 (inquiry_status_id = 1로 변경)
+    const sql2 = `UPDATE inquiry SET inquiry_status_id = ? WHERE inquiry_id = ?`;
+
+    await pool.execute(sql1, [qc_no]);
+    const [result] = await pool.execute(sql2, [1, q_no]);
+
+    if (result.affectedRows > 0) {
+        res.json({ success: true, message: '댓글 삭제, 상태 변경 완료' });
+    } else {
+        res.json({ success: false, message: '댓글 삭제 실패' });
+    }
+    } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).send({ message: '댓글 삭제 처리 중 오류가 발생했습니다.' });
+    }
+});
 
 module.exports = router;

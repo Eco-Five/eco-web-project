@@ -15,7 +15,11 @@
         <form id="findIdForm">
           <div class="mb-3">
             <label for="email" class="d-flex me-3 mb-2">이메일 주소</label>
-            <input type="text" id="email" class="form-control flex-grow-1" placeholder="✉ 이메일주소를 입력하세요" required>
+            <div class="d-flex align-items-center">
+              <input type="text" id="email" class="form-control flex-grow-1" style="max-width: 76%; max-height: 40px; display: inline;" placeholder="✉ 이메일주소를 입력하세요" required>
+              <button type="button" id="checkEmailBtn" class="btn btn-dark ms-2">중복 확인</button>
+            </div>
+            <p id="emailMessage" class="mt-2 text-start"></p>
           </div>
           <div class="mb-3">
             <label for="password" class="d-flex me-3 mb-2">비밀번호</label>
@@ -39,8 +43,8 @@
             <div class="d-flex justify-content-between">
               <input class="form-control" style="max-width: 66%; max-height: 40px; display: inline;" placeholder="우편 번호" id="postcode"
                 type="text" readonly>
-              <button type="button" class=" btn  btn-dark w-30 btn-block mb-2" onclick="openPostcodePopup()"> <i
-                  class="fa fa-search"></i> 우편번호 찾기</button>
+              <button type="button" class=" btn  btn-dark w-30 btn-block mb-2" onclick="openPostcodePopup()"> 
+                <i class="fa fa-search"></i> 우편번호 찾기</button>
             </div>
           </div>
           <input class="form-control mb-2" style="top:5px;" placeholder="도로명 주소" id="address" type="text" readonly>
