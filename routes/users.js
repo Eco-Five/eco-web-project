@@ -1,27 +1,27 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express')
+var router = express.Router()
 require('dotenv').config()
 
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require('uuid')
 const pool = require('../connDB.js')
-const modelLogic = require('./modelLogic.js'); // 이 줄을 위로 이동합니다.
-const instanceLogic = new modelLogic(); // 인스턴스 생성
+const loginFunc = require('./service/loginFunc.js'); // 이 줄을 위로 이동합니다.
+const loginAuth = new loginFunc()
+
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+  res.send('respond with a resource')
 });
 
 // payment page router
 router.get('/payment', function(req, res, next) {
-  const authResult = instanceLogic.sessionAuth(req, res)
-  res.render('index', { title: 'main', pageName: 'payment/payment.ejs' });
+  const authResult = loginAuth.sessionAuth(req, res)
+  res.render('index', { title: 'main', pageName: 'payment/payment.ejs' })
 });
-
 
 /****************************** Naver Pay ******************************/
 router.post('/naverPay', async (req, res) => {
-  const authResult = instanceLogic.sessionAuth(req, res)
+  const authResult = loginAuth.sessionAuth(req, res)
   const { subsPlan, subsPrice } = req.body
 
   const payInfo = {
@@ -71,7 +71,7 @@ router.get('/payment/resultPay', async function(req, res, next) {
       const sql = `insert into payment (payment_date, payment_token, start_date, end_date, member_id, subs_id, payment_type_id, subs_status_id)
             values (curdate(), ?, curdate(), adddate(curdate(), INTERVAL 1 MONTH), ?, ?, 5, 1)`
 
-      const values = [paymentId, req.session.user.member_id, instanceLogic.subsInfo[subsPlan]]
+      const values = [paymentId, req.session.user.member_id, loginAuth.subsInfo[subsPlan]]
       const [result] = await pool.execute(sql, values);
 
       res.render('index', { title: '결제결과창', pageName:'payment/resultPay.ejs',
@@ -93,7 +93,7 @@ router.get('/payment/resultPay', async function(req, res, next) {
 
 /************************** Naver Pay Cancel **************************/
 router.get('/payment/cancel', async (req, res) => {
-  const authResult = instanceLogic.sessionAuth(req, res)
+  const authResult = loginAuth.sessionAuth(req, res)
 
   try {
     const { paymentId, subsPrice } = req.query

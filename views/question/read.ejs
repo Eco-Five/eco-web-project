@@ -1,29 +1,26 @@
 <div class="container mt-5">
     <!-- 게시글 상세 -->
     <div class="card p-4 mb-4">
-        <h1 class="h4"><%=question.title%></h1>
-        <small class="text-muted"><%=question.name %> · <%= formatDate(question.inquiry_date)%> </small>
-        <p class="mt-3" style="white-space: pre-line;">
-            <%=question.content%>
-        </p>
+        <h1 class="h4" id="question-title"></h1>
+        <small class="text-muted" id="question-author"></small>
+        <small class="text-muted" id="question-date"></small>
+        <p class="mt-3" style="white-space: pre-line;" id="question-content"></p>
         <div class="d-flex justify-content-between align-items-center mt-4">
             <span class="text-muted"></span>
             <div>
-                <% if (user && user.member_id === question.member_id) { %>
-                    <button class="btn btn-outline-primary btn-sm me-2" id="btn-update"><i class="bi bi-pencil"></i> 수정</button>
-                    <button class="btn btn-outline-danger btn-sm me-2" id="btn-delete"><i class="bi bi-trash"></i> 삭제</button>
-                    <% } %>
-                    <button class="btn btn-outline-primary btn-sm me-2" id="btn-list"><i class="bi bi-list"></i> 목록</button>
+                <!-- 수정/삭제 버튼은 클라이언트에서 동적으로 처리 -->
+                <button class="btn btn-outline-primary btn-sm me-2" id="btn-update"><i class="bi bi-pencil"></i> 수정</button>
+                <button class="btn btn-outline-danger btn-sm me-2" id="btn-delete"><i class="bi bi-trash"></i> 삭제</button>
+                <button class="btn btn-outline-primary btn-sm me-2" id="btn-list"><i class="bi bi-list"></i> 목록</button>
             </div>
         </div>
     </div>
-<!-- 댓글 데이터가 없는 상태에서 출력시 null 또는 undefined -> 오류 발생 -->
+
     <!-- 댓글 섹션 -->
     <div>
         <h5>답변</h5>
         <!-- 댓글 작성 섹션 -->
-        <div class="mb-3">
-            <% if (user && user.member_id === 50) { %>
+        <% if (user && user.name === "김지영") { %>
             <textarea class="form-control" rows="3" id="comment" placeholder="답변을 등록하세요."></textarea>
             <div class="text-end mt-2">
                 <button class="btn btn-dark" id="btn-comment">댓글 작성</button>
@@ -32,124 +29,161 @@
             <textarea class="form-control" rows="3" id="comment" placeholder="관리자만 답변을 작성할 수 있습니다." readonly></textarea>
             <% } %>
         </div>
+
         <!-- 댓글 리스트 -->
-        <div class="mt-4">
-            <% if (question.comment && question.comment_date) { %>
-            <div class="mb-3">
-                <strong>관리자</strong> <small class="text-muted"><%= formatDate(question.comment_date)%></small> <button class="btn btn-outline-secondary btn-sm me-2" id="btn-comment-delete" style="margin-left: 10px;"><i class="bi bi-trash"></i></button>
-                <p style="padding-right: 50px;white-space: pre-line;"><%=question.comment%></p>
-            </div>
-            <% } else { %>
-                <strong>답변 대기 중입니다.</strong>
-            <% } %>
+        <div class="mt-4" id="comment-section">
+            <!-- 댓글 내용은 JavaScript에서 처리 -->
         </div>
     </div>
 </div>
 
-<%
-function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');  // months are zero-indexed
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    
-    return `${year}.${month}.${day} ${hours}:${minutes}`;
-}
-%>
-
 <script>
-$(document).ready(() => {
-    //목록으로 돌아가기
-    $("#btn-list").on("click", ()=>{
-        location.href="/question"
-    })
+console.log("Logged-in User:", "<%= user ? user.member_id : 'No User' %>");
+document.addEventListener("DOMContentLoaded", async () => {
+    const q_no = "<%= q_no %>"; // 전달된 q_no 사용
+    const loggedInUser = "<%= user ? user.member_id : '' %>" // 로그인한 사용자 member_id
 
-    //게시글 수정하기
-    //현재 파일에서 수정하는 것이 아니고 수정화면을 띄워서 기존 정보를 가지고
-    //수정하고자하는 값을 입력 받은 후에 저장하기(기존에 있는 정보를 수정하는 것.)
-    //기존에 보이던 화면 URL이 새로운 URL로 변경되는 것이다.
-    //기존에 요청은 끊어지고 새로운 요청이 일어난다.
-    $("#btn-update").on("click", ()=>{
-        location.href = `/question/update/<%=question.inquiry_id%>`
-    })
+    // API 호출하여 question 데이터 가져오기
+    try {
+        const response = await fetch(`/api/question/${q_no}`);
+        const result = await response.json();
 
-    //게시글 삭제하기
-    $("#btn-delete").click((event)=>{
-        const q_no = "<%= question.inquiry_id %>"  // 삭제할 게시글의 ID
-        // 서버로 AJAX 요청을 보내기
-        $.ajax({
-            url: `/api/question/${q_no}`,  // 서버의 삭제 API 경로
-            type: 'DELETE',
-            data: JSON.stringify({ q_no:q_no }),//요청 데이터 JSON으로 전달
-            contentType:'application/json',//서버에 JSON 형식으로 데이터 전송
-            success: function(response) {
-                if (response.success) {
-                    alert("삭제 완료되었습니다")
-                    location.href = "/question"  // 삭제 성공 시 목록 페이지로 이동
-                } else {
-                    alert("삭제 실패했습니다.")
-                }
-            },
-            error: function(xhr, status, error) {
-                alert("오류 발생: " + error)
+        if (result.success) {
+            const question = result.question; // API에서 받은 question 데이터를 사용
+
+            // question 데이터로 페이지 내용 업데이트
+            document.getElementById('question-title').textContent = question.title;
+            document.getElementById('question-author').textContent = `${question.name} · ${formatDate(question.inquiry_date)}`;
+            document.getElementById('question-content').textContent = question.content;
+
+            // 작성자와 로그인한 사용자가 다르면 수정/삭제 버튼 숨김
+            if (String(loggedInUser).trim() !== String(question.member_id).trim()) {
+                        document.getElementById('btn-update').style.display = 'none';
+                        document.getElementById('btn-delete').style.display = 'none';
+                    }
+
+            // 댓글 처리
+            const commentSection = document.getElementById('comment-section');
+            if (question.comment && question.comment_date) {
+                // 댓글 존재시 해당 댓글을 표시
+                const commentHTML = `
+                    <div class="mb-3" id="comment-${question.inquiry_comment_id}">
+                        <strong>관리자</strong> <small class="text-muted">${formatDate(question.comment_date)}</small> 
+                        <button class="btn btn-outline-secondary btn-sm me-2" 
+                                id="btn-comment-delete-${question.inquiry_comment_id}" 
+                                style="margin-left: 10px;">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        <p style="padding-right: 50px;white-space: pre-line;">${question.comment}</p>
+                    </div>
+                `;
+                commentSection.innerHTML = commentHTML;
+
+                // 댓글 삭제 버튼 이벤트 추가
+                document.querySelector(`#btn-comment-delete-${question.inquiry_comment_id}`).addEventListener('click', async () => {
+                    try {
+                        const deleteResponse = await fetch(`/api/question/comment/${question.inquiry_comment_id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ q_no: q_no })
+                        });
+
+                        const deleteResult = await deleteResponse.json();
+                        if (deleteResult.success) {
+                            // 댓글 삭제 후 UI에서 해당 댓글 제거
+                            const commentDiv = document.getElementById(`comment-${question.inquiry_comment_id}`);
+                            commentDiv.remove();  // 댓글 div를 제거
+                        } else {
+                            alert("댓글 삭제 실패");
+                        }
+                    } catch (error) {
+                        alert("오류 발생: " + error);
+                    }
+                });
+            } else {
+                commentSection.innerHTML = "<strong>답변 대기 중입니다.</strong>";
             }
-        });
-    })
+        } else {
+            alert("게시글을 가져오는데 실패했습니다.");
+        }
+    } catch (error) {
+        alert("오류 발생: " + error);
+    }
+    
 
-     // 댓글 작성
-    $("#btn-comment").click((event) => {
-        event.preventDefault();  // 폼 제출을 막고 AJAX로 처리
-    
-        const comment = $("#comment").val()  // 내용
-        const q_no = "<%= question.inquiry_id %>"  // 게시글 ID (쿼리 파라미터로 사용)
-    
-        // 서버로 AJAX 요청을 보내기
-        $.ajax({
-             url: `/api/question/${q_no}`,  // 서버의 등록 API 경로
-            type: 'POST',
-            data: {
-                comment:comment
-            },
-            success: function(response) {
-                if (response.success) {
-                    alert("댓글이 등록되었습니다.");
-                    location.href=`/api/question/${q_no}`;
-                } else {
-                    alert("댓글 등록 실패했습니다.");
-                }
-            },
-            error: function(xhr, status, error) {
-                alert("오류 발생: " + error);
-            }
-        });
-    });   
-    
-    //댓글 삭제
-    $("#btn-comment-delete").click((event)=>{
-        const qc_no = "<%= question.inquiry_comment_id %>"  // 삭제할 댓글의 ID
-        const q_no = "<%= question.inquiry_id %>"
+    // 목록으로 돌아가기
+    document.querySelector("#btn-list").addEventListener("click", () => {
+        location.href = "/question";
+    });
+
+    // 게시글 수정하기
+    document.querySelector("#btn-update")?.addEventListener("click", () => {
+        location.href = `/question/update/<%= q_no %>`;
+    });
+
+    // 게시글 삭제하기
+    document.querySelector("#btn-delete")?.addEventListener("click", async () => {
+        const q_no = "<%= q_no %>";
         
-        // 서버로 AJAX 요청을 보내기
-        $.ajax({
-            url: `/api/question/comment/${qc_no}`,  // 서버의 삭제 API 경로
-            type: 'DELETE',
-            contentType:'application/json',//서버에 JSON 형식으로 데이터 전송
-            data: JSON.stringify({ q_no: q_no }),  // 게시글 ID를 포함하여 전송
-            success: function(response) {
-                if (response.success) {
-                    alert("답변이 삭제되었습니다.")
-                    location.reload();  // 페이지를 새로 고쳐서 삭제된 댓글이 반영되도록
-                } else {
-                    alert("답변 삭제 실패했습니다.")
-                }
-            },
-            error: function(xhr, status, error) {
-                alert("오류 발생: " + error)
-            }
-        });
-    })
+        try {
+            const response = await fetch(`/api/question/${q_no}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ q_no: q_no })
+            });
 
+            const data = await response.json();
+            if (data.success) {
+                alert("삭제 완료되었습니다");
+                location.href = "/question";
+            } else {
+                alert("삭제 실패했습니다.");
+            }
+        } catch (error) {
+            alert("오류 발생: " + error);
+        }
+    });
+
+    // 댓글 작성
+    document.querySelector("#btn-comment")?.addEventListener("click", async (event) => {
+        event.preventDefault();
+
+        const comment = document.querySelector("#comment").value;
+        const q_no = "<%= q_no %>";
+        
+        try {
+            const response = await fetch(`/api/question/${q_no}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ comment })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert("댓글이 등록되었습니다.");
+                location.reload();  // 댓글 등록 후 새로고침
+            } else {
+                alert("댓글 등록 실패했습니다.");
+            }
+        } catch (error) {
+            alert("오류 발생: " + error);
+        }
+    });
 });
+// 날짜 포맷팅 함수
+const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}.${month}.${day} ${hours}:${minutes}`;
+    };
 </script>

@@ -1,98 +1,147 @@
 <link rel="stylesheet" href="/styles/board/board.css">
-    <div class="container mt-5">
-        <div class="card">
-            <div class="card-header text-white bg-dark">
-                <div class="align-items-center">
-                    <h4 class="mb-0">커뮤니티</h4>
-                    <p class="mb-0">친환경적인 미래를 위해 의견을 공유해보세요</p>
-                </div>
-            </div>
-            <div class="card-body">
-                <form>
-                    <div class="mb-3">
-                        <label for="category" class="form-label">카테고리</label>
-                        <select id="category" class="form-select">
-                            <option value="<%= board.content_type_id %>" selected><%= board.type_name %></option>
-                            <option value="1">친환경뉴스</option>
-                            <option value="2">친환경팁</option>
-                            <option value="3">자유게시판</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="title" class="form-label">제목</label>
-                        <input type="text" class="form-control" id="title" placeholder="제목을 입력하세요" value="<%= board.title %>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="content" class="form-label">내용</label>
-                        <textarea class="form-control" id="content" rows="20" placeholder="내용을 입력하세요"><%= board.content %></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="fileUpload" class="form-label">파일 첨부</label>
-                        <% if (board.image_url) { %>
-                            <div class="mb-2">
-                                <img src="<%= board.image_url %>" alt="첨부된 이미지" class="img-thumbnail" style="max-width: 200px;">
-                            </div>
-                        <% } %>
-                        <input class="form-control" type="file" id="fileUpload" accept=".png, .jpg, .gif">
-                        <small class="text-muted">PNG, JPG, GIF 최대 10MB</small>
-                        <!-- 기존이미지 URL -->
-                        <input type="hidden" id="image_url" value="<%= board.image_url %>">
-                    </div>
-                    <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-secondary me-2" id="btn-list">취소</button>
-                        <button type="submit" class="btn btn-primary" id="btn-update">수정</button>
-                    </div>
-                </form>
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header text-white bg-dark">
+            <div class="align-items-center">
+                <h4 class="mb-0">커뮤니티</h4>
+                <p class="mb-0">친환경적인 미래를 위해 의견을 공유해보세요</p>
             </div>
         </div>
+        <div class="card-body">
+            <form id="update-form">
+                <div class="mb-3">
+                    <label for="category" class="form-label">카테고리</label>
+                    <select id="category" class="form-select">
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="title" class="form-label">제목</label>
+                    <input type="text" class="form-control" id="title" placeholder="제목을 입력하세요">
+                </div>
+                <div class="mb-3">
+                    <label for="content" class="form-label">내용</label>
+                    <textarea class="form-control" id="content" rows="20" placeholder="내용을 입력하세요"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="fileUpload" class="form-label">파일 첨부</label>
+                    <input class="form-control" type="file" id="fileUpload" accept=".png, .jpg, .gif">
+                    <small class="text-muted">PNG, JPG, GIF 최대 10MB</small>
+                    <input type="hidden" id="image_url">
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-secondary me-2" id="btn-list">취소</button>
+                    <button type="submit" class="btn btn-primary" id="btn-update">수정</button>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 
-    <script>
-        $(document).ready(() => {
-            // 취소 버튼 클릭 시 목록 페이지로 이동
-            $("#btn-list").click(() => {
-                location.href = "/board"; 
-            });
-    
-            // 수정 버튼 클릭 시 폼 데이터를 서버로 전송
-            $("#btn-update").click((event) => {
-                event.preventDefault();  // 폼 제출을 막고 AJAX로 처리
-                
-                const b_no = "<%= board.board_id %>"
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+    const btnList = document.getElementById("btn-list");
+    const form = document.getElementById("update-form");
+    const b_no = "<%= b_no %>"; // 수정할 게시글 ID
 
-                const formData = new FormData()
-                formData.append('b_no', b_no) // b_no
-                formData.append('content_type_id',$("#category").val()) // 카테고리
-                formData.append('title', $("#title").val()); // 제목
-                formData.append('content', $("#content").val()); // 내용
-                
-                // 파일 첨부 여부에 따라 처리
-                const file = $("#fileUpload")[0].files[0];
-                if (file) {
-                    formData.append("fileUpload", file); // 새로 업로드된 파일
-                } else {
-                    formData.append("fileUpload", $("#image_url").val()); // 기존 이미지 URL
-                }
-                
-                // 서버로 AJAX 요청을 보내기
-                $.ajax({
-                    url: `/api/board/update/${b_no}`,  // 서버의 수정 API 경로
-                    type: 'PUT',
-                    data: formData,
-                    processData: false, //FormData 사용 시 설정
-                    contentType: false, //FormData 사용 시 설정
-                    success: function(response) {
-                        if (response.success) {
-                            alert("수정 완료되었습니다.");
-                            location.href = "/board";  // 수정 성공 시 목록 페이지로 이동
-                        } else {
-                            alert("수정 실패했습니다.");
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        alert("오류 발생: " + error);
-                    }
+    // 취소 버튼 클릭 이벤트
+    btnList.addEventListener("click", () => {
+        location.href = "/board"; // 목록 페이지로 이동
+    });
+
+    // API를 통해 데이터를 가져와 폼에 채워넣는 함수
+    async function loadBoardData() {
+        try {
+            // 서버로 GET 요청하여 데이터 가져오기
+            const response = await fetch(`/api/board/update/${b_no}`);
+            if (!response.ok) {
+                throw new Error("데이터를 가져오는 데 실패했습니다.");
+            }
+            const result = await response.json();
+
+            if (result.success) {
+                const board = result.board;
+
+                // 게시글 데이터를 폼에 채워넣기
+                document.getElementById("category").value = board.content_type_id;
+                document.getElementById("title").value = board.title;
+                document.getElementById("content").value = board.content;
+                document.getElementById("image_url").value = board.image_url;
+
+                // 카테고리 옵션 추가
+                const categories = [
+                    { id: 1, name: "친환경뉴스" },
+                    { id: 2, name: "친환경팁" },
+                    { id: 3, name: "자유게시판" },
+                ];
+
+                const categorySelect = document.getElementById("category");
+                categories.forEach(cat => {
+                    const option = document.createElement("option");
+                    option.value = cat.id;
+                    option.textContent = cat.name;
+                    categorySelect.appendChild(option);
                 });
+            } else {
+                alert("게시글 데이터를 가져오는데 문제가 발생했습니다.");
+            }
+        } catch (error) {
+            console.error("데이터 로딩 오류:", error);
+            alert("오류가 발생하여 게시글 데이터를 불러올 수 없습니다.");
+        }
+    }
+
+    // 데이터 로드
+    await loadBoardData();
+
+    // 수정 버튼 클릭 이벤트
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault(); // 기본 폼 제출 방지
+
+        // 입력값 가져오기
+        const content_type_id = document.getElementById("category").value; // 카테고리 ID
+        const title = document.getElementById("title").value.trim(); // 제목
+        const content = document.getElementById("content").value.trim(); // 내용
+
+        // 필수값 검증
+        if (!content_type_id || !title || !content) {
+            alert("모든 필드를 입력해주세요.");
+            return;
+        }
+
+        // 파일 처리
+        const file = document.getElementById("fileUpload").files[0];
+        const formData = new FormData();
+        formData.append('b_no', b_no); // 게시글 ID
+        formData.append('content_type_id', content_type_id); // 카테고리
+        formData.append('title', title); // 제목
+        formData.append('content', content); // 내용
+
+        // 파일 첨부 여부에 따라 처리
+        if (file) {
+            formData.append("fileUpload", file); // 새로 업로드된 파일
+        } else {
+            formData.append("fileUpload", document.getElementById("image_url").value); // 기존 이미지 URL
+        }
+
+        try {
+            // 서버로 PUT 요청 전송
+            const response = await fetch(`/api/board/update/${b_no}`, {
+                method: "PUT",
+                body: formData,
             });
-        });
-    </script>
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert("수정이 완료되었습니다.");
+                location.href = "/board"; // 성공 시 목록 페이지로 이동
+            } else {
+                alert("수정 실패: " + (result.message || "알 수 없는 오류"));
+            }
+        } catch (error) {
+            console.error("수정 요청 중 오류 발생:", error);
+            alert("오류 발생: 데이터를 수정할 수 없습니다.");
+        }
+    });
+});
+</script>

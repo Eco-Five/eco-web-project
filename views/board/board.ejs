@@ -13,113 +13,139 @@
                         <option value="2" <% if(category ==='2'){ %> selected <% } %>>친환경팁</option>
                         <option value="3" <% if(category ==='3'){ %> selected <% } %>>자유게시판</option>
                     </select>
-                    <% if (user && user.isAuthenticated) { %>
-                        <!-- <% console.log(user); %> -->
-                        <!-- 로그인 상태 -->
-                        <a href="/board/write"><button class="btn btn-dark">글쓰기</button></a>
-                    <% } else { %>
-                        <!-- 비로그인 상태 -->
-                        <a href="#"><button class="btn btn-dark" id="visitor">글쓰기</button></a>
-                    <% } %>
+                        <button class="btn btn-dark" id="btn-write" >글쓰기</button>
                 </div>
                 <!-- 카테고리 선택-->
                 <!-- 커뮤니티 글 목록 -->
-                <div class="list-group">
-                    <% boards.forEach(board => { %>
-                        <a href="/api/board/<%= board.board_id %>" class="list-group-item list-group-item-action d-flex gap-3 py-3">
-                            <img src="<%= board.image_url || '/images/anyone/eco-mascot.png' %>"  alt="thumbnail" class="rounded">
-                            <div class="w-100">
-                                <h5 class="mb-1">
-                                    <% if (board.type_name === '친환경뉴스') { %>
-                                        <span class="badge rounded-pill bg-success"><%= board.type_name %></span>
-                                    <% } else if (board.type_name === '친환경팁') { %>
-                                        <span class="badge rounded-pill bg-warning"><%= board.type_name %></span>
-                                    <% } else if (board.type_name === '자유게시판') { %>
-                                        <span class="badge rounded-pill bg-secondary"><%= board.type_name %></span>
-                                    <% } %>
-                                    <%= board.title %>
-                                </h5>
-                                <p class="mb-1 text-truncate" id="rcontent"><%= board.content %></p>
-                                <small class="text-muted"><%= board.name %> · <%= formatDate(board.board_date) %> · <i class="bi bi-eye"></i> <%= board.view_count %> · <i class="bi bi-suit-heart"></i> <%= board.totalhearts %>
-                                </small>
-                            </div>
-                        </a>
-                    <% }) %>
-                </div>
+                <div id="board-list" class="list-group"></div>
                 <!-- 커뮤니티 글 목록 -->
                 <!-- 페이징 처리 -->
                 <nav class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        <!-- 이전 페이지 -->
-                        <% if (currentPage > 1) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="?page=<%= currentPage - 1 %>&category=<%= category %>">&lt;</a>
-                            </li>
-                        <% } else { %>
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#"> &lt; </a>
-                            </li>
-                        <% } %>
-                        <!-- 페이지 번호 -->
-                        <% for (let i = 1; i <= totalPages; i++) { %>
-                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                                <a class="page-link" href="?page=<%= i %>&category=<%= category %>"><%= i %></a>
-                            </li>
-                        <% } %>
-                        <!-- 다음 페이지 -->
-                        <% if (currentPage < totalPages) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="?page=<%= currentPage + 1 %>&category=<%= category %>">&gt;</a>
-                            </li>
-                        <% } else { %>
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#"> &gt; </a>
-                            </li>
-                        <% } %>
-                    </ul>
+                    <ul class="pagination justify-content-center" id="pagination"></ul>
                 </nav>
             </div>
             <!-- 사이드바(인기게시글) -->
             <div class="col-lg-4">
                 <h5>인기 게시글</h5>
-                    <ul class="list-group">
-                        <% populars.forEach((popular, index) => { %>
-                            <li class="list-group-item d-flex justify-content-between align-items-start">
-                                <div class="ms-2 me-auto">
-                                    <a href="/api/board/<%= popular.board_id %>" class="popularlink"><%= index + 1 %>. <%= popular.title %> </a>
-                                </div>
-                            </li>
-                        <% }) %>
-                    </ul>
-                </div>
+                <ul class="list-group" id="popular-list"></ul>
             </div>
-            <!-- 인기게시글 -->
         </div>
     </div>
+    
     <script>
-        $('#visitor').on('click',function(){
-            alert("회원만 글쓰기가 가능합니다")
-        })
-        document.getElementById('category-select').addEventListener('change', ()=> {
-            const selectedCategory = event.target.value;
-        const currentPage = new URLSearchParams(window.location.search).get('page') || 1; // 현재 페이지 번호를 가져옵니다.
-        // 카테고리 값이 'all'이 아니면 URL에 카테고리 값을 추가
-        let url = `/api/board?page=1`; // 기본 URL은 페이지 번호만 포함
-        if (selectedCategory !== 'all') {
-        url += `&category=${selectedCategory}`; // 카테고리 정보도 URL에 포함
+    console.log("Logged-in User:", "<%= user ? user.member_id : 'No User' %>");
+    // 로그인/비로그인 상태에 따른 글쓰기 버튼 처리
+    document.querySelector("#btn-write")?.addEventListener("click", () => {
+    const loggedInUser = "<%= user ? user.member_id : 'No User' %>";
+    if (loggedInUser === 'No User') {
+        alert('로그인이 필요합니다.');
+    } else {
+        location.href = '/board/write';
+    }
+});
+
+        const categorySelect = document.getElementById('category-select');
+        const boardList = document.getElementById('board-list');
+        const pagination = document.getElementById('pagination');
+        const popularList = document.getElementById('popular-list');
+        
+        // 게시글 데이터를 가져오는 함수
+        function fetchBoardData(page = 1, category = 'all') {
+            fetch(`/api/board?page=${page}&category=${category}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateBoardList(data.boards);
+                    updatePagination(data.currentPage, data.totalPages, category);
+                    updatePopularList(data.populars);
+                })
+                .catch(error => {
+                    console.error('게시글 데이터를 가져오는 데 오류가 발생했습니다:', error);
+                });
         }
-        // 새로운 URL로 리다이렉트
-        window.location.href = url;
+    
+        // 게시글 목록을 업데이트하는 함수
+        function updateBoardList(boards) {
+            boardList.innerHTML = '';
+            boards.forEach(board => {
+                const boardItem = document.createElement('a');
+                boardItem.href = `/board/${board.board_id}`;
+                boardItem.classList.add('list-group-item', 'list-group-item-action', 'd-flex', 'gap-3', 'py-3');
+                boardItem.innerHTML = `
+                    <img src="${board.image_url || '/images/anyone/eco-mascot.png'}" alt="thumbnail" class="rounded">
+                    <div class="w-100">
+                        <h5 class="mb-1">
+                            <span class="badge rounded-pill ${board.type_name === '친환경뉴스' ? 'bg-success' : board.type_name === '친환경팁' ? 'bg-warning' : 'bg-secondary'}">
+                                ${board.type_name}
+                            </span>
+                            ${board.title}
+                        </h5>
+                        <p class="mb-1 text-truncate" id="rcontent">${board.content}</p>
+                        <small class="text-muted">${board.name} · ${formatDate(board.board_date)} · <i class="bi bi-eye"></i> ${board.view_count} · <i class="bi bi-suit-heart"></i> ${board.totalhearts}</small>
+                    </div>
+                `;
+                boardList.appendChild(boardItem);
+            });
+        }
+    
+        // 페이지네이션을 업데이트하는 함수
+        function updatePagination(currentPage, totalPages, category) {
+            pagination.innerHTML = '';
+            if (currentPage > 1) {
+                pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${currentPage - 1}, '${category}')">&lt;</a></li>`;
+            } else {
+                pagination.innerHTML += `<li class="page-item disabled"><a class="page-link" href="#"> &lt; </a></li>`;
+            }
+    
+            for (let i = 1; i <= totalPages; i++) {
+                pagination.innerHTML += `<li class="page-item ${currentPage === i ? 'active' : ''}">
+                                        <a class="page-link" href="#" onclick="changePage(${i}, '${category}')">${i}</a>
+                                        </li>`;
+            }
+    
+            if (currentPage < totalPages) {
+                pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${currentPage + 1}, '${category}')">&gt;</a></li>`;
+            } else {
+                pagination.innerHTML += `<li class="page-item disabled"><a class="page-link" href="#"> &gt; </a></li>`;
+            }
+        }
+    
+        // 인기 게시글 목록을 업데이트하는 함수
+        function updatePopularList(populars) {
+            popularList.innerHTML = '';
+            populars.forEach((popular, index) => {
+                const popularItem = document.createElement('li');
+                popularItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start');
+                popularItem.innerHTML = `
+                    <div class="ms-2 me-auto">
+                        <a href="/board/${popular.board_id}" class="popularlink">${index + 1}. ${popular.title}</a>
+                    </div>
+                `;
+                popularList.appendChild(popularItem);
+            });
+        }
+
+        // 날짜 포맷팅 함수
+        const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}.${month}.${day} ${hours}:${minutes}`;
+    };
+    
+        // 페이지 변경 함수
+        function changePage(page, category) {
+            fetchBoardData(page, category);
+        }
+    
+        // 카테고리 선택 변경 이벤트 리스너
+        categorySelect.addEventListener('change', () => {
+            const selectedCategory = categorySelect.value;
+            fetchBoardData(1, selectedCategory); // 카테고리 변경 시 항상 첫 페이지로 이동
         });
+    
+        // 초기 데이터 가져오기
+        fetchBoardData();
     </script>
-<%
-function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');  // months are zero-indexed
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}.${month}.${day} ${hours}:${minutes}`;
-}
-%>
