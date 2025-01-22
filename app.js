@@ -54,7 +54,33 @@ app.use(session({
     // maxAge : 쿠키 만료 기간을 1시간으로 설정
 }))
 /**************************************** Session & Redis ***************************************/
+// 최근 본 상품 세션에 저장
+app.post('/recentViewed', (req, res) => {
+  const { image, link } = req.body;
 
+  // 최근 본 상품 초기화
+  if (!req.session.recentViewed) {
+      req.session.recentViewed = [];
+  }
+  const recentViewed = req.session.recentViewed;
+
+  if (!recentViewed.some(item => item.link === link)) {
+      recentViewed.unshift({ image, link });
+      if (recentViewed.length > 5) {
+          recentViewed.pop();
+      }
+  }
+
+  // 최근 본 상품 최신화
+  req.session.recentViewed = recentViewed;
+
+  res.status(200).json({ message: '최근 본 상품 저장 완료' });
+});
+
+// 최근 본 상품 불러오기
+app.get('/recentViewed', (req, res) => {
+  res.status(200).json({ recentViewed: req.session.recentViewed || [] });
+});
 
 /****************************************** https ***************************************/
 app.use((req, res, next) => {

@@ -3,16 +3,18 @@
 <div class="profile-container">
     <div class="profile-header">
         <div class="profile-pic">
+            <h6 style="margin-top: 20px; justify-self: start;"><b>프로필</b></h6>
+            <br />
             <img src="" alt="프로필사진">
-        </div>
-        <div class="profile-info">
-            <p id="greet"></p>
-            <p id="point"></p>
+            <input class="form-control" type="file" id="fileUpload" accept=".png, .jpg, .gif">
+            <small class="text-muted">PNG, JPG, GIF 최대 10MB</small>
         </div>
     </div>
     <div class="custom-card text-center">
         <div class="tab-content">
             <div class="tab-pane fade show active" role="tabpanel" style="margin-top: 20px;">
+                <h6 style="margin-top: 20px; justify-self: start;"><b>개인정보</b></h6>
+                <br />
                     <div class="mb-3 d-flex align-items-center">
                         <label for="name" class="d-flex me-3 mb-2" style="flex-shrink: 0; width: 10%; ">이름</label>
                         <input type="text" id="name" style="width: 60%;" required>
