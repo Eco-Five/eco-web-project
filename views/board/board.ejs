@@ -1,5 +1,4 @@
-<board.ejs>
-    <link rel="stylesheet" href="/styles/board/board.css">
+<link rel="stylesheet" href="/styles/board/board.css">
     <div class="container mt-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">커뮤니티</h1>
@@ -14,13 +13,7 @@
                         <option value="2" <% if(category ==='2'){ %> selected <% } %>>친환경팁</option>
                         <option value="3" <% if(category ==='3'){ %> selected <% } %>>자유게시판</option>
                     </select>
-                    <% if (user && user.isAuthenticated) { %>
-                        <!-- 로그인 상태 -->
-                        <a href="/board/write"><button class="btn btn-dark">글쓰기</button></a>
-                    <% } else { %>
-                        <!-- 비로그인 상태 -->
-                        <button class="btn btn-dark" id="visitor">글쓰기</button>
-                    <% } %>
+                        <button class="btn btn-dark" id="btn-write" >글쓰기</button>
                 </div>
                 <!-- 카테고리 선택-->
                 <!-- 커뮤니티 글 목록 -->
@@ -40,9 +33,16 @@
     </div>
     
     <script>
-        $('#visitor').on('click',function(){
-            alert("회원만 글쓰기가 가능합니다")
-        })
+    console.log("Logged-in User:", "<%= user ? user.member_id : 'No User' %>");
+    // 로그인/비로그인 상태에 따른 글쓰기 버튼 처리
+    document.querySelector("#btn-write")?.addEventListener("click", () => {
+    const loggedInUser = "<%= user ? user.member_id : 'No User' %>";
+    if (loggedInUser === 'No User') {
+        alert('로그인이 필요합니다.');
+    } else {
+        location.href = '/board/write';
+    }
+});
 
         const categorySelect = document.getElementById('category-select');
         const boardList = document.getElementById('board-list');
@@ -68,7 +68,7 @@
             boardList.innerHTML = '';
             boards.forEach(board => {
                 const boardItem = document.createElement('a');
-                boardItem.href = `/api/board/${board.board_id}`;
+                boardItem.href = `/board/${board.board_id}`;
                 boardItem.classList.add('list-group-item', 'list-group-item-action', 'd-flex', 'gap-3', 'py-3');
                 boardItem.innerHTML = `
                     <img src="${board.image_url || '/images/anyone/eco-mascot.png'}" alt="thumbnail" class="rounded">
@@ -117,7 +117,7 @@
                 popularItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start');
                 popularItem.innerHTML = `
                     <div class="ms-2 me-auto">
-                        <a href="/api/board/${popular.board_id}" class="popularlink">${index + 1}. ${popular.title}</a>
+                        <a href="/board/${popular.board_id}" class="popularlink">${index + 1}. ${popular.title}</a>
                     </div>
                 `;
                 popularList.appendChild(popularItem);

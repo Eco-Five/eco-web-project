@@ -27,7 +27,6 @@ router.get('/about', function(req, res, next) {
   res.render('index', { title: 'about', pageName: 'main/about.ejs' });
 });
 
-
 /* 커뮤니티 */
 //목록
 router.get('/board', function(req, res, next) {
@@ -36,15 +35,16 @@ router.get('/board', function(req, res, next) {
   const page = req.query.page || 1;  
   res.render('index', { title: '커뮤니티목록', pageName: 'board/board.ejs', user: user, category: category, page: page});
 });
-//글 상세보기 
-router.get('/board/read', function(req, res, next) {
-  const b_no = req.params.b_no
-  res.redirect(`/api/board/${b_no}`);
-});
 // 글 작성
 router.get('/board/write', function(req, res, next) {
   const user = req.session.user || null; 
   res.render('index', { title: '커뮤니티작성', pageName:'board/write.ejs', user: user });
+});
+//상세보기
+router.get('/board/:b_no', function(req, res, next) { 
+  const b_no = req.params.b_no; 
+  const user = req.session.user || null;
+  res.render('index', { title: '커뮤니티상세보기', pageName: 'board/read.ejs', b_no: b_no, user: user });
 });
 // 글 수정 
 router.get('/board/update/:b_no', function(req, res, next) {
@@ -55,20 +55,21 @@ router.get('/board/update/:b_no', function(req, res, next) {
 /* 고객문의 */
 // 목록
 router.get('/question', function(req, res, next) {
-  const user = req.session.user;  
+  const user = req.session.user || null;  
   const category = req.query.category || 'all';  
   const page = req.query.page || 1;  
   res.render('index', { title: '고객문의목록', pageName: 'question/question.ejs', user: user, category: category, page: page});
-});
-// 글 상세보기 
-router.get('/question/read', function(req, res, next) {
-  const q_no = req.params.q_no
-  res.redirect(`/api/question/${q_no}`);
 });
 // 글 작성
 router.get('/question/write', function(req, res, next) {
   const user = req.session.user || null; 
   res.render('index', { title: '고객문의작성', pageName:'question/write.ejs', user: user });
+});
+//상세보기
+router.get('/question/:q_no', function(req, res, next) {
+  const user = req.session.user || null;
+  const q_no = req.params.q_no;
+  res.render('index', {title: '고객문의상세보기', pageName: 'question/read.ejs', user: user, q_no: q_no});
 });
 // 글 수정 
 router.get('/question/update/:q_no', function(req, res, next) {
@@ -82,8 +83,7 @@ router.get('/product', function(req, res, next) {
 });
 /* 마이 페이지 */
 router.get('/mypage', function(req, res, next) {
-  const member_id = req.session.user.member_id
-  res.render('index', { title: '마이페이지', pageName: 'mypage/mypage.ejs', member_id:member_id });
+  res.render('index', { title: '마이페이지', pageName: 'mypage/mypage.ejs' });
 });
 
 module.exports = router;
